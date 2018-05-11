@@ -32,7 +32,7 @@
 #' DataOrnithodirans$massdino->massdino
 #'
 #' # Extract Pterosaurs tree and data
-#'   extract.clade(treedino,748)->treeptero
+#'   ape::extract.clade(treedino,748)->treeptero
 #'   massdino[match(treeptero$tip.label,names(massdino))]->massptero
 #'   massptero[match(treeptero$tip.label,names(massptero))]->massptero
 #'
@@ -453,7 +453,7 @@ search.trend<-function(RR,
                      if(class(lam)=="try-error") lambda<-RR$lambda else lambda <- coef(lam)
                    }else{
                      lam <- try(stats4::mle(optL, start = list(lambda = 1),
-                                            method = "L-BFGS-B",upper=2*RR$lambda,lower=RR$lambda/2))
+                                            method = "L-BFGS-B",upper=1.5*RR$lambda,lower=RR$lambda/1.5))
                      if(class(lam)=="try-error") lambda<-RR$lambda else lambda <- coef(lam)
 
                    }
