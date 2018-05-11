@@ -103,7 +103,11 @@ search.trend<-function(RR,
   }
 
   RR$tree->t
-  if(density(diag(vcv(t)))$bw/max(nodeHeights(t))<0.05) warning("trend regression test might have low power")
+  if (length(y) > Ntip(t)) {
+    if(density(diag(vcv(t)))$bw/max(nodeHeights(t))<0.08) warning("trend regression test might have low power")
+  }else{
+    if(density(diag(vcv(t)))$bw/max(nodeHeights(t))<0.07) warning("trend regression test might have low power")
+  }
   RR$rates->rates
   RR$multiple.rates->betas
   RR$aces->aceRR
