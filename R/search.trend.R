@@ -57,11 +57,11 @@
 #'
 #'  # Case 2.1. "search.trend" whitout indicating nodes to be tested for trends
 #'    search.trend(RR=RRpteroCov, y=log(massptero), nsim=100, clus=0.5,
-#'    foldername=tempdir(),cov=NULL,ConfInt=FALSE,cov=cov.values)
+#'    foldername=tempdir(),ConfInt=FALSE,cov=cov.values)
 #'
 #'  # Case 2.2. "search.trend" indicating nodes to be specifically tested for trends
 #'    search.trend(RR=RRpteroCov, y=log(massptero), nsim=100, node=143, clus=0.5,
-#'    foldername=tempdir(),cov=NULL,ConfInt=FALSE,cov=cov.values)}
+#'    foldername=tempdir(),ConfInt=FALSE,cov=cov.values)}
 
 
 search.trend<-function(RR,
