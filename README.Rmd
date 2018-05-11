@@ -1,0 +1,20 @@
+---
+output:
+  md_document:
+    variant: markdown_github
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "README-"
+)
+```
+
+# RRphylo
+
+The goal of RRphylo is to compute phenotypic evolutionary rates, estimate ancestral states, locate rate shifts on the tree, and compare vectors of phenotypes and evolutionary rates among species. RRphylo is not based on any evolutionary model, and is best suited to work with phylogenies of fossil species. 
+
