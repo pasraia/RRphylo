@@ -32,7 +32,8 @@
 #' DataOrnithodirans$massdino->massdino
 #'
 #' # Extract Pterosaurs tree and data
-#'   ape::extract.clade(treedino,748)->treeptero
+#'   library(ape)
+#'   extract.clade(treedino,748)->treeptero
 #'   massdino[match(treeptero$tip.label,names(massdino))]->massptero
 #'   massptero[match(treeptero$tip.label,names(massptero))]->massptero
 #'
