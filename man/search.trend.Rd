@@ -53,6 +53,7 @@ DataOrnithodirans$treedino->treedino
 DataOrnithodirans$massdino->massdino
 
 # Extract Pterosaurs tree and data
+  library(ape)
   extract.clade(treedino,748)->treeptero
   massdino[match(treeptero$tip.label,names(massdino))]->massptero
   massptero[match(treeptero$tip.label,names(massptero))]->massptero
@@ -62,7 +63,7 @@ DataOrnithodirans$massdino->massdino
 
  # Case 1.1. "search.trend" whitout indicating nodes to be tested for trends
    search.trend(RR=RRptero, y=log(massptero), nsim=100, clus=0.5,
-   foldername=tempdir(),cov=NULL,ConfInt=FALSE)
+   foldername=tempdir(),cov=NULL,ConfInt=FALSE,node=NULL)
 
  # Case 1.2. "search.trend" indicating nodes to be specifically tested for trends
     search.trend(RR=RRptero, y=log(massptero), nsim=100, node=143, clus=0.5,
@@ -78,11 +79,11 @@ DataOrnithodirans$massdino->massdino
 
  # Case 2.1. "search.trend" whitout indicating nodes to be tested for trends
    search.trend(RR=RRpteroCov, y=log(massptero), nsim=100, clus=0.5,
-   foldername=tempdir(),cov=NULL,ConfInt=FALSE,cov=cov.values)
+   foldername=tempdir(),ConfInt=FALSE,cov=cov.values)
 
  # Case 2.2. "search.trend" indicating nodes to be specifically tested for trends
    search.trend(RR=RRpteroCov, y=log(massptero), nsim=100, node=143, clus=0.5,
-   foldername=tempdir(),cov=NULL,ConfInt=FALSE,cov=cov.values)}
+   foldername=tempdir(),ConfInt=FALSE,cov=cov.values)}
 }
 \author{
 Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
