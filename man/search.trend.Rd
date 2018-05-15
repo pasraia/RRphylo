@@ -17,7 +17,7 @@ search.trend(RR,y,nsim=100,clus=.5,node=NULL,cov=NULL,foldername,ConfInt=c(FALSE
 
 \item{node}{number of nodes to be specifically tested for trends. It is NULL by default. Notice the node number must refer to the dichotomic version of the original tree, as produced by \code{RRphylo}.}
 
-\item{cov}{the covariate values to be specified if the RR object has been created with covariate.}
+\item{cov}{the covariate values to be specified if the RR object has been created with covariate. As for \code{\link{RRphylo}}, \code{'cov'} must be as long as the number of nodes plus the number of tips of the tree, which can be obtained by running \code{RRphylo} on the covariate as well, and taking the vector of ancestral states and tip values to form the covariate (see the example below).}
 
 \item{foldername}{the path of the folder where plots are to be found.}
 
