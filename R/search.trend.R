@@ -7,7 +7,7 @@
 #' @param nsim number of simulations to be performed. It is set at 100 by default.
 #' @param clus the proportion of clusters to be used in parallel computing.
 #' @param foldername the path of the folder where plots are to be found.
-#' @param cov the covariate values to be specified if the RR object has been created with covariate.
+#' @param cov the covariate values to be specified if the RR object has been created with covariate. As for \code{\link{RRphylo}}, \code{'cov'} must be as long as the number of nodes plus the number of tips of the tree, which can be obtained by running \code{RRphylo} on the covariate as well, and taking the vector of ancestral states and tip values to form the covariate (see the example below).
 #' @param ConfInt if \code{TRUE}, the function returns 95\% confidence intervals for slopes of phenotype versus age, absolute rates versus age, and relative rates versus age regressions.
 #' @return The function returns a ‘list’ object including:
 #' @return \strong{$rbt} for each branch of the tree, there are the age of the daughter node/tip (D.age), the age of the parental node (P.age), the \code{\link{RRphylo}} rates, and the distance from the tree root (age). If y is multivariate, it also includes the multiple rates for each y component.
