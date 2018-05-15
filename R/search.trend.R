@@ -64,8 +64,14 @@
 #'    search.trend(RR=RRpteroCov, y=log(massptero), nsim=100, node=143, clus=0.5,
 #'    foldername=tempdir(),ConfInt=FALSE,cov=cov.values)}
 
-
-search.trend<-function(RR,y,nsim=100,clus=.5,node=NULL,cov=NULL,foldername,ConfInt=c(FALSE,TRUE))
+search.trend<-function(RR,
+                       y,
+                       nsim=100,
+                       clus=.5,
+                       node=NULL,
+                       cov=NULL,
+                       foldername,
+                       ConfInt=c(FALSE,TRUE))
 {
   #require(ape)
   #require(phytools)
@@ -75,7 +81,6 @@ search.trend<-function(RR,y,nsim=100,clus=.5,node=NULL,cov=NULL,foldername,ConfI
   #require(doParallel)
   #require(lmtest)
   #require(parallel)
-  #require(RRphylo)
   #require(smatr)
   #require(binr)
   #require(nlme)
@@ -99,7 +104,7 @@ search.trend<-function(RR,y,nsim=100,clus=.5,node=NULL,cov=NULL,foldername,ConfI
 
   RR$tree->t
   if (length(y) > Ntip(t)) {
-    if(density(diag(vcv(t)))$bw/max(nodeHeights(t))<0.08) warning("trend regression might have low power for a small tree or a modest effect")
+    if(density(diag(vcv(t)))$bw/max(nodeHeights(t))<0.08) warning("trend regression test might have low power")
   }else{
     if(density(diag(vcv(t)))$bw/max(nodeHeights(t))<0.07) warning("trend regression might have low power for a small tree or a modest effect")
   }
@@ -443,6 +448,8 @@ search.trend<-function(RR,y,nsim=100,clus=.5,node=NULL,cov=NULL,foldername,ConfI
   res <- foreach(i = 1:nsim,
                  .packages = c("nlme","ape", "geiger", "phytools", "penalized", "doParallel", "lmtest","smatr")) %dopar%
                  {
+  #for(i in 1:nsim){
+    #print(i)
                    gc()
                    if (length(y) > Ntip(t)) {
                      vec <- seq(1:nsim)
@@ -456,12 +463,12 @@ search.trend<-function(RR,y,nsim=100,clus=.5,node=NULL,cov=NULL,foldername,ConfI
                      (dim(y)[2])*RR$lambda*0.5->UP
                      (RR$lambda*0.5)/(dim(y)[2])->LW
                      lam <- try(stats4::mle(optL, start = list(lambda = 1),method = "L-BFGS-B",upper=UP,lower=LW))
-                     if(class(lam)=="try-error") lambda<-RR$lambda else lambda <- coef(lam)
+                     if(class(lam)=="try-error") lambda<-RR$lambda else lambda <- lam@coef
                    }else{
                      UP = 1.5 * RR$lambda
                      LW = RR$lambda/1.5
                      lam <- try(stats4::mle(optL, start = list(lambda = 1),method = "L-BFGS-B", upper = UP,lower = LW))
-                     if (class(lam) == "try-error") lambda <- RR$lambda else lambda <- coef(lam)
+                     if (class(lam) == "try-error") lambda <- RR$lambda else lambda <- lam@coef
                    }
 
                    betas <- (solve(t(L) %*% L + lambda * diag(ncol(L))) %*%
@@ -805,7 +812,7 @@ search.trend<-function(RR,y,nsim=100,clus=.5,node=NULL,cov=NULL,foldername,ConfI
 
                    }
                  }
-  stopCluster(cl)
+  #stopCluster(cl)
   #### End RBI Randomization ####
 
   if (length(y) > Ntip(t)) {
