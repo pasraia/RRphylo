@@ -268,7 +268,7 @@ evo.dir<-function(RR,
       paste(pair[1],pair[2],sep="/")->colnames(res)
       return(res)
     } else {
-      t(data.frame("angle path A"=angA,"vector size species A"= a.size, "angle path B"=angB,"vector size species B"= b.size,"angle between species to mrca"=ang.mrca,"angle between species"=theta.species,"MRCA"=getMRCA(tree,pair),"angle direction A"=conv.angA,"angle direction A"=conv.sizeA,"angle direction B"=conv.angB,"vec size direction B"=conv.sizeB))->res
+      t(data.frame("angle path A"=angA,"vector size species A"= a.size, "angle path B"=angB,"vector size species B"= b.size,"angle between species to mrca"=ang.mrca,"angle between species"=theta.species,"MRCA"=getMRCA(tree,pair),"angle direction A"=conv.angA,"vec size direction A"=conv.sizeA,"angle direction B"=conv.angB,"vec size direction B"=conv.sizeB))->res
       paste(pair[1],pair[2],sep="/")->colnames(res)
       return(res)
 
