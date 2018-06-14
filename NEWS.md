@@ -1,3 +1,14 @@
+# RRphylo 1.2.0
+
+What’s new in version 1.2.0
+RRphylo function now can be informed about the phenotype at the root. 
+Users might have a fossil specimen as a reference.Otherwise, if no phenotypic 
+value for the root is specified, RRphylo reads the phenotypes of one tenth of 
+the tip values (those closest to the root), and calculates a weighted phenotypic 
+average depending on both the tip values and the distance from the root (closest 
+tips count more). Either the user-specified value or the weighted average 
+phenotype will be used to constrain the root state.
+
 # RRphylo 1.1.0
 
 What’s new in version 1.1.0
