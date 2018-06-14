@@ -4,7 +4,7 @@
 \alias{RRphylo}
 \title{Evolutionary rates computation along phylogenies}
 \usage{
-RRphylo(tree,y,cov=NULL)
+RRphylo(tree,y,cov=NULL,rootV=NULL)
 }
 \arguments{
 \item{tree}{a phylogenetic tree. The tree needs not to be ultrametric or fully dichotomous.}
@@ -12,6 +12,8 @@ RRphylo(tree,y,cov=NULL)
 \item{y}{either a single vector variable or a multivariate dataset of class \sQuote{matrix}.}
 
 \item{cov}{the covariate to be indicated if its effect on the rates must be accounted for. In this case residuals of the covariate versus the rates are used as rates. \code{'cov'} must be as long as the number of nodes plus the number of tips of the tree, which can be obtained by running \code{RRphylo} on the covariate as well, and taking the vector of ancestral states and tip values to form the covariate, as in the example below.}
+
+\item{rootV}{phenotypic value (values if multivariate) at the tree root. If \code{rootV=NULL} the function 'learns' about the root value from the 10\% tips being closest in time to the tree root, weighted by their temporal distance from the root itself (close tips phenotypes weigh more than more distant tips).}
 }
 \value{
 \strong{tree} the tree used by \code{RRphylo}. The fully dichotomous version of the tree argument. For trees with polytomies, the tree is resolved by using \code{multi2di} function in the package \pkg{ape}. If the latter is a dichotomous tree, the two trees will be identical.
