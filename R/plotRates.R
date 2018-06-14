@@ -59,8 +59,6 @@ plotRates<-function(RR, node, export.tiff=c(TRUE, FALSE),foldername){
   }else{
 
     par(mfrow=c(1,2))
-    #hist(log(abs(c(FULLrates[match(shift331[shift331>Ntip(rr3)],rownames(FULLrates)),],FULLrates[match(rr3$tip.label[shift331[shift331<=Ntip(rr3)]],rownames(FULLrates)),]))))->H1
-    #hist(log(abs(FULLrates[which(rownames(FULLrates)!=names(c(FULLrates[match(shift331[shift331>Ntip(rr3)],rownames(FULLrates)),],FULLrates[match(rr3$tip.label[shift331[shift331<=Ntip(rr3)]],rownames(FULLrates)),])))])))->H2
     hist(log(abs(shift.rates)))->H1
     hist(log(abs(FULLrates[-match(names(shift.rates),rownames(FULLrates)),])))->H2
     log(abs(FULLrates))[(log(abs(FULLrates))!="-Inf")]->Xa

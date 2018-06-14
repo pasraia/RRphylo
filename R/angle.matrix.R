@@ -208,7 +208,7 @@ angle.matrix<-function(RR,node,Y=NULL,select.axes=c("no","yes"),type=c("phenotyp
     lapply(x.and.y,function(x) rad2deg(atan(x[2]/x[1])))->vector.angle
     lapply(x.and.y,function(x) (x[1]^2+x[2]^2)^.5)->vector.length
     rbind(ontogenetic.angle=as.data.frame(vector.angle),ontogenetic.size=as.data.frame(vector.length),as.data.frame(x.and.y))->onto.vectorR
-    #abs(apply(onto.vectorR,1,diff))[1:2]->onto.random[w,]
+
 
     onto.r<-matrix(ncol=2,nrow=dim(couples)[2])
     for (i in 1 :dim(couples)[2]){
@@ -314,12 +314,12 @@ angle.matrix<-function(RR,node,Y=NULL,select.axes=c("no","yes"),type=c("phenotyp
 
     s3->ontogenesis.mats[[g]]
 
-    PCgroup<-list() ##### 4 random
+    PCgroup<-list()
     ontog<-list()
     for (i in 1:length(group.matt)){
       group.matt[[i]]->group.mat
       y.onto[match(rownames(group.mat),rownames(y.onto)),]->groupY
-      groupY->PCgroup[[i]] ##### 4 random
+      groupY->PCgroup[[i]]
       as.matrix(groupY)->groupY
       apply(groupY,1,unitV)->group.len
       apply(groupY,2,function(x) x[1]-sum(x[2:length(x)]))->Y.resultant

@@ -86,12 +86,13 @@ search.trend<-function(RR,
   #require(nlme)
   #require(RColorBrewer)
 
+
   optL <- function(lambda) {
     y <- scale(y)
     betas <- (solve(t(L) %*% L + lambda * diag(ncol(L))) %*%
-                t(L)) %*% as.matrix(y)
-    aceRR <- L1 %*% betas[1:Nnode(t), ]
-    y.hat <- L %*% betas
+                t(L)) %*% (as.matrix(y)-rootV)
+    aceRR <- (L1 %*% betas[1:Nnode(t), ])+rootV
+    y.hat <- (L %*% betas)+rootV
     Rvar <- array()
     for (i in 1:Ntip(t)) {
       ace.tip <- betas[match(names(which(L[i, ] != 0)),
@@ -153,16 +154,6 @@ search.trend<-function(RR,
   data <- data.frame(b.distrib, data)
   rbi <- data
 
-  #if(coef(summary(lm(age~seq(1:length(age)),data=rbi)))[2,4]<0.1)
-  #{
-  #  residuals(lm(age~seq(1:length(age)),data=rbi))->AGE
-  # data.frame(rbi,AGE)->rbi
-  #colnames(rbi)<-c("daughter","D.age","P.age","D.death","rate","real.age","age")
-  #}else{
-  #  data.frame(rbi,rbi$age)->rbi
-  # colnames(rbi)<-c("daughter","D.age","P.age","D.death","rate","real.age","age")
-  #}
-
 
   if (length(y) > Ntip(t)) {
     rbi.rate<-rbi[, c(5:(dim(rbi)[2]-1),dim(rbi)[2])]
@@ -214,7 +205,6 @@ search.trend<-function(RR,
     P <- rbind(nodes, y)
     PP <- data.frame(P[match(rbi[, 1], rownames(P)),
                        ], rbi$age)
-    #PP[, dim(PP)[2]] <- H - PP[, dim(PP)[2]]
     colnames(PP)[dim(PP)[2]] <- "age"
     apply(PP[1:(dim(PP)[2] - 1)], 2, function(x) sma(x ~ age, data = PP[1:(dim(PP)[2] - 1)],slope.test=0.001)$groupsummary$Slope_test_p)->sma0P
     trend.reg <- apply(PP[1:(dim(PP)[2] - 1)], 2, function(x) summary(lm(x ~
@@ -229,7 +219,6 @@ search.trend<-function(RR,
   } else {
     P <- c(nodes, y)
     PP <- data.frame(P[match(rbi[, 1], names(P))], rbi$age)
-    #PP[, 2] <- H - PP[, 2]
     colnames(PP) <- c("phenotype", "age")
     sma(phenotype ~ age, data = PP,slope.test=0.001)$groupsummary$Slope_test_p->sma0P
     trend.reg <- summary(lm(PP))$coeff
@@ -278,8 +267,8 @@ search.trend<-function(RR,
           if(class(aaa)=="try-error") lm(abs(bet)~age)->aaa
           rbi.slopeAn[i,] <- coef(summary(aaa))[2,c(1,4)]
           data.frame(bet,age)->dat
-          sma(abs(bet) ~ age, data = dat,slope.test=0.001)$groupsummary$Slope_test_p->sma0An[i] ###test diff from zero OGGI
-          sma(bet ~ age, data = dat,slope.test=0.001)$groupsummary$Slope_test_p->sma0Rn[i] ###test diff from zero OGGI
+          sma(abs(bet) ~ age, data = dat,slope.test=0.001)$groupsummary$Slope_test_p->sma0An[i]
+          sma(bet ~ age, data = dat,slope.test=0.001)$groupsummary$Slope_test_p->sma0Rn[i]
           REG.betas.y[[i]]<- predict(aar)
           REGabs.betas.y[[i]]<- predict(aaa)
           REG.betas.age[[i]]<-age
@@ -297,8 +286,8 @@ search.trend<-function(RR,
         try(gls(abs(rate)~age,data=rbi.rate,weights=varFunc(~age),control = list(singular.ok = TRUE)))->aaa
         if(class(aaa)=="try-error") lm(abs(rate)~age,data=rbi.rate)->aaa
         rbi.slopeAn <- coef(summary(aaa))[2,c(1,4)]
-        sma(abs(rate) ~ age, data = rbi.rate,slope.test=0.001)$groupsummary$Slope_test_p->sma0An ###test diff from zero OGGI
-        sma(rate ~ age, data = rbi.rate,slope.test=0.001)$groupsummary$Slope_test_p->sma0Rn ###test diff from zero OGGI
+        sma(abs(rate) ~ age, data = rbi.rate,slope.test=0.001)$groupsummary$Slope_test_p->sma0An
+        sma(rate ~ age, data = rbi.rate,slope.test=0.001)$groupsummary$Slope_test_p->sma0Rn
         REG.betas.y<- predict(aar)
         REGabs.betas.y<- predict(aaa)
         REG.betas.age<- rbi.rate$age
@@ -317,7 +306,6 @@ search.trend<-function(RR,
         P <- rbind(nodes, y)
         PP <- data.frame(P[match(rbi.sel[, 1], rownames(P)),
                            ], rbi.sel$age)
-        #PP[, dim(PP)[2]] <- H - PP[, dim(PP)[2]]
         colnames(PP)[dim(PP)[2]] <- "age"
         apply(PP[1:(dim(PP)[2] - 1)], 2, function(x) sma(x ~ age, data = PP,slope.test=0.001)$groupsummary$Slope_test_p)->sma0P.sel[[j]]
         PP$age->trend.reg.age.sel[[j]]
@@ -335,7 +323,6 @@ search.trend<-function(RR,
       } else {
         P <- c(nodes, y)
         PP <- data.frame(P[match(rbi.sel[, 1], names(P))], rbi.sel$age)
-        #PP[, 2] <- H - PP[, 2]
         colnames(PP) <- c("phenotype", "age")
         trend.regC <- summary(lm(PP))$coeff
         sma(phenotype ~ age, data = PP,slope.test=0.001)$groupsummary$Slope_test_p->sma0P.sel[[j]]
@@ -448,8 +435,6 @@ search.trend<-function(RR,
   res <- foreach(i = 1:nsim,
                  .packages = c("nlme","ape", "geiger", "phytools", "penalized", "doParallel", "lmtest","smatr")) %dopar%
                  {
-  #for(i in 1:nsim){
-    #print(i)
                    gc()
                    if (length(y) > Ntip(t)) {
                      vec <- seq(1:nsim)
@@ -462,11 +447,13 @@ search.trend<-function(RR,
                    if (length(y) > Ntip(t)) {
                      (dim(y)[2])*RR$lambda*0.5->UP
                      (RR$lambda*0.5)/(dim(y)[2])->LW
+                     aceRR[1,]->rootV
                      lam <- try(stats4::mle(optL, start = list(lambda = 1),method = "L-BFGS-B",upper=UP,lower=LW))
                      if(class(lam)=="try-error") lambda<-RR$lambda else lambda <- lam@coef
                    }else{
                      UP = 1.5 * RR$lambda
                      LW = RR$lambda/1.5
+                     aceRR[1]->rootV
                      lam <- try(stats4::mle(optL, start = list(lambda = 1),method = "L-BFGS-B", upper = UP,lower = LW))
                      if (class(lam) == "try-error") lambda <- RR$lambda else lambda <- lam@coef
                    }
@@ -531,7 +518,6 @@ search.trend<-function(RR,
                      P <- rbind(nodes, y)
                      PP <- data.frame(P[match(rbi[, 1], rownames(P)),
                                         ], rbi$age)
-                     #PP[, dim(PP)[2]] <- H - PP[, dim(PP)[2]]
                      colnames(PP)[dim(PP)[2]] <- "age"
                      trend.regR <- apply(PP[1:(dim(PP)[2] - 1)],
                                          2, function(x) summary(lm(x ~ PP[, dim(PP)[2]])))
@@ -569,10 +555,9 @@ search.trend<-function(RR,
                      P <- c(nodes, y)
                      PP <- data.frame(P[match(rbi[, 1], names(P))],
                                       rbi$age)
-                     #PP[, 2] <- H - PP[, 2]
                      colnames(PP) <- c("phenotype", "age")
                      trend.regS <- lm(PP)
-                     trend.regS <- coefficients(trend.regS) #################
+                     trend.regS <- coefficients(trend.regS)
                      sma(phenotype~age,data=PP, method="OLS",slope.test=trend.reg[2,1])$slopetest[[1]]$p->SSp1
                      sma(phenotype~age,data=PP, method="OLS",slope.test=0.001)$slopetest[[1]]$p->SSp2
                      coef(sma(phenotype~age,data=PP, method="OLS",slope.test=0.001))[2]->SSp3
@@ -594,7 +579,6 @@ search.trend<-function(RR,
                      rates<-betas
                      data <- data.frame(rate = rates[match(eds[,
                                                                1], rownames(rates)), ], age = eds[, 2])
-                     #rownames(data)<-rownames(rates)
                    }
 
                    data <- data[-1, ]
@@ -744,7 +728,6 @@ search.trend<-function(RR,
                          P <- rbind(nodes, y)
                          PP <- data.frame(P[match(rbi.sel[, 1], rownames(P)),
                                             ], rbi.sel$age)
-                         #PP[, dim(PP)[2]] <- H - PP[, dim(PP)[2]]
                          colnames(PP)[dim(PP)[2]] <- "age"
                          trend.regC <- apply(PP[1:(dim(PP)[2] - 1)], 2, function(x) summary(lm(x ~
                                                                                                  PP[, dim(PP)[2]])))
@@ -782,10 +765,9 @@ search.trend<-function(RR,
                        } else {
                          P <- c(nodes, y)
                          PP <- data.frame(P[match(rbi.sel[, 1], names(P))], rbi.sel$age)
-                         #PP[, 2] <- H - PP[, 2]
                          colnames(PP) <- c("phenotype", "age")
                          trend.regC <- lm(PP)
-                         trend.regC <- coefficients(trend.regC) ###########################
+                         trend.regC <- coefficients(trend.regC)
                          sma(phenotype~age,data=PP, method="OLS",slope.test=trend.reg.sel[[j]][2,1])$slopetest[[1]]$p->SSp1
                          sma(phenotype~age,data=PP, method="OLS",slope.test=0.001)$slopetest[[1]]$p->SSp2
                          coef(sma(phenotype~age,data=PP, method="OLS",slope.test=0.001))[2]->SSp3
@@ -808,11 +790,9 @@ search.trend<-function(RR,
                      res[[i]] <- list(trend.regS, rbi.slopeRS,
                                       rbi.slopeAS, SSp, SSa, SSr,PPtot,rbi)
 
-                     #res[[i]] <- list(trend.regS, rbi.slopeRS,rbi.slopeAS)
-
                    }
                  }
-  #stopCluster(cl)
+  stopCluster(cl)
   #### End RBI Randomization ####
 
   if (length(y) > Ntip(t)) {
@@ -829,9 +809,9 @@ search.trend<-function(RR,
 
       if(dim(Srr)[1]>0){
         if(rbi.slopeR[i,1]>0){
-          p.rbi.slopeR[i] <- (rank(c(rbi.slopeR[i,1], rbi.slopeRS[1:(nsim-1),]))[1]+length(which(Srr[,3]>.05 & Srr[,4]<.01)))/nsim
+          p.rbi.slopeR[i] <- (rank(c(rbi.slopeR[i,1], rbi.slopeRS[1:(nsim-1),]))[1]+length(which(Srr[,3]>.05 & Srr[,4]<.05)))/nsim
         } else {
-          p.rbi.slopeR[i] <- (rank(c(rbi.slopeR[i,1], rbi.slopeRS[1:(nsim-1),]))[1]-length(which(Srr[,3]>.05 & Srr[,4]<.01)))/nsim
+          p.rbi.slopeR[i] <- (rank(c(rbi.slopeR[i,1], rbi.slopeRS[1:(nsim-1),]))[1]-length(which(Srr[,3]>.05 & Srr[,4]<.05)))/nsim
         }
       }else{
         p.rbi.slopeR[i] <- rank(c(rbi.slopeR[i,1], rbi.slopeRS[1:(nsim-1),]))[1]/nsim
@@ -839,9 +819,9 @@ search.trend<-function(RR,
 
       if(dim(Saa)[1]>0){
         if(rbi.slopeA[i,1]>0){
-          p.rbi.slopeA[i] <- (rank(c(rbi.slopeA[i,1], rbi.slopeRAS[1:(nsim-1),]))[1]+length(which(Saa[,3]>.05 & Saa[,4]<.01)))/nsim
+          p.rbi.slopeA[i] <- (rank(c(rbi.slopeA[i,1], rbi.slopeRAS[1:(nsim-1),]))[1]+length(which(Saa[,3]>.05 & Saa[,4]<.05)))/nsim
         } else {
-          p.rbi.slopeA[i] <- (rank(c(rbi.slopeA[i,1], rbi.slopeRAS[1:(nsim-1),]))[1]-length(which(Saa[,3]>.05 & Saa[,4]<.01)))/nsim
+          p.rbi.slopeA[i] <- (rank(c(rbi.slopeA[i,1], rbi.slopeRAS[1:(nsim-1),]))[1]-length(which(Saa[,3]>.05 & Saa[,4]<.05)))/nsim
         }
       }else{
         p.rbi.slopeA[i] <- rank(c(rbi.slopeA[i,1], rbi.slopeRAS[1:(nsim-1),]))[1]/nsim
@@ -866,9 +846,9 @@ search.trend<-function(RR,
 
     if(dim(Srr)[1]>0){
       if(rbi.slopeR[1]>0){
-        p.rbi.slopeR <- (rank(c(rbi.slopeR[1], rbi.slopesRS[1:(nsim-1)]))[1]+length(which(Srr[,3]>.05 & Srr[,4]<.01)))/nsim
+        p.rbi.slopeR <- (rank(c(rbi.slopeR[1], rbi.slopesRS[1:(nsim-1)]))[1]+length(which(Srr[,3]>.05 & Srr[,4]<.05)))/nsim
       } else {
-        p.rbi.slopeR <- (rank(c(rbi.slopeR[1], rbi.slopesRS[1:(nsim-1)]))[1]-length(which(Srr[,3]>.05 & Srr[,4]<.01)))/nsim
+        p.rbi.slopeR <- (rank(c(rbi.slopeR[1], rbi.slopesRS[1:(nsim-1)]))[1]-length(which(Srr[,3]>.05 & Srr[,4]<.05)))/nsim
       }
     }else{
       p.rbi.slopeR <- rank(c(rbi.slopeR[1], rbi.slopesRS[1:(nsim-1)]))[1]/nsim
@@ -876,9 +856,9 @@ search.trend<-function(RR,
 
     if(dim(Saa)[1]>0){
       if(rbi.slopeA[1]>0){
-        p.rbi.slopeA <- (rank(c(rbi.slopeA[1], rbi.slopesRAS[1:(nsim-1)]))[1]+length(which(Saa[,3]>.05 & Saa[,4]<.01)))/nsim
+        p.rbi.slopeA <- (rank(c(rbi.slopeA[1], rbi.slopesRAS[1:(nsim-1)]))[1]+length(which(Saa[,3]>.05 & Saa[,4]<.05)))/nsim
       } else {
-        p.rbi.slopeA <- (rank(c(rbi.slopeA[1], rbi.slopesRAS[1:(nsim-1)]))[1]-length(which(Saa[,3]>.05 & Saa[,4]<.01)))/nsim
+        p.rbi.slopeA <- (rank(c(rbi.slopeA[1], rbi.slopesRAS[1:(nsim-1)]))[1]-length(which(Saa[,3]>.05 & Saa[,4]<.05)))/nsim
       }
     }else{
       p.rbi.slopeA <- rank(c(rbi.slopeA[1], rbi.slopesRAS[1:(nsim-1)]))[1]/nsim
@@ -1018,9 +998,9 @@ search.trend<-function(RR,
 
       if(dim(Spp)[1]>0){
         if(trend.reg[[i]][2,1]>0){
-          p.tr <- (rank(c(trend.reg[[i]][2,1], trend.slopes[,i][1:(nsim-1)]))[1]+length(which(Spp[,3]>.05 & Spp[,4]<.01)))/nsim
+          p.tr <- (rank(c(trend.reg[[i]][2,1], trend.slopes[,i][1:(nsim-1)]))[1]+length(which(Spp[,3]>.05 & Spp[,4]<.05)))/nsim
         } else {
-          p.tr <- (rank(c(trend.reg[[i]][2,1], trend.slopes[,i][1:(nsim-1)]))[1]-length(which(Spp[,3]>.05 & Spp[,4]<.01)))/nsim
+          p.tr <- (rank(c(trend.reg[[i]][2,1], trend.slopes[,i][1:(nsim-1)]))[1]-length(which(Spp[,3]>.05 & Spp[,4]<.05)))/nsim
         }
       }else{
         p.tr <- rank(c(trend.reg[[i]][2,1], trend.slopes[,i][1:(nsim-1)]))[1]/nsim
@@ -1119,9 +1099,9 @@ search.trend<-function(RR,
 
     if(dim(Spp)[1]>0){
       if(trend.reg[2,1]>0){
-        p.trend <- (rank(c(trend.reg[2,1], trend.slopes[1:(nsim-1)]))[1]+length(which(Spp[,3]>.05 & Spp[,4]<.01)))/nsim
+        p.trend <- (rank(c(trend.reg[2,1], trend.slopes[1:(nsim-1)]))[1]+length(which(Spp[,3]>.05 & Spp[,4]<.05)))/nsim
       } else {
-        p.trend <- (rank(c(trend.reg[2,1], trend.slopes[1:(nsim-1)]))[1]-length(which(Spp[,3]>.05 & Spp[,4]<.01)))/nsim
+        p.trend <- (rank(c(trend.reg[2,1], trend.slopes[1:(nsim-1)]))[1]-length(which(Spp[,3]>.05 & Spp[,4]<.05)))/nsim
       }
     }else{
       p.trend <- rank(c(trend.reg[2,1], trend.slopes[1:(nsim-1)]))[1]/nsim
@@ -1183,7 +1163,6 @@ search.trend<-function(RR,
             p.sel<-rank(c(trend.reg.sel[[u]][[i]][2,1],slopeR[1:(nsim-1)]))[1]/nsim
           }
 
-          #rank(c(trend.reg.sel[[u]][[i]][2,1],slopeR[1:(nsim-1)]))[1]/nsim->p.sel
           c(slope=trend.reg.sel[[u]][[i]][2,1],p.real=trend.reg.sel[[u]][[i]][2,4],p.sma0=sma0P.sel[[u]][i],p.random=p.sel)->p.sele[[i]]
         }
         names(p.sele)<-names(trend.reg.sel[[u]])
@@ -1416,7 +1395,6 @@ search.trend<-function(RR,
       if (p.rbi.slopeR[1]>0) print("There is a trend for increase in relative evolutionary rates") else print("There is a trend for decrease in relative evolutionary rates")
     }
   }
-  #####
 
   if(class(node)!="NULL"){
     #### Messages to be printed ####
@@ -1531,7 +1509,6 @@ search.trend<-function(RR,
         }
       }
     }
-    ####
 
     list(p.smaPP,p.smaA,p.smaR)->SMA.res
     list(CIphenotype,CIabsolute,CIrelative)->CInts
@@ -1564,3 +1541,4 @@ search.trend<-function(RR,
   }
   return(res)
 }
+

@@ -1,12 +1,13 @@
 #' @title Evolutionary rates computation along phylogenies
 #' @description The function \code{RRphylo} (\cite{Castiglione et al. 2018}) performs the phylogenetic ridge regression. It takes a tree and a vector of tip data (phenotypes) as entries, calculates the regularization factor, produces the matrices of tip to root (\code{\link{makeL}}), and node to root distances (\code{\link{makeL1}}), the vector of ancestral state estimates, the vector of predicted phenotypes, and the rates vector for all the branches of the tree. For multivariate data, rates are given as both one vector per variable, and as a multivariate vector obtained by computing the Euclidean Norm of individual rate vectors.
-#' @usage RRphylo(tree,y,cov=NULL)
+#' @usage RRphylo(tree,y,cov=NULL,rootV=NULL)
 #' @param tree a phylogenetic tree. The tree needs not to be ultrametric or fully dichotomous.
 #' @param y either a single vector variable or a multivariate dataset of class \sQuote{matrix}.
 #' @param cov the covariate to be indicated if its effect on the rates must be accounted for. In this case residuals of the covariate versus the rates are used as rates. \code{'cov'} must be as long as the number of nodes plus the number of tips of the tree, which can be obtained by running \code{RRphylo} on the covariate as well, and taking the vector of ancestral states and tip values to form the covariate, as in the example below.
+#' @param rootV phenotypic value (values if multivariate) at the tree root. If \code{rootV=NULL} the function 'learns' about the root value from the 10\% tips being closest in time to the tree root, weighted by their temporal distance from the root itself (close tips phenotypes weigh more than more distant tips).
 #' @export
 #' @importFrom ape multi2di Ntip is.binary.tree Nnode
-#' @importFrom stats dist lm residuals
+#' @importFrom stats dist lm residuals weighted.mean
 #' @importFrom stats4 mle
 #' @importFrom geiger treedata tips
 #' @return \strong{tree} the tree used by \code{RRphylo}. The fully dichotomous version of the tree argument. For trees with polytomies, the tree is resolved by using \code{multi2di} function in the package \pkg{ape}. If the latter is a dichotomous tree, the two trees will be identical.
@@ -40,7 +41,7 @@
 
 
 
-RRphylo<-function(tree,y,cov=NULL)
+RRphylo<-function(tree,y,cov=NULL,rootV=NULL)
   ##### tree does not accept numbers as node labels ####
 {
   #require(ape)
@@ -67,12 +68,30 @@ RRphylo<-function(tree,y,cov=NULL)
   internals <- unique(c(t$edge[, 1], t$edge[, 2][which(t$edge[,
                                                               2] > Ntip(t))]))
   edged <- data.frame(t$edge, t$edge.length)
+
+  if(is.null(rootV)){
+    if (length(y) > Ntip(t)) {
+      data.frame(y,(1/diag(vcv(t))^2))->u
+      u[order(u[,2],decreasing=T ),]->u
+      u[1:(dim(u)[1]*.1),]->u1
+      apply(u1[,1:dim(y)[2]],2,function(x) weighted.mean(x,u1[,dim(u1)[2]]))->rootV
+    } else {
+      data.frame(y,(1/diag(vcv(t))^2))->u
+      u[order(u[,2],decreasing=T ),]->u
+      u[1:(dim(u)[1]*.1),]->u1
+      weighted.mean(u1[,1],u1[,2])->rootV
+    }
+  }else{
+    rootV->rootV
+  }
+
+
   optL <- function(lambda) {
     y <- scale(y)
     betas <- (solve(t(L) %*% L + lambda * diag(ncol(L))) %*%
-                t(L)) %*% as.matrix(y)
-    aceRR <- L1 %*% betas[1:Nnode(t), ]
-    y.hat <- L %*% betas
+                t(L)) %*% (as.matrix(y)-rootV)
+    aceRR <- (L1 %*% betas[1:Nnode(t), ])+rootV
+    y.hat <- (L %*% betas)+rootV
     Rvar <- array()
     for (i in 1:Ntip(t)) {
       ace.tip <- betas[match(names(which(L[i, ] != 0)),
@@ -86,11 +105,11 @@ RRphylo<-function(tree,y,cov=NULL)
   lambda <- h@coef
 
 
-  betas <- (solve(t(L) %*% L + lambda * diag(ncol(L))) %*% t(L)) %*% as.matrix(y)
+  betas <- (solve(t(L) %*% L + lambda * diag(ncol(L))) %*% t(L)) %*% (as.matrix(y)-rootV)
 
 
-  aceRR <- L1 %*% betas[1:Nnode(t), ]
-  y.hat <- L %*% betas
+  aceRR <- (L1 %*% betas[1:Nnode(t), ])+rootV
+  y.hat <- (L %*% betas)+rootV
   rates <- betas
   betasREAL<-betas
   if (length(y) > Ntip(t)) {
