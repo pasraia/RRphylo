@@ -38,6 +38,7 @@
 #'     DataApes$PCstage->PCstage
 #'     DataApes$Tstage->Tstage
 #'
+#'\donttest{
 #'     RRphylo(tree=Tstage,y=PCstage)->RR
 #'
 #' # Case 1. "evo.dir" without performing randomization
@@ -88,7 +89,6 @@
 #'     focus="none",write2csv="no")
 #'
 #'
-#' \donttest{
 #' # Case 2. "evo.dir" with performing randomization
 #'     evo.dir(RR,angle.dimension="rates",pair.type="node",node=57,
 #'     random="yes")->evo.p

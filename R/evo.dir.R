@@ -33,10 +33,11 @@
 #' @return If \code{random = "yes"}, results also include p-values for the angles.
 #' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
 #' @examples
+#'
 #'   data("DataApes")
 #'   DataApes$PCstage->PCstage
 #'   DataApes$Tstage->Tstage
-#'
+#' \donttest{
 #'   RRphylo(tree=Tstage,y=PCstage)->RR
 #' # Case 1. Without performing randomization test
 #'
@@ -64,7 +65,7 @@
 #'     evo.dir(RR,angle.dimension="phenotypes",y.type="RR",
 #'     pair.type="tips",pair=c("Sap_1","Tro_2"),random="no")
 #'
-#' \donttest{
+#'
 #' # Case 2. Performing randomization test
 #'
 #'  # Case 2.1 Computing angles between rate vectors

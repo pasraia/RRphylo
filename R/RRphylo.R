@@ -15,9 +15,9 @@
 #' @return \strong{node.path} a \eqn{n * n} matrix, where n=number of internal branches. Each row represents the branch lengths along a root-to-node path.
 #' @return \strong{rates} single rate values computed for each branch of the tree. If \code{y} is a single vector variable, rates are equal to multiple.rates. If \code{y} is a multivariate dataset, rates are computed as the square root of the sum of squares of each row of \code{$multiple.rates}.
 #' @return \strong{aces} the phenotypes reconstructed at nodes.
-#' @return \strong{predicted.phenotypes} the vector of estimated tip values.
+#' @return \strong{predicted.phenotypes} the vector of estimated tip values. It is a matrix in the case of multivariate data.
 #' @return \strong{multiple.rates} a \eqn{n * m} matrix, where n= number of branches (i.e. n*2-1) and m = number of variables. For each branch, the column entries represent the evolutionary rate.
-#' @return \strong{lambda} the regularization factor fitted within \code{RRphylo} by the inner function \code{optL}.
+#' @return \strong{lambda} the regularization factor fitted within \code{RRphylo} by the inner function \code{optL}. With multivariate data, several \code{optL} runs are performed. Hence, the function provides a single lambda for each individual variable.
 #' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
 #' @references
 #' Castiglione, S., Tesone, G., Piccolo, M., Melchionna, M., Mondanaro, A., Serio, C., Di Febbraro, M., & Raia, P.(2018). A new method for testing evolutionary rate variation and shifts in phenotypic evolution. \emph{Methods in Ecology and Evolution}, in press.doi:10.1111/2041-210X.12954
@@ -41,17 +41,16 @@
 
 
 
-RRphylo<-function(tree,y,cov=NULL,rootV=NULL)
-  ##### tree does not accept numbers as node labels ####
+RRphylo<-function (tree, y, cov = NULL, rootV = NULL)
 {
   #require(ape)
   #require(phytools)
   #require(geiger)
   #require(stats4)
 
-
   if (is.binary.tree(tree)) t <- tree else t <- multi2di(tree)
-  if(class(y)=="data.frame") treedata(tree,y,sort=TRUE)[[2]]->y
+  if (class(y) == "data.frame")
+    y <- treedata(tree, y, sort = TRUE)[[2]]
   internals <- unique(c(t$edge[, 1], t$edge[, 2][which(t$edge[,
                                                               2] > Ntip(t))]))
   tippa <- list()
@@ -63,35 +62,33 @@ RRphylo<-function(tree,y,cov=NULL,rootV=NULL)
     tippa[[i]] <- dato
   }
   Tstr <- do.call(rbind, tippa)
-  makeL(t)->L
-  makeL1(t)->L1
+  L <- makeL(t)
+  L1 <- makeL1(t)
   internals <- unique(c(t$edge[, 1], t$edge[, 2][which(t$edge[,
                                                               2] > Ntip(t))]))
   edged <- data.frame(t$edge, t$edge.length)
-
-  if(is.null(rootV)){
+  if (is.null(rootV)) {
     if (length(y) > Ntip(t)) {
-      data.frame(y,(1/diag(vcv(t))^2))->u
-      u[order(u[,2],decreasing=T ),]->u
-      u[1:(dim(u)[1]*.1),]->u1
-      apply(u1[,1:dim(y)[2]],2,function(x) weighted.mean(x,u1[,dim(u1)[2]]))->rootV
-    } else {
-      data.frame(y,(1/diag(vcv(t))^2))->u
-      u[order(u[,2],decreasing=T ),]->u
-      u[1:(dim(u)[1]*.1),]->u1
-      weighted.mean(u1[,1],u1[,2])->rootV
+      u <- data.frame(y, (1/diag(vcv(t))^2))
+      u <- u[order(u[, dim(u)[2]], decreasing = TRUE), ]
+      u1 <- u[1:(dim(u)[1] * 0.1), ]
+      rootV <- apply(u1[, 1:dim(y)[2]], 2, function(x) weighted.mean(x,
+                                                                     u1[, dim(u1)[2]]))
+    }else {
+      u <- data.frame(y, (1/diag(vcv(t))^2))
+      u <- u[order(u[, 2], decreasing = TRUE), ]
+      u1 <- u[1:(dim(u)[1] * 0.1), ]
+      rootV <- weighted.mean(u1[, 1], u1[, 2])
     }
-  }else{
-    rootV->rootV
+  }else {
+    rootV <- rootV
   }
-
-
   optL <- function(lambda) {
     y <- scale(y)
     betas <- (solve(t(L) %*% L + lambda * diag(ncol(L))) %*%
-                t(L)) %*% (as.matrix(y)-rootV)
-    aceRR <- (L1 %*% betas[1:Nnode(t), ])+rootV
-    y.hat <- (L %*% betas)+rootV
+                t(L)) %*% (as.matrix(y) - rootV)
+    aceRR <- (L1 %*% betas[1:Nnode(t), ]) + rootV
+    y.hat <- (L %*% betas) + rootV
     Rvar <- array()
     for (i in 1:Ntip(t)) {
       ace.tip <- betas[match(names(which(L[i, ] != 0)),
@@ -101,88 +98,123 @@ RRphylo<-function(tree,y,cov=NULL,rootV=NULL)
     }
     abs(1 - (var(Rvar) + (mean(as.matrix(y))/mean(y.hat))))
   }
-  h <- mle(optL, start = list(lambda = 1), method = "L-BFGS-B",upper=10,lower=0.001)
-  lambda <- h@coef
 
 
-  betas <- (solve(t(L) %*% L + lambda * diag(ncol(L))) %*% t(L)) %*% (as.matrix(y)-rootV)
+  if(length(y)>Ntip(t)){
+    dim(y)[2]->k
+    lam<-array()
+    y->y.real
+    m.aces<-matrix(ncol=k,nrow=Ntip(t)-1)
+    m.betas<-matrix(ncol=k,nrow=Ntip(t)+Nnode(t))
+    m.yhat<-matrix(ncol=k,nrow=Ntip(t))
+    rootV->rv.real
+    for(i in 1:k){
+      rv.real[i]->rootV
+      y.real[,i]->y
+      h <- mle(optL, start = list(lambda = 1), method = "L-BFGS-B",
+               upper = 10, lower = 0.001)
+
+      lambda <- h@coef
+      lambda->lam[i]
+      betas <- (solve(t(L) %*% L + lambda * diag(ncol(L))) %*%
+                  t(L)) %*% (as.matrix(y) - rootV)
+      aceRR <- (L1 %*% betas[1:Nnode(t), ]) + rootV
+      y.hat <- (L %*% betas) + rootV
+      aceRR->m.aces[,i]
+      betas->m.betas[,i]
+      y.hat->m.yhat[,i]
+    }
+
+    m.yhat->y.hat
+    m.aces->aceRR
+    m.betas->betas
+    rv.real->rootV
+    lam->lambda
+    y.real->y
+    rownames(betas)<-colnames(L)
+    rownames(y.hat)<-rownames(y)
+    rownames(aceRR)<-colnames(L1)
+    colnames(betas)<-colnames(y.hat)<-colnames(aceRR)<-colnames(y)
+
+  }else{
+    #############################################################################
+    h <- mle(optL, start = list(lambda = 1), method = "L-BFGS-B",
+             upper = 10, lower = 0.001)
+    lambda <- h@coef
+    betas <- (solve(t(L) %*% L + lambda * diag(ncol(L))) %*%
+                t(L)) %*% (as.matrix(y) - rootV)
+    aceRR <- (L1 %*% betas[1:Nnode(t), ]) + rootV
+    y.hat <- (L %*% betas) + rootV
 
 
-  aceRR <- (L1 %*% betas[1:Nnode(t), ])+rootV
-  y.hat <- (L %*% betas)+rootV
+
+  }
   rates <- betas
-  betasREAL<-betas
+  betasREAL <- betas
   if (length(y) > Ntip(t)) {
     rates <- apply(rates, 1, function(x) sqrt(sum(x^2)))
     rates <- as.matrix(rates)
-  } else {
+  }
+  else {
     rates <- rates
   }
-
-
-
-  if(is.null(cov)){
-
+  if (is.null(cov)) {
     rates <- betas
     if (length(y) > Ntip(t)) {
       rates <- apply(rates, 1, function(x) sqrt(sum(x^2)))
       rates <- as.matrix(rates)
-    } else {
+    }
+    else {
       rates <- rates
     }
-
-  }else{
+  }
+  else {
     if (length(y) > Ntip(t)) {
-      if(length(which(apply(betas,1,sum)==0))>0){
-        which(apply(betas,1,sum)==0)->zeroes
-        log(abs(betas))->R
-        R[-zeroes,]->R
-
-        abs(cov)->Y
-        Y[-zeroes]->Y
-
-        residuals(lm(R~Y))->res
-        which(apply(betas,1,sum)!=0)->factOut
-        betas[factOut,]<-res
-        betas[zeroes,]<-0
-
-      }else {
-        log(abs(betas))->R
-        abs(cov)->Y
-        residuals(lm(R~Y))->res
-        as.matrix(res)->betas
+      if (length(which(apply(betas, 1, sum) == 0)) > 0) {
+        zeroes <- which(apply(betas, 1, sum) == 0)
+        R <- log(abs(betas))
+        R <- R[-zeroes, ]
+        Y <- abs(cov)
+        Y <- Y[-zeroes]
+        res <- residuals(lm(R ~ Y))
+        factOut <- which(apply(betas, 1, sum) != 0)
+        betas[factOut, ] <- res
+        betas[zeroes, ] <- 0
       }
-      rates<-betas
+      else {
+        R <- log(abs(betas))
+        Y <- abs(cov)
+        res <- residuals(lm(R ~ Y))
+        betas <- as.matrix(res)
+      }
+      rates <- betas
       rates <- apply(rates, 1, function(x) sqrt(sum(x^2)))
       rates <- as.matrix(rates)
-
-    }else{
-
-      if(length(which(betas=="0"))>0){
-        which(betas=="0")->zeroes
-        log(abs(betas))->R
-        R[-zeroes]->R
-
-        abs(cov)->Y
-        Y[-zeroes]->Y
-
-        residuals(lm(R~Y))->res
-        which(betas!="0")->factOut
-
-        betas[factOut]<-res
-        betas[zeroes]<-0
-      } else {
-        log(abs(betas))->R
-        abs(cov)->Y
-        residuals(lm(R~Y))->res
-        as.matrix(res)->betas
+    }
+    else {
+      if (length(which(betas == "0")) > 0) {
+        zeroes <- which(betas == "0")
+        R <- log(abs(betas))
+        R <- R[-zeroes]
+        Y <- abs(cov)
+        Y <- Y[-zeroes]
+        res <- residuals(lm(R ~ Y))
+        factOut <- which(betas != "0")
+        betas[factOut] <- res
+        betas[zeroes] <- 0
       }
-      betas->rates
+      else {
+        R <- log(abs(betas))
+        Y <- abs(cov)
+        res <- residuals(lm(R ~ Y))
+        betas <- as.matrix(res)
+      }
+      rates <- betas
     }
   }
-
-  res <- list(t, L, L1, rates, aceRR,y.hat,betasREAL, lambda)
+  res <- list(t, L, L1, rates, aceRR, y.hat, betasREAL, lambda)
   names(res) <- c("tree", "tip.path", "node.path", "rates",
-                  "aces","predicted.phenotype","multiple.rates", "lambda")
+                  "aces", "predicted.phenotype", "multiple.rates", "lambda")
   return(res)
 }
+
