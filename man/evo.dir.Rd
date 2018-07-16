@@ -61,10 +61,11 @@ This function quantifies direction, size and rate of evolutionary change of mult
 The way \code{evo.dir} computes vectors depends on whether phenotypes or rates are used as variables. \code{\link{RRphylo}} rates along a path are aligned along a chain of ancestor/descendant relationships. As such, each rate vector origin coincides to the tip of its ancestor, and the resultant of the path is given by vector addition. In contrast, phenotypic vectors are computed with reference to a common origin (i.e. the consensus shape in a geometric morphometrics). In this latter case, vector subtraction (rather than addition) will define the resultant of the evolutionary direction.  It is important to realize that resultants could be at any angle even if the species (the terminal vectors) have similar phenotypes, because path resultants, rather than individual phenotypes, are being contrasted. However, the function also provides the angle between individual phenotypes as 'angle.between.species'. To perform randomization test (\code{random = "yes"}), the evolutionary directions of the two species are collapsed together. Then, for each variable, the median is found, and random paths of the same size as the original paths are produced sampling at random from the 47.5th to the 52.5th percentile around the medians. This way, a random distribution of angles is obtained under the hypothesis that the two directions are actually parallel. The 'angle.direction' represents the angle formed by the species phenotype and a vector of 1s (as long as the number of variables representing the phenotype). This way, each species phenotype is contrasted to the same vector. The 'angle.direction' values could be inspected to test whether individual species phenotypes evolve towards similar directions.
 }
 \examples{
+
   data("DataApes")
   DataApes$PCstage->PCstage
   DataApes$Tstage->Tstage
-
+\donttest{
   RRphylo(tree=Tstage,y=PCstage)->RR
 # Case 1. Without performing randomization test
 
@@ -92,7 +93,7 @@ The way \code{evo.dir} computes vectors depends on whether phenotypes or rates a
     evo.dir(RR,angle.dimension="phenotypes",y.type="RR",
     pair.type="tips",pair=c("Sap_1","Tro_2"),random="no")
 
-\donttest{
+
 # Case 2. Performing randomization test
 
  # Case 2.1 Computing angles between rate vectors

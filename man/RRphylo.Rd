@@ -26,11 +26,11 @@ RRphylo(tree,y,cov=NULL,rootV=NULL)
 
 \strong{aces} the phenotypes reconstructed at nodes.
 
-\strong{predicted.phenotypes} the vector of estimated tip values.
+\strong{predicted.phenotypes} the vector of estimated tip values. It is a matrix in the case of multivariate data.
 
 \strong{multiple.rates} a \eqn{n * m} matrix, where n= number of branches (i.e. n*2-1) and m = number of variables. For each branch, the column entries represent the evolutionary rate.
 
-\strong{lambda} the regularization factor fitted within \code{RRphylo} by the inner function \code{optL}.
+\strong{lambda} the regularization factor fitted within \code{RRphylo} by the inner function \code{optL}. With multivariate data, several \code{optL} runs are performed. Hence, the function provides a single lambda for each individual variable.
 }
 \description{
 The function \code{RRphylo} (\cite{Castiglione et al. 2018}) performs the phylogenetic ridge regression. It takes a tree and a vector of tip data (phenotypes) as entries, calculates the regularization factor, produces the matrices of tip to root (\code{\link{makeL}}), and node to root distances (\code{\link{makeL1}}), the vector of ancestral state estimates, the vector of predicted phenotypes, and the rates vector for all the branches of the tree. For multivariate data, rates are given as both one vector per variable, and as a multivariate vector obtained by computing the Euclidean Norm of individual rate vectors.

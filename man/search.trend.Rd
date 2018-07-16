@@ -2,7 +2,7 @@
 % Please edit documentation in R/search.trend.R
 \name{search.trend}
 \alias{search.trend}
-\title{searching for evolutionary trends in phenotypes and rates}
+\title{Searching for evolutionary trends in phenotypes and rates}
 \usage{
 search.trend(RR,y,nsim=100,clus=.5,node=NULL,cov=NULL,foldername,ConfInt=c(FALSE,TRUE))
 }
@@ -17,7 +17,7 @@ search.trend(RR,y,nsim=100,clus=.5,node=NULL,cov=NULL,foldername,ConfInt=c(FALSE
 
 \item{node}{number of nodes to be specifically tested for trends. It is NULL by default. Notice the node number must refer to the dichotomic version of the original tree, as produced by \code{RRphylo}.}
 
-\item{cov}{the covariate values to be specified if the RR object has been created with covariate. As for \code{\link{RRphylo}}, \code{'cov'} must be as long as the number of nodes plus the number of tips of the tree, which can be obtained by running \code{RRphylo} on the covariate as well, and taking the vector of ancestral states and tip values to form the covariate (see the example below).}
+\item{cov}{the covariate values to be specified if the RR object has been created with covariate. As for \code{RRphylo}, \code{'cov'} must be as long as the number of nodes plus the number of tips of the tree, which can be obtained by running \code{RRphylo} on the covariate as well, and taking the vector of ancestral states and tip values to form the covariate (see the example below).}
 
 \item{foldername}{the path of the folder where plots are to be found.}
 
@@ -26,7 +26,7 @@ search.trend(RR,y,nsim=100,clus=.5,node=NULL,cov=NULL,foldername,ConfInt=c(FALSE
 \value{
 The function returns a ‘list’ object including:
 
-\strong{$rbt} for each branch of the tree, there are the age of the daughter node/tip (D.age), the age of the parental node (P.age), the \code{\link{RRphylo}} rates, and the distance from the tree root (age). If y is multivariate, it also includes the multiple rates for each y component.
+\strong{$rbt} for each branch of the tree, there are the age of the daughter node/tip (D.age), the age of the parental node (P.age), the \code{RRphylo} rates, and the distance from the tree root (age). If y is multivariate, it also includes the multiple rates for each y component.
 
 \strong{$pbt} a data frame of phenotypic values and distance from the tree root for each node and tip.
 
@@ -44,7 +44,7 @@ If the node argument is specified, the list also includes \strong{$p.trend.nodes
 This function searches for evolutionary trends in phenotypic mean and evolutionary rates .
 }
 \details{
-The function simultaneously returns the regression of phenotypes and rates against age (in terms of distance from the tree root). As an output, plots for the absolute and relative rates regressions versus age are saved as a single .pdf file. In the plots, the 95\% confidence intervals of simulated phenotypes and rates for each node are plotted as shaded areas. The same is performed for the phenotype versus age regression. Slopes and significance are reported for all regressions. In addition, slopes are compared to a family of simulated slopes (where the number of simulations is equal to \code{nsim}), produced as to show no phenotypic or rate trend, using the \code{\link{setBM}} function. In the simulations, the phenotypic value at the root and the Brownian rate are the same as with the original data. The penalization factor lambda is fitted around the real lambda in each simulation. Eventually, a global p-value is provided. In the case of “drift” such value equals to the least significant between p.real and p.random. In the case of “trend” this corresponds to p.random. We empirically found these are the best approach to minimize Type I and Type II error rates. In the case of “trend” regression, the function throws a warning if the tips are concentrated towards the present, which makes Type II error rate higher, especially for small trees and shallow slopes.
+The function simultaneously returns the regression of phenotypes and phenotypic evolutionary rates against age (in terms of distance from the tree root). As an output, plots for the absolute and relative rates regressions versus age are saved as a single .pdf file. In the plots, the 95\% confidence intervals of phenotypes and rates simulated under the Brownian motion for each node are plotted as shaded areas. The same is performed for the phenotype versus age regression. Regression slopes are reported for all regressions. To assess significance, slopes are compared to a family of simulated slopes (BMslopes, where the number of simulations is equal to \code{nsim}), generated as to show no phenotypic or rate trend (i.e. Brownian motion), using the \code{\link{setBM}} function. In the simulations, the phenotypic value at the root is the same as calculated for the original data by \code{RRphylo}. In addition, the Brownian rate is calculated for the original data and tree and set for all the Brownian motion simulations. Eventually, a p-value is obtained by comparing the real slope to BMslopes.
 }
 \examples{
  \donttest{

@@ -16,15 +16,15 @@ trend.type = c("linear", "stepwise"),tr = 10, t.shift = 0.5, es=2, ds=1)
 
 \item{a}{the phenotype at the tree root.}
 
-\item{type}{the type of phenotype to simulate. With the option \code{"brown"} the phenotype will have no trend in the mean or in the rate of evolution (actually the residuals of the phenotype versus time regression, established via Breusch-Pagan test). A variation in the phenotypic mean over time (a phenotypic trend) is obtained by selection the option \code{"drift"}. A trend in the rate of evolution should produce an increased variance in the residuals over time, which can be inspected under the option \code{"trend"}, by means of Breusch-Pagan test for residuals heteroscedasticity.}
+\item{type}{the type of phenotype to simulate. With the option \code{"brown"} the phenotype will have no trend in the phenotypic mean or in the rate of evolution. A variation in the phenotypic mean over time (a phenotypic trend) is obtained by selecting the option \code{"drift"}. A trend in the rate of evolution produces an increased variance in the residuals over time. This is obtained by specifying the option \code{"trend"}.}
 
-\item{trend.type}{two kinds of heteroscedastic residuals are generated under the \code{"trend"} type. The option \code{"linear"} produces a linear increase in heteroscedasticity, whereas the \code{"stepwise"} option produces an increase after a specified point in time.}
+\item{trend.type}{two kinds of heteroscedastic residuals are generated under the \code{"trend"} type. The option \code{"linear"} produces an exponential linear increase (or decrease) in heteroscedasticity, whereas the \code{"stepwise"} option produces an increase (or decrease) after a specified point in time.}
 
-\item{tr}{the intensity of the trend in homoscedasticity with the \code{"stepwise"} option is controlled by the \code{'tr'} argument. The scalar \code{'tr'} is the multiplier of the branches extending after the shift point as indicated by \code{'t.shift'}.}
+\item{tr}{the intensity of the trend with the \code{"stepwise"} option is controlled by the \code{'tr'} argument. The scalar \code{'tr'} is the multiplier of the branches extending after the shift point as indicated by \code{'t.shift'}.}
 
-\item{t.shift}{the relative time distance from the tree root where the stepwise increase in the rate of evolution is indicated to apply.}
+\item{t.shift}{the relative time distance from the tree root where the stepwise change in the rate of evolution is indicated to apply.}
 
-\item{es}{when \code{trend.type="linear"}, \code{es} is a scalar representing the exponent at which the evolutionary time (i.e. distance from the root) scales to change to phenotypic variance. With \code{es} = 0 the phenotype will be trendless, with \code{es} < 0 the variance will decrease exponentially towards the present and the other way around with \code{es} > 0.}
+\item{es}{when \code{trend.type="linear"}, \code{es} is a scalar representing the exponent at which the evolutionary time (i.e. distance from the root) scales to change to phenotypic variance. With \code{es} = 1 the phenotypic rate will be trendless, with \code{es} < 1 the variance of the phenotypes will decrease exponentially towards the present and the other way around with \code{es} > 1.}
 
 \item{ds}{a scalar indicating the change in phenotypic mean in the unit time, in \code{type="drift"} case. With \code{ds} = 0 the phenotype will be trendless, with \code{ds} < 0 the phenotypic mean will decrease exponentially towards the present and the other way around with \code{ds} > 0.}
 }
@@ -35,7 +35,7 @@ Either an object of class \code{'array'} containing a single phenotype or an obj
 The function \code{setBM} is wrapper around \pkg{phytools} \code{fastBM} function, which generates BM simulated phenotypes with or without a trend.
 }
 \details{
-Note that \code{setBM} differs from \code{fastBM} in that the produced phenotypes are checked for the existence of a temporal trend either in the phenotypes themselves, or in the residuals of the phenotype versus age regression. The user may specify whether she wants trendless data (option \code{"brown"}), phenotypes trending in time (option \code{"drift"}), or phenotypes whose variance increases/decreases over time, consistently with the existence of a trend in the rate of evolution (option \code{"trend"}). In the latter case, the user may indicate the intensity of the change in variance (by applying different values of \code{es}), and whether it should occur after a given proportion of the tree height (hence a given point back in time, specified by the argument \code{t.shift}). Trees in \code{setBM} are treated as non ultrametric. If an ultrametric tree is fed to the function, \code{setBM} alters slightly the leaf lengths multiplying randomly half of the leaves by 1 * 10-3.
+Note that \code{setBM} differs from \code{fastBM} in that the produced phenotypes are checked for the existence of a temporal trend in the phenotype. The user may specify whether she wants trendless data (option \code{"brown"}), phenotypes trending in time (option \code{"drift"}), or phenotypes whose variance increases/decreases exponentially over time, consistently with the existence of a trend in the rate of evolution (option \code{"trend"}). In the latter case, the user may indicate the intensity of the trend (by applying different values of \code{es}), and whether it should occur after a given proportion of the tree height (hence a given point back in time, specified by the argument \code{t.shift}). Trees in \code{setBM} are treated as non ultrametric. If an ultrametric tree is fed to the function, \code{setBM} alters slightly the leaf lengths multiplying randomly half of the leaves by 1 * 10e-3,in order to make it non-ultrametric.
 }
 \examples{
  \donttest{

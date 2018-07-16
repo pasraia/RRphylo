@@ -26,7 +26,9 @@ data("DataApes")
 DataApes$PCstage->PCstage
 DataApes$Tstage->Tstage
 
+\donttest{
 RRphylo(tree=Tstage,y=PCstage)->RR
 
 plotRates(RR,node=72,foldername=tempdir(),export.tiff = TRUE)
+}
 }
