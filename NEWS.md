@@ -1,3 +1,9 @@
+# RRphylo 1.3.0
+
+What’s new in version 1.3.0
+Faster and more efficient versions of setBM and search.trend.
+
+
 # RRphylo 1.2.0
 
 What’s new in version 1.2.0
