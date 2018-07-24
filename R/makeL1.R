@@ -12,11 +12,11 @@
 #' makeL1(tree=Tstage)
 
 
-makeL1<-function(tree){
-  tree->t
+makeL1<-function (tree)
+{
+  t <- tree
   internals <- unique(c(t$edge[, 1], t$edge[, 2][which(t$edge[,
                                                               2] > Ntip(t))]))
-
   edgedX <- data.frame(t$edge, t$edge.length)
   edged.1 <- edgedX[edgedX$X2 > Ntip(t), ]
   L1 <- matrix(ncol = length(internals), nrow = length(internals))
@@ -48,10 +48,11 @@ makeL1<-function(tree){
                                                        2] == edged.1[, 2], ][, 3]
     }
     d <- data.frame(L1.match, br.len)
-    L1[j, match(d[, 1], colnames(L1))] <- d[, 2]
+    L1[j+1, match(d[, 1], colnames(L1))] <- d[, 2]
   }
-  if (is.null(t$root.edge) || t$root.edge==0) L1[, 1] <- 1 else L1[, 1] <- t$root.edge
+  if (is.null(t$root.edge) || t$root.edge == 0)
+    L1[, 1] <- 1
+  else L1[, 1] <- t$root.edge
   L1[which(is.na(L1))] <- 0
-
   return(L1)
 }
