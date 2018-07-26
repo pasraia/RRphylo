@@ -1,8 +1,13 @@
+# RRphylo 1.4.0
+
+What’s new in version 1.4.0
+New function added! The "distNodes" function returns the distance between pairs of nodes. The distance is meant as both patristic distance and the number of nodes intervening between the pair.
+
+
 # RRphylo 1.3.0
 
 What’s new in version 1.3.0
 Faster and more efficient versions of setBM and search.trend.
-
 
 # RRphylo 1.2.0
 
