@@ -14,32 +14,41 @@
 #' distNodes(tree=Tstage,n=64)
 #' distNodes(tree=Tstage,n=c(64,48))
 
-distNodes<-function(tree,n){
+distNodes<-function(tree,n)
+{
   #require(phytools)
   #require(data.tree)
   #require(ape)
 
-  getDescendants(tree,(Ntip(tree)+1))->sis
-  c((Ntip(tree)+1),sis)->sis
-  sis[-which(sis<=Ntip(tree))]->sis
-  if(length(which(sis==n[1]))>0) sis[-which(sis==n[1])]->sis else sis->sis
-
-  as.Node(tree)->treeN
-  distN<-array()
-  if(length(n)>1) {
-    Distance(FindNode(treeN,as.character(n[1])),FindNode(treeN,as.character(n[2])))->distN
-    dist.nodes(tree)[which(as.numeric(colnames(dist.nodes(tree)))==n[1]),which(as.numeric(colnames(dist.nodes(tree)))==n[2])]->distL
-    data.frame(n.nodes=distN,length=distL)->dfN
-  }else{
-    for(i in 1:length(sis)){
-      Distance(FindNode(treeN,as.character(n)),FindNode(treeN,as.character(sis[i])))->distN[i]
+  tree$node.label<-NULL
+  sis <- getDescendants(tree, (Ntip(tree) + 1))
+  sis <- c((Ntip(tree) + 1), sis)
+  sis <- sis[-which(sis <= Ntip(tree))]
+  if (length(which(sis == n[1])) > 0)
+    sis <- sis[-which(sis == n[1])] else sis <- sis
+  treeN <- as.Node(tree)
+  distN <- array()
+  if (length(n) > 1) {
+    distN <- Distance(FindNode(treeN, as.character(n[1])),
+                      FindNode(treeN, as.character(n[2])))
+    distL <- dist.nodes(tree)[which(as.numeric(colnames(dist.nodes(tree))) ==
+                                      n[1]), which(as.numeric(colnames(dist.nodes(tree))) ==
+                                                     n[2])]
+    dfN <- data.frame(n.nodes = distN, length = distL)
+  }else {
+    for (i in 1:length(sis)) {
+      distN[i] <- Distance(FindNode(treeN, as.character(n)),
+                           FindNode(treeN, as.character(sis[i])))
     }
-    data.frame(node=sis,n.nodes=distN)->dfN
-    dist.nodes(tree)[which(as.numeric(colnames(dist.nodes(tree)))>Ntip(tree)),which(as.numeric(colnames(dist.nodes(tree)))==n[1])]->distL
-    if(length(which(names(distL)==n))>0) distL[-which(names(distL)==n)]->distL else distL->distL
-    data.frame(dfN,length=distL[match(dfN[,1],names(distL))])->dfN
+    dfN <- data.frame(node = sis, n.nodes = distN)
+    distL <- dist.nodes(tree)[which(as.numeric(colnames(dist.nodes(tree))) >
+                                      Ntip(tree)), which(as.numeric(colnames(dist.nodes(tree))) ==
+                                                           n[1])]
+    if (length(which(names(distL) == n)) > 0)
+      distL <- distL[-which(names(distL) == n)]else distL <- distL
+    dfN <- data.frame(dfN, length = distL[match(dfN[, 1],
+                                                names(distL))])
   }
-  return(dfN)
 }
 
 
