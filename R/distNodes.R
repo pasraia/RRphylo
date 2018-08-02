@@ -49,6 +49,7 @@ distNodes<-function(tree,n)
     dfN <- data.frame(dfN, length = distL[match(dfN[, 1],
                                                 names(distL))])
   }
+  return(dfN)
 }
 
 
