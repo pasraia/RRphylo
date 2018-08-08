@@ -1,3 +1,9 @@
+# RRphylo 1.5.0
+
+What’s new in version 1.5.0
+We added a new tool. The "search.conv" function tests for morphological convergence between pairs of distant nodes.
+
+
 # RRphylo 1.4.0
 
 What’s new in version 1.4.0
