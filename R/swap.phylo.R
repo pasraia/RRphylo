@@ -1,6 +1,6 @@
 #' @title Test the effect of phylogenetic uncertainty on rate shifts found at a particular node
 #' @description The function uses a number of alternative phylogenies with altered (as compared to the reference tree) topology and branch lengths tests whether the tips descending from the specified node (\code{'node'}) have statistically different rates from the rest of the tree. A phenotypic vector \code{'y'} must be supplied. Eventually, the effect of a covariate could be included.
-#' @usage swap.phylo(tree,si=0.5,si2=0.5,node=NULL,y=NULL,rts,nrep=100,cov=NULL)
+#' @usage swap.phylo(tree,si=0.5,si2=0.5,node,y,rts,nrep=100,cov=NULL)
 #' @param tree a phylogenetic tree. The tree needs not to be ultrametric or fully dichotomous.
 #' @param si the proportion of tips whose topologic arrangement will be swapped.
 #' @param si2 the proportion of nodes whose age will be changed.
@@ -42,7 +42,7 @@
 
 
 swap.phylo<-
-  function(tree,si=0.5,si2=0.5,node=NULL,y=NULL,rts,nrep=100,cov=NULL)
+  function(tree,si=0.5,si2=0.5,node,y,rts,nrep=100,cov=NULL)
 
 
   {

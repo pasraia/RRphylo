@@ -12,9 +12,9 @@
 #' @return The function returns a ‘list’ object including:
 #' @return \strong{$rbt} for each branch of the tree, there are the age of the daughter node/tip (D.age), the age of the parental node (P.age), the \code{RRphylo} rates, and the distance from the tree root (age). If y is multivariate, it also includes the multiple rates for each y component.
 #' @return \strong{$pbt} a data frame of phenotypic values and distance from the tree root for each node and tip.
-#' @return \strong{$p.trend} results of phenotype versus age regression. It reports a p-value for the regression between the variables (p.real), a p-value for the difference from 0 under standard major axis regression (p.sma0), a p-value computed contrasting the real slope to Brownian motion simulations (p.random), a global p-value corresponding to the least significant between p.real and p.random (p.value; see details for further explanations).
-#' @return \strong{$rbt.rateA} results of absolute rate values versus age regression. It reports a p-value for the regression between the variables (p.real), a p-value for the difference from 0 under standard major axis regression (p.sma0), a p-value computed contrasting the real slope to Brownian motion simulations (p.random), and a global p-value (p.value, corresponding to p.random; see details for further explanations).
-#' @return \strong{$rbt.rateR} results of rate values versus age regression. It reports a p-value for the regression between the variables (p.real), a p-value for the difference from 0 under standard major axis regression (p.sma0), a p-value computed contrasting the real slope to Brownian motion simulations (p.random), and a global p-value (p.value, corresponding to p.random; see details for further explanations).
+#' @return \strong{$p.trend} results of phenotype versus age regression. It reports a p-value for the regression between the variables (p.real) a p-value computed contrasting the real slope to Brownian motion simulations (p.random), a global p-value corresponding to the least significant between p.real and p.random (p.value; see details for further explanations).
+#' @return \strong{$rbt.rateA} results of absolute rate values versus age regression. It reports a p-value for the regression between the variables (p.real), a p-value computed contrasting the real slope to Brownian motion simulations (p.random), and a global p-value (p.value, corresponding to p.random; see details for further explanations).
+#' @return \strong{$rbt.rateR} results of rate values versus age regression. It reports a p-value for the regression between the variables (p.real), a p-value computed contrasting the real slope to Brownian motion simulations (p.random), and a global p-value (p.value, corresponding to p.random; see details for further explanations).
 #' @return \strong{$ConfInts} the 95\% confidence intervals around the slopes of phenotype versus age ($phenotype), absolute rates versus age ($abs.rate), and relative rates versus age ($rel.rate) regressions.
 #' @return If the node argument is specified, the list also includes \strong{$p.trend.nodes}, \strong{$rbt.rateA.nodes}, \strong{$rbt.rateR.nodes}, which return the same results as above for each specified node. Finally, the \strong{$SMA} object contains the comparisons between slopes of regression lines of each pair of nodes, for all the regressions previously performed, under standard major axis regression.
 #' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
@@ -200,6 +200,7 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
     trend.reg <- summary(lm(PP))$coeff
   }
   PPtot <- PP
+
   if (class(node) != "NULL") {
     rbi.sma <- rbi.rate
     PP.sma <- PP
@@ -217,9 +218,9 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
       sele <- getDescendants(t, n)
       sele[which(sele < (Ntip(t) + 1))] <- t$tip.label[sele[which(sele <
                                                                     (Ntip(t) + 1))]]
-      rbi.sma[match(sele, rownames(rbi.sma)), ]$group <- paste("g",
-                                                               n, sep = "")
-      rbi.sel <- rbi[match(sele, rownames(rbi)), ]
+      rbi.sma[match(c(n,sele), rownames(rbi.sma)), ]$group <- paste("g",
+                                                                    n, sep = "")
+      rbi.sel <- rbi[match(c(n,sele), rownames(rbi)), ]
       if (length(y) > Ntip(t)) {
         rbi.rate <- rbi.sel[, c(5:(dim(rbi.sel)[2] -
                                      1), dim(rbi.sel)[2])]
@@ -612,9 +613,9 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
                                                  sele <- getDescendants(t, n)
                                                  sele[which(sele < (Ntip(t) + 1))] <- t$tip.label[sele[which(sele <
                                                                                                                (Ntip(t) + 1))]]
-                                                 rbi.sma[match(sele, rownames(rbi.sma)), ]$group <- paste("g",
-                                                                                                          n, sep = "")
-                                                 rbi.sel <- rbi[match(sele, rownames(rbi)), ]
+                                                 rbi.sma[match(c(n,sele), rownames(rbi.sma)), ]$group <- paste("g",
+                                                                                                               n, sep = "")
+                                                 rbi.sel <- rbi[match(c(n,sele), rownames(rbi)), ]
                                                  if (length(y) > Ntip(t)) {
                                                    rbi.rate <- rbi.sel[, c(5:(dim(rbi.sel)[2] -
                                                                                 1), dim(rbi.sel)[2])]
