@@ -4,7 +4,7 @@
 \alias{swap.phylo}
 \title{Test the effect of phylogenetic uncertainty on rate shifts found at a particular node}
 \usage{
-swap.phylo(tree,si=0.5,si2=0.5,node=NULL,y=NULL,rts,nrep=100,cov=NULL)
+swap.phylo(tree,si=0.5,si2=0.5,node,y,rts,nrep=100,cov=NULL)
 }
 \arguments{
 \item{tree}{a phylogenetic tree. The tree needs not to be ultrametric or fully dichotomous.}
