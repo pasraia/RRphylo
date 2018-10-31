@@ -4,7 +4,7 @@
 \alias{search.trend}
 \title{Searching for evolutionary trends in phenotypes and rates}
 \usage{
-search.trend(RR,y,nsim=100,clus=.5,node=NULL,cov=NULL,foldername,ConfInt=c(FALSE,TRUE))
+search.trend(RR,y,nsim=100,clus=.5,node=NULL,cov=NULL,foldername,ConfInt=FALSE)
 }
 \arguments{
 \item{RR}{an object produced by \code{\link{RRphylo}}.}
@@ -15,36 +15,34 @@ search.trend(RR,y,nsim=100,clus=.5,node=NULL,cov=NULL,foldername,ConfInt=c(FALSE
 
 \item{clus}{the proportion of clusters to be used in parallel computing.}
 
-\item{node}{number of nodes to be specifically tested for trends. It is NULL by default. Notice the node number must refer to the dichotomic version of the original tree, as produced by \code{RRphylo}.}
+\item{node}{the node number of individual clades to be specifically tested and contrasted to each other. It is \code{NULL} by default. Notice the node number must refer to the dichotomic version of the original tree, as produced by \code{RRphylo}.}
 
-\item{cov}{the covariate values to be specified if the RR object has been created with covariate. As for \code{RRphylo}, \code{'cov'} must be as long as the number of nodes plus the number of tips of the tree, which can be obtained by running \code{RRphylo} on the covariate as well, and taking the vector of ancestral states and tip values to form the covariate (see the example below).}
+\item{cov}{the covariate values to be specified if the RR object has been created using a  covariate for rates calculation.  As for \code{RRphylo}, \code{'cov'} must be as long as the number of nodes plus the number of tips of the tree, which can be obtained by running \code{RRphylo} on the covariate as well, and taking the vector of ancestral states and tip values to form the covariate (see the example below).}
 
 \item{foldername}{the path of the folder where plots are to be found.}
 
-\item{ConfInt}{if \code{TRUE}, the function returns 95\% confidence intervals for slopes of phenotype versus age, absolute rates versus age, and relative rates versus age regressions.}
+\item{ConfInt}{if \code{TRUE}, the function returns 95\% confidence intervals around phenotypes and rates produced according to the Brownian motion model of evolution. It is \code{FALSE} by default.}
 }
 \value{
 The function returns a ‘list’ object including:
 
-\strong{$rbt} for each branch of the tree, there are the age of the daughter node/tip (D.age), the age of the parental node (P.age), the \code{RRphylo} rates, and the distance from the tree root (age). If y is multivariate, it also includes the multiple rates for each y component.
+\strong{$rbt} for each branch of the tree, there are the age of the daughter node/tip (D.age), the age of the parental node (P.age), the \code{RRphylo} rates, and the distance from the tree root (age). If y is multivariate, it also includes the multiple rates for each y vector.
 
-\strong{$pbt} a data frame of phenotypic values and distance from the tree root for each node and tip.
+\strong{$pbt} a data frame of phenotypic values and their distance from the tree root for each node (i.e. ancestral states) and tip of the tree.
 
-\strong{$p.trend} results of phenotype versus age regression. It reports a p-value for the regression between the variables (p.real) a p-value computed contrasting the real slope to Brownian motion simulations (p.random), a global p-value corresponding to the least significant between p.real and p.random (p.value; see details for further explanations).
+\strong{$p.trend} results of phenotype versus age regression. It reports a p-value for the regression slope between the variables (p.real) a p-value computed contrasting the real slope to Brownian motion simulations (p.random). Only the latter should be inspected to assess significance.
 
-\strong{$rbt.rateA} results of absolute rate values versus age regression. It reports a p-value for the regression between the variables (p.real), a p-value computed contrasting the real slope to Brownian motion simulations (p.random), and a global p-value (p.value, corresponding to p.random; see details for further explanations).
+\strong{$rbt.rateA} results of the rates (absolute values) versus age regression. It reports a p-value for the regression between the variables (p.real), a p-value computed contrasting the real slope to Brownian motion simulations (p.random). Only the latter should be inspected to assess significance.
 
-\strong{$rbt.rateR} results of rate values versus age regression. It reports a p-value for the regression between the variables (p.real), a p-value computed contrasting the real slope to Brownian motion simulations (p.random), and a global p-value (p.value, corresponding to p.random; see details for further explanations).
+\strong{$ConfInts} the 95\% confidence intervals around phenotypes and rates produced according to the Brownian motion model of evolution.
 
-\strong{$ConfInts} the 95\% confidence intervals around the slopes of phenotype versus age ($phenotype), absolute rates versus age ($abs.rate), and relative rates versus age ($rel.rate) regressions.
-
-If the node argument is specified, the list also includes \strong{$p.trend.nodes}, \strong{$rbt.rateA.nodes}, \strong{$rbt.rateR.nodes}, which return the same results as above for each specified node. Finally, the \strong{$SMA} object contains the comparisons between slopes of regression lines of each pair of nodes, for all the regressions previously performed, under standard major axis regression.
+If specified, individual nodes are tested as the whole tree, the results are summarized in the objects \strong{$p.trend.nodes} and \strong{$rbt.rateA.nodes}. The object  \strong{$group.comp} reports the results obtained by comparing the focal node to the rest of the tree (\emph{‘others’}) and individual clades to each other if more than one node is specified.
 }
 \description{
-This function searches for evolutionary trends in phenotypic mean and evolutionary rates .
+This function searches for evolutionary trends in the phenotypic mean and the evolutionary rates for the entire tree and individual clades.
 }
 \details{
-The function simultaneously returns the regression of phenotypes and phenotypic evolutionary rates against age (in terms of distance from the tree root). As an output, plots for the absolute and relative rates regressions versus age are saved as a single .pdf file. In the plots, the 95\% confidence intervals of phenotypes and rates simulated under the Brownian motion for each node are plotted as shaded areas. The same is performed for the phenotype versus age regression. Regression slopes are reported for all regressions. To assess significance, slopes are compared to a family of simulated slopes (BMslopes, where the number of simulations is equal to \code{nsim}), generated as to show no phenotypic or rate trend (i.e. Brownian motion), using the \code{\link{setBM}} function. In the simulations, the phenotypic value at the root is the same as calculated for the original data by \code{RRphylo}. In addition, the Brownian rate is calculated for the original data and tree and set for all the Brownian motion simulations. Eventually, a p-value is obtained by comparing the real slope to BMslopes.
+The function simultaneously returns the regression of phenotypes and phenotypic evolutionary rates against age (in terms of distance from the tree root) tested against Brownian motion simulations to assess signficance. The function automatically stores the rates (absolute values) versus age regression and the phenotype versus age regression plots as .pdf files. In the plots, the 95\% confidence intervals of phenotypes and rates simulated under the Brownian motion for each node are plotted as shaded areas. Regression lines are printed for all regressions. To assess significance, slopes are compared to a family of simulated slopes (BMslopes, where the number of simulations is equal to \code{nsim}), generated under the Brownian motion, using the \code{fastBM} function in the package \pkg{phytools}. Individual nodes are compared to the rest of the tree in different ways depending on whether phenotypes or rates versus age regressions are tested. With the former, the regression slopes for individual clades and the slope difference between clades is contrasted to Brownian motion simulations. In the latter, regression statistics are tested and contrasted to each other referring to estimated marginal means, by using the \code{emmeans} function in the package \pkg{emmeans}.
 }
 \examples{
  \donttest{
