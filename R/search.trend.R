@@ -12,12 +12,12 @@
 #' @return The function returns a ‘list’ object including:
 #' @return \strong{$rbt} for each branch of the tree, there are the age of the daughter node/tip (D.age), the age of the parental node (P.age), the \code{RRphylo} rates, and the distance from the tree root (age). If y is multivariate, it also includes the multiple rates for each y vector.
 #' @return \strong{$pbt} a data frame of phenotypic values and their distance from the tree root for each node (i.e. ancestral states) and tip of the tree.
-#' @return \strong{$p.trend} results of phenotype versus age regression. It reports a p-value for the regression slope between the variables (p.real) a p-value computed contrasting the real slope to Brownian motion simulations (p.random). Only the latter should be inspected to assess significance.
-#' @return \strong{$rbt.rateA} results of the rates (absolute values) versus age regression. It reports a p-value for the regression between the variables (p.real), a p-value computed contrasting the real slope to Brownian motion simulations (p.random). Only the latter should be inspected to assess significance.
+#' @return \strong{$phenotypic.regression} results of phenotype versus age regression. It reports a p-value for the regression slope between the variables (p.real) a p-value computed contrasting the real slope to Brownian motion simulations (p.random). Only the latter should be inspected to assess significance.
+#' @return \strong{$rate.regression} results of the rates (absolute values) versus age regression. It reports a p-value for the regression between the variables (p.real), a p-value computed contrasting the real slope to Brownian motion simulations (p.random). Only the latter should be inspected to assess significance.
 #' @return \strong{$ConfInts} the 95\% confidence intervals around phenotypes and rates produced according to the Brownian motion model of evolution.
-#' @return If specified, individual nodes are tested as the whole tree, the results are summarized in the objects \strong{$p.trend.nodes} and \strong{$rbt.rateA.nodes}. The object  \strong{$group.comp} reports the results obtained by comparing the focal node to the rest of the tree (\emph{‘others’}) and individual clades to each other if more than one node is specified.
+#' @return If specified, individual nodes are tested as the whole tree, the results are summarized in the objects \strong{$node.phenotypic.regression} and \strong{$node.rate.regression}. If more than one node is specified, the object  \strong{$group.comparison} reports the results obtained by comparing individual clades to each other.
 #' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
-#' @details The function simultaneously returns the regression of phenotypes and phenotypic evolutionary rates against age (in terms of distance from the tree root) tested against Brownian motion simulations to assess signficance. The function automatically stores the rates (absolute values) versus age regression and the phenotype versus age regression plots as .pdf files. In the plots, the 95\% confidence intervals of phenotypes and rates simulated under the Brownian motion for each node are plotted as shaded areas. Regression lines are printed for all regressions. To assess significance, slopes are compared to a family of simulated slopes (BMslopes, where the number of simulations is equal to \code{nsim}), generated under the Brownian motion, using the \code{fastBM} function in the package \pkg{phytools}. Individual nodes are compared to the rest of the tree in different ways depending on whether phenotypes or rates versus age regressions are tested. With the former, the regression slopes for individual clades and the slope difference between clades is contrasted to Brownian motion simulations. In the latter, regression statistics are tested and contrasted to each other referring to estimated marginal means, by using the \code{emmeans} function in the package \pkg{emmeans}.
+#' @details The function simultaneously returns the regression of phenotypes and phenotypic evolutionary rates against age (in terms of distance from the tree root) tested against Brownian motion simulations to assess signficance. It stores the rates (absolute values) versus age regression and the phenotype versus age regression plots as .pdf files. In the plots, the 95\% confidence intervals of phenotypes and rates simulated under the Brownian motion for each node are plotted as shaded areas. Regression lines are printed for all regressions. To assess significance, slopes are compared to a family of simulated slopes (BMslopes, where the number of simulations is equal to \code{nsim}), generated under the Brownian motion, using the \code{fastBM} function in the package \pkg{phytools}. Individual nodes are compared to the rest of the tree in different ways depending on whether phenotypes or rates versus age regressions are tested. With the former, the regression slopes for individual clades and the slope difference between clades is contrasted slopes obtained through Brownian motion simulations. For the latter, regression models are tested and contrasted to each other referring to estimated marginal means, by using the \code{emmeans} function in the package \pkg{emmeans}.
 #' @importFrom graphics points text title polygon pairs
 #' @importFrom stats as.formula coef resid density predict
 #' @importFrom binr bins.greedy
@@ -141,7 +141,7 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
     rbi.slopeA <- matrix(ncol = 2, nrow = (dim(rbi.rate)[2] -
                                              1))
     REGabs.betas <- list()
-    tendReal<-array()
+    e1<-array()
     for (i in 1:(dim(rbi.rate)[2] - 1)) {
       bet <- rbi.rate[, i]
       age <- rbi.rate[, dim(rbi.rate)[2]]
@@ -151,62 +151,28 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
       log(range01(rts))->rts
       age->ageC
 
+      sd(range01(rtsA[ageC<0.5*max(ageC)]))/sd(range01(rtsA)[ageC>0.5*max(ageC)])->e1[i]
 
-      ### fixing
-      rtsA->rtsA1
-      ageC->ageC1
-      lm(rtsA~ageC)->bb
-      residuals(bb)[order(residuals(bb),decreasing=TRUE)][1:(Ntip(t)/15)]->resout
-      if((Ntip(t)+1)%in%names(resout)){
-        as.matrix(as.data.frame(rtsA[-1,]))->rtsA
-        ageC[-1]->ageC
-      }
-
-      lm(rtsA~ageC)->bbb
-      names(outlierTest(bbb)$p)->outs
-
+      c(which(rts=="-Inf"),which(age=="-Inf"))->outs
       if(length(outs)>0)
       {
-        ageC[-match(outs,names(ageC))]->ageC
-        as.matrix(as.data.frame(rtsA[-match(outs,rownames(rtsA)),]))->rtsA
+        as.matrix(as.data.frame(rts[-outs,]))->rts
+        age[-outs]->age
+      }
+      lm(rts~age)->bb
+
+      residuals(bb)[order(residuals(bb),decreasing=TRUE)][1:(Ntip(t)/15)]->resout
+      if((Ntip(t)+1)%in%names(resout)){
+        as.matrix(as.data.frame(rts[-1,]))->rts
+        age[-1]->age
       }
 
-      ### end of fix
-
-      if(coef(lm(tapply(range01(rtsA),cut(ageC,10),max)~seq(1:10)))[2]>0.07) tend<-2 else tend<-0
-
-      rtsA[which(ageC>max(ageC*.6))]->rUP
-      if(length(rUP)>0) if(length(outlier(rUP))>0) rUP[-outlier(rUP)]->rUP
-      rtsA[which(ageC<max(ageC*.4))]->rDW
-      if(length(rDW)>0) if(length(outlier(rDW))>0) rDW[-outlier(rDW)]->rDW
-
-      suppressWarnings(diff(range(rUP))/diff(range(rDW))->tend.2)
-
-      if((tend.2+tend)>.8) tend<-2 else tend<-0
-
-      tendReal[i]<-tend
-      rtsA1->rtsA
-      ageC1->ageC
-
-      if(tend==0){
-        range01(rtsA)->rA
-        #rtsA->rA
-        c(which(rA=="-Inf"),which(ageC=="-Inf"))->outs
-        if(length(outs)>0) lm(rA[-outs,]~ageC[-outs])->regr.1 else lm(rA~ageC)->regr.1
-        rbi.slopeA[i, ] <- coef(summary(regr.1))[2, c(1, 4)]
-      } else {
-
-
-        c(which(rts=="-Inf"),which(age=="-Inf"))->outs
-        if(length(outs)>0) lm(rts[-outs,]~age[-outs])->regr.1 else lm(rts~age)->regr.1
-        rbi.slopeA[i, ] <- coef(summary(regr.1))[2, c(1, 4)]
-      }
-
-      dat <- data.frame(bet, age)
+      lm(rts~age)->regr.1
+      rbi.slopeA[i, ] <- coef(summary(regr.1))[2, c(1, 4)]
       REGabs.betas[[i]] <- regr.1
     }
     colnames(rbi.slopeA) <- c("slope","p-value")
-    rownames(rbi.slopeA) <- names(REGabs.betas)<-names(tendReal) <- colnames(data)[5:(5 +dim(y)[2])]
+    rownames(rbi.slopeA) <- names(REGabs.betas)<-colnames(data)[5:(5 +dim(y)[2])]
   }else { #### Rate Trend Real Uni #####
     rbi.rate <- rbi[, c(5, 6)]
     bet <- rbi.rate[, 1]
@@ -217,57 +183,24 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
     log(range01(rts))->rts
     age->ageC
 
+    sd(range01(rtsA[ageC<0.5*max(ageC)]))/sd(range01(rtsA)[ageC>0.5*max(ageC)])->e1
 
-    ### fixing
-    rtsA->rtsA1
-    ageC->ageC1
-    lm(rtsA~ageC)->bb
-    residuals(bb)[order(residuals(bb),decreasing=TRUE)][1:(Ntip(t)/15)]->resout
-    if((Ntip(t)+1)%in%names(resout)){
-      as.matrix(as.data.frame(rtsA[-1,]))->rtsA
-      ageC[-1]->ageC
-    }
-
-    lm(rtsA~ageC)->bbb
-    names(outlierTest(bbb)$p)->outs
-
+    c(which(rts=="-Inf"),which(age=="-Inf"))->outs
     if(length(outs)>0)
     {
-      ageC[-match(outs,names(ageC))]->ageC
-      as.matrix(as.data.frame(rtsA[-match(outs,rownames(rtsA)),]))->rtsA
+      as.matrix(as.data.frame(rts[-outs,]))->rts
+      age[-outs]->age
+    }
+    lm(rts~age)->bb
+
+    residuals(bb)[order(residuals(bb),decreasing=TRUE)][1:(Ntip(t)/15)]->resout
+    if((Ntip(t)+1)%in%names(resout)){
+      as.matrix(as.data.frame(rts[-1,]))->rts
+      age[-1]->age
     }
 
-    ### end of fix
-    if(coef(lm(tapply(range01(rtsA),cut(ageC,10),max)~seq(1:10)))[2]>0.07) tend<-2 else tend<-0
-
-    rtsA[which(ageC>max(ageC*.6))]->rUP
-    if(length(rUP)>0) if(length(outlier(rUP))>0) rUP[-outlier(rUP)]->rUP
-    rtsA[which(ageC<max(ageC*.4))]->rDW
-    if(length(rDW)>0) if(length(outlier(rDW))>0) rDW[-outlier(rDW)]->rDW
-
-    suppressWarnings(diff(range(rUP))/diff(range(rDW))->tend.2)
-
-    if((tend.2+tend)>.8) tend<-2 else tend<-0
-
-    tendReal<-tend
-
-    rtsA1->rtsA
-    ageC1->ageC
-
-    if(tend==0){
-      range01(rtsA)->rA
-      #rtsA->rA
-      c(which(rA=="-Inf"),which(ageC=="-Inf"))->outs
-      if(length(outs)>0) lm(rA[-outs,]~ageC[-outs])->regr.1 else lm(rA~ageC)->regr.1
-      rbi.slopeA<- coef(summary(regr.1))[2, c(1, 4)]
-    } else {
-
-
-      c(which(rts=="-Inf"),which(age=="-Inf"))->outs
-      if(length(outs)>0) lm(rts[-outs,]~age[-outs])->regr.1 else lm(rts~age)->regr.1
-      rbi.slopeA<- coef(summary(regr.1))[2, c(1, 4)]
-    }
-
+    lm(rts~age)->regr.1
+    rbi.slopeA<- coef(summary(regr.1))[2, c(1, 4)]
     REGabs <- regr.1
   }
 
@@ -288,14 +221,7 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
       if(trend.reg[[i]][2,1]<0) (min(predict(trendR[[i]]))-mean(range01(PP[,i])))/sd(range01(PP[,i]))->dev[i] else (max(predict(trendR[[i]]))-mean(range01(PP[,i])))/sd(range01(PP[,i]))->dev[i]
     }
     names(dev)<-names(trend.reg)
-    #trend.M <- summary(lm(as.formula(paste(paste(colnames(PP)[-length(colnames(PP))],
-    #                                             collapse = "+"), colnames(PP)[length(colnames(PP))],
-    #                                       sep = "~")), data = PP))
-    #
-    #names(trend.reg) <- paste("y", seq(1:dim(y)[2]), sep = "")
-    #trend.reg[[length(trend.reg) + 1]] <- trend.M
-    #trend.reg <- lapply(trend.reg, coefficients)
-    #names(trend.reg)[length(trend.reg)] <- "multiple"
+
   }else {##### Phenotypic Trend Real Uni #####
     P <- c(nodes, y)
     PP <- data.frame(P[match(rbi[, 1], names(P))], rbi$age)
@@ -312,13 +238,11 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
     rbi.sma <- rbi.rate
     PP.sma <- PP
     rbi.sma$group <- rep("NA", dim(rbi.sma)[1])
-    rbi.slopeA.sel <- list()
     trend.reg.sel <- list()
     REGabs.betas.y.sel <- list()
     REG.betas.age.sel <- list()
     trend.reg.age.sel <- list()
     trend.reg.y.sel <- list()
-    tendReal.sel<-list()
     for (j in 1:length(node)) {
       n <- node[j]
       sele <- getDescendants(t, n)
@@ -335,7 +259,6 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
                                                   1))
         REG.betas.age <- list()
         REGabs.betas.y <- list()
-        tendRealN<-array()
         for (i in 1:(dim(rbi.rate)[2] - 1)) {
           bet <- rbi.rate[, i]
           age <- rbi.rate[, dim(rbi.rate)[2]]
@@ -347,63 +270,28 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
           log(range01(rts))->rts
           age->ageC
 
-
-          ### fixing
-          rtsA->rtsA1
-          ageC->ageC1
-          lm(rtsA~ageC)->bb
-          residuals(bb)[order(residuals(bb),decreasing=TRUE)][1:(Ntip(t)/15)]->resout
-          if((Ntip(t)+1)%in%names(resout)){
-            as.matrix(as.data.frame(rtsA[-1,]))->rtsA
-            ageC[-1]->ageC
-          }
-
-          lm(rtsA~ageC)->bbb
-          names(outlierTest(bbb)$p)->outs
-
+          c(which(rts=="-Inf"),which(age=="-Inf"))->outs
           if(length(outs)>0)
           {
-            ageC[-match(outs,names(ageC))]->ageC
-            as.matrix(as.data.frame(rtsA[-match(outs,rownames(rtsA)),]))->rtsA
+            as.matrix(as.data.frame(rts[-outs,]))->rts
+            age[-outs]->age
+          }
+          lm(rts~age)->bb
+
+          residuals(bb)[order(residuals(bb),decreasing=TRUE)][1:(Ntip(t)/15)]->resout
+          if((Ntip(t)+1)%in%names(resout)){
+            as.matrix(as.data.frame(rts[-1,]))->rts
+            age[-1]->age
           }
 
-          ### end of fix
-          if(coef(lm(tapply(range01(rtsA),cut(ageC,10),max)~seq(1:10)))[2]>0.07) tend<-2 else tend<-0
-
-          rtsA[which(ageC>max(ageC*.6))]->rUP
-          if(length(rUP)>0) if(length(outlier(rUP))>0) rUP[-outlier(rUP)]->rUP
-          rtsA[which(ageC<max(ageC*.4))]->rDW
-          if(length(rDW)>0) if(length(outlier(rDW))>0) rDW[-outlier(rDW)]->rDW
-
-          suppressWarnings(diff(range(rUP))/diff(range(rDW))->tend.2)
-
-          if((tend.2+tend)>.8) tend<-2 else tend<-0
-          tendRealN[i]<-tend
-
-          rtsA1->rtsA
-          ageC1->ageC
-
-          if(tend==0){
-            range01(rtsA)->rA
-            #rtsA->rA
-            c(which(rA=="-Inf"),which(ageC=="-Inf"))->outs
-            if(length(outs)>0) lm(rA[-outs,]~ageC[-outs])->regr.1 else lm(rA~ageC)->regr.1
-            rbi.slopeAn[i, ] <- coef(summary(regr.1))[2, c(1, 4)]
-          } else {
+          lm(rts~age)->regr.1
+          rbi.slopeAn[i, ] <- coef(summary(regr.1))[2, c(1, 4)]
 
 
-            c(which(rts=="-Inf"),which(age=="-Inf"))->outs
-            if(length(outs)>0) lm(rts[-outs,]~age[-outs])->regr.1 else lm(rts~age)->regr.1
-            rbi.slopeAn[i, ] <- coef(summary(regr.1))[2, c(1, 4)]
-          }
-
-          dat <- data.frame(bet, age)
-          #REGabs.betas.y[[i]] <- predict(regr.1)
-          #REG.betas.age[[i]] <- age[match(names(predict(regr.1)),names(age))]
         }
 
         colnames(rbi.slopeAn) <- c("slope","p-value")
-        rownames(rbi.slopeAn) <- names(tendRealN)<- names(REG.betas.age) <- names(REGabs.betas.y) <- colnames(data)[5:(5 +dim(y)[2])]
+        rownames(rbi.slopeAn) <- names(REG.betas.age) <- names(REGabs.betas.y) <- colnames(data)[5:(5 +dim(y)[2])]
       }else {#### Rate Trend Real Node Uni ####
 
         rbi.rate <- rbi.sel[, 5:6]
@@ -413,70 +301,33 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
         names(bet)<-names(age)<-rownames(rbi.rate)
         as.matrix(as.data.frame(abs(bet)))->rts
         rts->rtsA
-        REG.betas.age<-age
-        REGabs.betas.y<-predict(lm(rtsA~age))
         log(range01(rts))->rts
         age->ageC
 
+        REG.betas.age<-age
+        REGabs.betas.y<-predict(lm(rtsA~age))
 
-        ### fixing
-        rtsA->rtsA1
-        ageC->ageC1
-        lm(rtsA~ageC)->bb
-        residuals(bb)[order(residuals(bb),decreasing=TRUE)][1:(Ntip(t)/15)]->resout
-        if((Ntip(t)+1)%in%names(resout)){
-          as.matrix(as.data.frame(rtsA[-1,]))->rtsA
-          ageC[-1]->ageC
-        }
-
-        lm(rtsA~ageC)->bbb
-        names(outlierTest(bbb)$p)->outs
-
+        c(which(rts=="-Inf"),which(age=="-Inf"))->outs
         if(length(outs)>0)
         {
-          ageC[-match(outs,names(ageC))]->ageC
-          as.matrix(as.data.frame(rtsA[-match(outs,rownames(rtsA)),]))->rtsA
+          as.matrix(as.data.frame(rts[-outs,]))->rts
+          age[-outs]->age
+        }
+        lm(rts~age)->bb
+
+        residuals(bb)[order(residuals(bb),decreasing=TRUE)][1:(Ntip(t)/15)]->resout
+        if((Ntip(t)+1)%in%names(resout)){
+          as.matrix(as.data.frame(rts[-1,]))->rts
+          age[-1]->age
         }
 
-        ### end of fix
-        if(coef(lm(tapply(range01(rtsA),cut(ageC,10),max)~seq(1:10)))[2]>0.07) tend<-2 else tend<-0
-
-        rtsA[which(ageC>max(ageC*.6))]->rUP
-        if(length(rUP)>0) if(length(outlier(rUP))>0) rUP[-outlier(rUP)]->rUP
-        rtsA[which(ageC<max(ageC*.4))]->rDW
-        if(length(rDW)>0) if(length(outlier(rDW))>0) rDW[-outlier(rDW)]->rDW
-
-        suppressWarnings(diff(range(rUP))/diff(range(rDW))->tend.2)
-
-        if((tend.2+tend)>.8) tend<-2 else tend<-0
-        tendRealN<-tend
-
-        rtsA1->rtsA
-        ageC1->ageC
-
-        if(tend==0){
-          range01(rtsA)->rA
-          #rtsA->rA
-          c(which(rA=="-Inf"),which(ageC=="-Inf"))->outs
-          if(length(outs)>0) lm(rA[-outs,]~ageC[-outs])->regr.1 else lm(rA~ageC)->regr.1
-          rbi.slopeAn<- coef(summary(regr.1))[2, c(1, 4)]
-        } else {
-
-
-          c(which(rts=="-Inf"),which(age=="-Inf"))->outs
-          if(length(outs)>0) lm(rts[-outs,]~age[-outs])->regr.1 else lm(rts~age)->regr.1
-          rbi.slopeAn<- coef(summary(regr.1))[2, c(1, 4)]
-        }
-
-
-        #REGabs.betas.y <- predict(regr.1)
-        #REG.betas.age <- age[match(names(predict(regr.1)),names(age))]
+        lm(rts~age)->regr.1
+        rbi.slopeAn<- coef(summary(regr.1))[2, c(1, 4)]
 
       }
-      rbi.slopeA.sel[[j]] <- rbi.slopeAn
+
       REGabs.betas.y.sel[[j]] <- REGabs.betas.y
       REG.betas.age.sel[[j]] <- REG.betas.age
-      tendReal.sel[[j]]<-tendRealN
 
       nodes <- aceRR[1:Nnode(t), ]
       if (length(y) > Ntip(t)) {##### Phenotypic Trend Real Node Multi #####
@@ -492,14 +343,7 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
         names(trend.regC) <- c(paste("y", seq(1:dim(y)[2]),sep = ""),"multiple")
         trend.reg.y.sel[[j]] <- apply(PP[1:(dim(PP)[2] -
                                               1)], 2, function(x) predict(lm(x ~ PP[, dim(PP)[2]])))
-        #trend.M <- summary(lm(as.formula(paste(paste(colnames(PP)[-length(colnames(PP))],
-        #                                             collapse = "+"), colnames(PP)[length(colnames(PP))],
-        #                                       sep = "~")), data = PP))
-        #names(trend.regC) <- paste("y", seq(1:dim(y)[2]),
-        #                           sep = "")
-        #trend.regC[[length(trend.regC) + 1]] <- trend.M
-        #trend.regC <- lapply(trend.regC, coefficients)
-        #names(trend.regC)[length(trend.regC)] <- "multiple"
+
         trend.reg.age.sel[[j]] <- PP$age
 
       }else {##### Phenotypic Trend Real Node Multi #####
@@ -514,8 +358,7 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
       trend.reg.sel[[j]] <- trend.regC
     }
 
-    names(rbi.slopeA.sel) <- names(trend.reg.sel)<-names(tendReal.sel) <- node
-
+    names(trend.reg.sel)<-node
 
     rbi.sma$group[which(rbi.sma$group == "NA")] <- "others"
     PP.sma <- cbind(PP.sma, group = rbi.sma[match(rownames(PP.sma),
@@ -523,8 +366,8 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
     if (length(which(rbi.sma$group == "others")) < 3)
       rbi.sma <- rbi.sma[-which(rbi.sma$group == "others"),
                          ]
-    if (length(which(PP.sma$group == "others")) < 3)
-      PP.sma <- PP.sma[-which(PP.sma$group == "others"),]
+
+    PP.sma <- PP.sma[-which(PP.sma$group == "others"),]
 
     rbiRES <- rbi.sma
     if (length(y) > Ntip(t)) { #### Node Comparison Multi ####
@@ -543,21 +386,31 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
 
         colnames(sma.resA[[i]])[1:2]<-c("group_1","group_2")
 
-        betPP <- PP.sma[, i]
-        datPP <- data.frame(betPP, agePP, groupPP)
-        datPP[,3]<-as.character(datPP[,3])
-        sapply(lapply(trend.reg.sel,"[[",i),"[[",2)->slope.tot
-        c(slope.tot,summary(lm(range01(subset(datPP,groupPP=="others")[,1])~subset(datPP,groupPP=="others")[,2]))$coef[2,1])->slope.tot
-        names(slope.tot)<-c(paste("g",names(trend.reg.sel),sep=""),"others")
-        combn(sort(unique(datPP[,3])),2)->pair
-        slope.diff<-array()
-        for(jj in 1:dim(pair)[2]){
-          slope.tot[match(pair[1,jj],names(slope.tot))]-slope.tot[match(pair[2,jj],names(slope.tot))]->slope.diff[jj]
-
+        if(length(node)>1){
+          sapply(lapply(trend.reg.sel,"[[",i),"[[",2)->slope.tot
+          names(slope.tot)<-paste("g",names(trend.reg.sel),sep="")
+          data.frame(t(c(names(slope.tot)[2:1])),diff(slope.tot))->sma.resPP[[i]]
+          rownames(sma.resPP[[i]])<-NULL
+          colnames(sma.resPP[[i]])<-colnames(sma.resA[[i]])[1:3]
+        }else{
+          sma.resPP<-NULL
         }
-        data.frame(t(pair),slope.diff)->sma.resPP[[i]]
-        colnames(sma.resPP[[i]])<-colnames(sma.resA[[i]])[1:3]
       }
+
+
+      lapply(sma.resA,function(x) subset(x,x$group_2=="others"))->n.ot
+      lapply(sma.resA,function(x) subset(x,x$group_2!="others"))->sma.resA
+
+      sapply(strsplit(as.character(n.ot[[1]][,1]),"g"),"[[",2)->grn
+      lapply(n.ot,function(x) x[match(node,grn),])->n.ot
+      rbi.slopeA.sel<-list()
+      for(i in 1:length(node)){
+        do.call(rbind,lapply(n.ot,function(x) x[i,3:4]))->rbi.slopeA.sel[[i]]
+        rownames(rbi.slopeA.sel[[i]])<-rownames(rbi.slopeA)
+      }
+
+
+
     }else {#### Node Comparison Uni ####
 
       colnames(PP.sma)[1] <- "y"
@@ -565,22 +418,37 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
       data.frame(do.call(rbind,strsplit(as.character(sma.resA[,1])," - ")),sma.resA[,-c(1,3,4,5)])->sma.resA
       colnames(sma.resA)[1:2]<-c("group_1","group_2")
 
-      PP.sma[,3]<-as.character(PP.sma[,3])
-      sapply(trend.reg.sel,"[[",2)->slope.tot
-      c(slope.tot,summary(lm(range01(subset(PP.sma,group=="others")[,1])~subset(PP.sma,group=="others")[,2]))$coef[2,1])->slope.tot
-      names(slope.tot)<-c(paste("g",names(trend.reg.sel),sep=""),"others")
-      combn(sort(unique(PP.sma[,3])),2)->pair
-      slope.diff<-array()
-      for(jj in 1:dim(pair)[2]){
-        slope.tot[match(pair[1,jj],names(slope.tot))]-slope.tot[match(pair[2,jj],names(slope.tot))]->slope.diff[jj]
+      subset(sma.resA,sma.resA$group_2=="others")->n.ot
+      subset(sma.resA,sma.resA$group_2!="others")->sma.resA
 
+      sapply(strsplit(as.character(n.ot[,1]),"g"),"[[",2)->grn
+      n.ot[match(node,grn),]->n.ot
+      rownames(n.ot)<-NULL
+      rbi.slopeA.sel<-list()
+      for(i in 1:nrow(n.ot)){
+        n.ot[i,c(3,4)]->rbi.slopeA.sel[[i]]
+        rownames(rbi.slopeA.sel[[i]])<-NULL
       }
-      data.frame(t(pair),slope.diff)->sma.resPP
-      colnames(sma.resPP)<-colnames(sma.resA)[1:3]
+
+
+      if(dim(sma.resA)[1]>0){
+        PP.sma[,3]<-as.character(PP.sma[,3])
+        sapply(trend.reg.sel,"[[",2)->slope.tot
+        names(slope.tot)<-paste("g",names(trend.reg.sel),sep="")
+        data.frame(t(c(names(slope.tot)[2:1])),diff(slope.tot))->sma.resPP
+        rownames(sma.resPP)<-NULL
+        colnames(sma.resPP)<-colnames(sma.resA)[1:3]
+      }else{
+        sma.resPP<-NULL
+        sma.resA<-NULL
+      }
     }
+    names(rbi.slopeA.sel)<-node
     if (class(sma.resA) == "list") {
-      names(sma.resA) <- colnames(rbi.sma)[1:(dim(rbi.sma)[2] - 2)]
-      names(sma.resPP) <- names(trend.reg)
+      if(is.null(sma.resPP)==FALSE){
+        names(sma.resA) <- colnames(rbi.sma)[1:(dim(rbi.sma)[2] - 2)]
+        names(sma.resPP) <- names(trend.reg)
+      }
     }
   }
 
@@ -605,7 +473,7 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
   cl <- makeCluster(round((detectCores() * clus), 0))
   registerDoParallel(cl)
   res <- foreach(i = 1:nsim, .packages = c("car","outliers","nlme", "ape",
-                                           "geiger", "phytools", "penalized", "doParallel", "lmtest","emmeans"
+                                           "geiger", "phytools", "penalized", "doParallel", "lmtest"
   )) %dopar% {
     gc()
     if (length(y) > Ntip(t)) {
@@ -730,7 +598,7 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
       rbi.rate <- rbi[, c(5:(dim(rbi)[2] - 1), dim(rbi)[2])]
       rbi.slopeAS <- matrix(ncol = 2, nrow = (dim(rbi.rate)[2] -
                                                 1))
-
+      ee<-array()
       for (k in 1:(dim(rbi.rate)[2] - 1)) {
         bet <- rbi.rate[, k]
         age <- rbi.rate[, dim(rbi.rate)[2]]
@@ -741,17 +609,24 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
         log(range01(rts))->rts
         age->ageC
 
-        if(tendReal[k]==0){
-          range01(rtsA)->rA
-          #rtsA->rA
-          c(which(rA=="-Inf"),which(ageC=="-Inf"))->outs
-          if(length(outs)>0) lm(rA[-outs,]~ageC[-outs])->regr.1 else lm(rA~ageC)->regr.1
-          rbi.slopeAS[k, ] <- coef(summary(regr.1))[2, c(1, 4)]
-        } else {
-          c(which(rts=="-Inf"),which(age=="-Inf"))->outs
-          if(length(outs)>0) lm(rts[-outs,]~age[-outs])->regr.1 else lm(rts~age)->regr.1
-          rbi.slopeAS[k, ] <- coef(summary(regr.1))[2, c(1, 4)]
+        sd(range01(rtsA[ageC<0.5*max(ageC)]))/sd(range01(rtsA)[ageC>0.5*max(ageC)])->ee[k]
+
+        c(which(rts=="-Inf"),which(age=="-Inf"))->outs
+        if(length(outs)>0)
+        {
+          as.matrix(as.data.frame(rts[-outs,]))->rts
+          age[-outs]->age
         }
+        lm(rts~age)->bb
+
+        residuals(bb)[order(residuals(bb),decreasing=TRUE)][1:(Ntip(t)/15)]->resout
+        if((Ntip(t)+1)%in%names(resout)){
+          as.matrix(as.data.frame(rts[-1,]))->rts
+          age[-1]->age
+        }
+
+        lm(rts~age)->regr.1
+        rbi.slopeAS[k, ] <- coef(summary(regr.1))[2, c(1, 4)]
 
       }
       colnames(rbi.slopeAS) <- c("slope","p-value")
@@ -766,18 +641,24 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
       log(range01(rts))->rts
       age->ageC
 
-      if(tendReal==0){
-        range01(rtsA)->rA
-        #rtsA->rA
-        c(which(rA=="-Inf"),which(ageC=="-Inf"))->outs
-        if(length(outs)>0) lm(rA[-outs,]~ageC[-outs])->regr.1 else lm(rA~ageC)->regr.1
-        rbi.slopeAS<- coef(summary(regr.1))[2, c(1, 4)]
-      } else {
-        c(which(rts=="-Inf"),which(age=="-Inf"))->outs
-        if(length(outs)>0) lm(rts[-outs,]~age[-outs])->regr.1 else lm(rts~age)->regr.1
-        rbi.slopeAS <- coef(summary(regr.1))[2, c(1, 4)]
-        #coef(regr.1)[[2]]->sloper
+      sd(range01(rtsA)[ageC<0.5*max(ageC)])/sd(range01(rtsA)[ageC>0.5*max(ageC)])->ee
+
+      c(which(rts=="-Inf"),which(age=="-Inf"))->outs
+      if(length(outs)>0)
+      {
+        as.matrix(as.data.frame(rts[-outs,]))->rts
+        age[-outs]->age
       }
+      lm(rts~age)->bb
+
+      residuals(bb)[order(residuals(bb),decreasing=TRUE)][1:(Ntip(t)/15)]->resout
+      if((Ntip(t)+1)%in%names(resout)){
+        as.matrix(as.data.frame(rts[-1,]))->rts
+        age[-1]->age
+      }
+
+      lm(rts~age)->regr.1
+      rbi.slopeAS <- coef(summary(regr.1))[2, c(1, 4)]
 
     }
     rbi.sma <- rbi.rate
@@ -794,14 +675,6 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
         summary(lm(range01(x) ~PP[, dim(PP)[2]])))
       trend.regS <- lapply(trend.regR, coefficients)
       names(trend.regR) <- c(paste("betas", seq(1:dim(y)[2]),sep = ""),"multiple")
-      #trend.M <- summary(lm(as.formula(paste(paste(colnames(PP)[-length(colnames(PP))],
-      #                                             collapse = "+"), colnames(PP)[length(colnames(PP))],
-      #                                       sep = "~")), data = PP))
-      #names(trend.regR) <- paste("betas", seq(1:dim(y)[2]),
-      #                           sep = "")
-      #trend.regR[[length(trend.regR) + 1]] <- trend.M
-      #trend.regS <- lapply(trend.regR, coefficients)
-      #names(trend.regS)[length(trend.regS)] <- "multiple"
       cbind(yT,yTmulti)->yT
       cbind(yD,yDmulti)->yD
 
@@ -815,9 +688,8 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
     PPtot <- PP
 
     if (class(node) != "NULL") {
-      rbi.sma <- rbi.rate
       PP.sma <- PP
-      rbi.sma$group <- rep("NA", dim(rbi.sma)[1])
+      PP.sma$group <- rep("NA", dim(PP.sma)[1])
       rbi.slopeAS.sel <- list()
       trend.reg.SEL <- list()
       for (j in 1:length(node)) {
@@ -825,63 +697,9 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
         sele <- getDescendants(t, n)
         sele[which(sele < (Ntip(t) + 1))] <- t$tip.label[sele[which(sele <
                                                                       (Ntip(t) + 1))]]
-        rbi.sma[match(c(n,sele), rownames(rbi.sma)), ]$group <- paste("g",
-                                                                      n, sep = "")
+        PP.sma[match(c(n,sele), rownames(PP.sma)), ]$group <- paste("g",
+                                                                    n, sep = "")
         rbi.sel <- rbi[match(c(n,sele), rownames(rbi)), ]
-        if (length(yT) > Ntip(t)) {#### Rate Trend Random Node Multi ####
-          rbi.rate <- rbi.sel[, c(5:(dim(rbi.sel)[2] -
-                                       1), dim(rbi.sel)[2])]
-          rbi.slopeAn <- matrix(ncol = 2, nrow = (dim(rbi.rate)[2] -
-                                                    1))
-          for (w in 1:(dim(rbi.rate)[2] - 1)) {
-            bet <- rbi.rate[, w]
-            age <- rbi.rate[, dim(rbi.rate)[2]]
-
-            names(bet)<-names(age)<-rownames(rbi.rate)
-            as.matrix(as.data.frame(abs(bet)))->rts
-            rts->rtsA
-            log(range01(rts))->rts
-            age->ageC
-
-            if(tendReal.sel[[j]][w]==0){
-              range01(rtsA)->rA
-              #rtsA->rA
-              c(which(rA=="-Inf"),which(ageC=="-Inf"))->outs
-              if(length(outs)>0) lm(rA[-outs,]~ageC[-outs])->regr.1 else lm(rA~ageC)->regr.1
-              rbi.slopeAn[w, ] <- coef(summary(regr.1))[2, c(1, 4)]
-            } else {
-              c(which(rts=="-Inf"),which(age=="-Inf"))->outs
-              if(length(outs)>0) lm(rts[-outs,]~age[-outs])->regr.1 else lm(rts~age)->regr.1
-              rbi.slopeAn[w, ] <- coef(summary(regr.1))[2, c(1, 4)]
-            }
-
-          }
-          colnames(rbi.slopeAn) <- c("slope","p-value")
-          rownames(rbi.slopeAn) <- colnames(data)[5:(5 +dim(y)[2])]
-        }else {#### Rate Trend Random Node Uni ####
-          rbi.rate <- rbi[, 5:6]
-          bet <- rbi.rate[, 1]
-          age <- rbi.rate[, 2]
-          names(bet)<-names(age)<-rownames(rbi.rate)
-          as.matrix(as.data.frame(abs(bet)))->rts
-          rts->rtsA
-          log(range01(rts))->rts
-          age->ageC
-
-          if(tendReal.sel[[j]]==0){
-            range01(rtsA)->rA
-            #rtsA->rA
-            c(which(rA=="-Inf"),which(ageC=="-Inf"))->outs
-            if(length(outs)>0) lm(rA[-outs,]~ageC[-outs])->regr.1 else lm(rA~ageC)->regr.1
-            rbi.slopeAn<- coef(summary(regr.1))[2, c(1, 4)]
-          } else {
-
-            c(which(rts=="-Inf"),which(age=="-Inf"))->outs
-            if(length(outs)>0) lm(rts[-outs,]~age[-outs])->regr.1 else lm(rts~age)->regr.1
-            rbi.slopeAn<- coef(summary(regr.1))[2, c(1, 4)]
-          }
-        }
-        rbi.slopeAS.sel[[j]] <- rbi.slopeAn
 
         nodesD <- aceRRD[1:Nnode(t), ]
         if (length(y) > Ntip(t)) {#### Phenotypic Trend Random Node Multi ####
@@ -895,14 +713,6 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
                               2, function(x) summary(lm(range01(x) ~ PP[, dim(PP)[2]])))
           trend.regC <- lapply(trend.regC, coefficients)
           names(trend.regC) <- c(paste("y", seq(1:dim(y)[2]),sep = ""),"multiple")
-          #trend.M <- summary(lm(as.formula(paste(paste(colnames(PP)[-length(colnames(PP))],
-          #                                             collapse = "+"), colnames(PP)[length(colnames(PP))],
-          #                                       sep = "~")), data = PP))
-          #names(trend.regC) <- paste("y", seq(1:dim(yD)[2]),
-          #                           sep = "")
-          #trend.regC[[length(trend.regC) + 1]] <- trend.M
-          #trend.regC <- lapply(trend.regC, coefficients)
-          #names(trend.regC)[length(trend.regC)] <- "multiple"
 
         }else {
           P <- c(nodesD, yD)
@@ -914,61 +724,44 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
         }
         trend.reg.SEL[[j]] <- trend.regC
       }
-      names(rbi.slopeAS.sel) <- names(trend.reg.SEL) <- node
-
-      rbi.sma$group[which(rbi.sma$group == "NA")] <- "others"
-      PP.sma <- cbind(PP.sma, group = rbi.sma[match(rownames(PP.sma),
-                                                    rownames(rbi.sma)), ]$group)
-      if (length(which(rbi.sma$group == "others")) < 3)
-        rbi.sma <- rbi.sma[-which(rbi.sma$group == "others"),
-                           ]
-      if (length(which(PP.sma$group == "others")) < 3)
-        PP.sma <- PP.sma[-which(PP.sma$group == "others"),]
+      names(trend.reg.SEL) <- node
 
 
-      if (length(y) > Ntip(t)) {
-        groupPP <- PP.sma[, (dim(PP.sma)[2])]
-        agePP <- PP.sma[, (dim(PP.sma)[2] - 1)]
+      if(is.null(sma.resPP)==FALSE){
+        PP.sma <- PP.sma[-which(PP.sma$group == "NA"),]
 
-        sma.resPP.R<-list()
-        for (k in 1:(dim(rbi.rate)[2] - 1)) {
-          betPP <- PP.sma[, k]
-          datPP <- data.frame(betPP, agePP, groupPP)
-          datPP[,3]<-as.character(datPP[,3])
-          sapply(lapply(trend.reg.SEL,"[[",k),"[[",2)->slope.tot
-          c(slope.tot,summary(lm(range01(subset(datPP,groupPP=="others")[,1])~subset(datPP,groupPP=="others")[,2]))$coef[2,1])->slope.tot
-          names(slope.tot)<-c(paste("g",names(trend.reg.sel),sep=""),"others")
-          combn(sort(unique(datPP[,3])),2)->pair
-          slope.diff<-array()
-          for(jj in 1:dim(pair)[2]){
-            slope.tot[match(pair[1,jj],names(slope.tot))]-slope.tot[match(pair[2,jj],names(slope.tot))]->slope.diff[jj]
+        if (length(y) > Ntip(t)) {
+          groupPP <- PP.sma[, (dim(PP.sma)[2])]
+          agePP <- PP.sma[, (dim(PP.sma)[2] - 1)]
 
+          sma.resPP.R<-list()
+          for (k in 1:(dim(rbi.rate)[2] - 1)) {
+
+            sapply(lapply(trend.reg.SEL,"[[",k),"[[",2)->slope.tot
+            names(slope.tot)<-paste("g",names(trend.reg.sel),sep="")
+            data.frame(t(c(names(slope.tot)[2:1])),diff(slope.tot))->sma.resPP.R[[k]]
+            rownames(sma.resPP.R[[k]])<-NULL
+            colnames(sma.resPP.R[[k]])<-c("group_1","group_2","estimate")
           }
-          data.frame(t(pair),slope.diff)->sma.resPP.R[[k]]
-          colnames(sma.resPP.R[[k]])<-c("group_1","group_2","estimate")
+          names(sma.resPP.R)<-colnames(PP.sma)[1:(dim(PP.sma)[2] - 2)]
+        }else{
+
+          PP.sma[,3]<-as.character(PP.sma[,3])
+          sapply(trend.reg.SEL,"[[",2)->slope.tot
+          names(slope.tot)<-paste("g",names(trend.reg.sel),sep="")
+          data.frame(t(c(names(slope.tot)[2:1])),diff(slope.tot))->sma.resPP.R
+          rownames(sma.resPP.R)<-NULL
+          colnames(sma.resPP.R)<-c("group_1","group_2","estimate")
         }
-        names(sma.resPP.R)<-colnames(PP.sma)[1:(dim(PP.sma)[2] - 2)]
       }else{
-        PP.sma[,3]<-as.character(PP.sma[,3])
-        sapply(trend.reg.SEL,"[[",2)->slope.tot
-        c(slope.tot,summary(lm(range01(subset(PP.sma,group=="others")[,1])~subset(PP.sma,group=="others")[,2]))$coef[2,1])->slope.tot
-        names(slope.tot)<-c(paste("g",names(trend.reg.sel),sep=""),"others")
-        combn(sort(unique(PP.sma[,3])),2)->pair
-        slope.diff<-array()
-        for(jj in 1:dim(pair)[2]){
-          slope.tot[match(pair[1,jj],names(slope.tot))]-slope.tot[match(pair[2,jj],names(slope.tot))]->slope.diff[jj]
-
-        }
-        data.frame(t(pair),slope.diff)->sma.resPP.R
-        colnames(sma.resPP.R)<-c("group_1","group_2","estimate")
+        sma.resPP.R<-NULL
       }
-
       res[[i]] <- list(trend.regS, rbi.slopeAS,
-                       PPtot, rbi,yT,yD,
+                       PPtot, rbi,yT,yD,ee,
                        rbi.slopeAS.sel, trend.reg.SEL,sma.resPP.R)
     }else {
       res[[i]] <- list(trend.regS, rbi.slopeAS,
-                       PPtot, rbi,yT,yD)
+                       PPtot, rbi,yT,yD,ee)
     }
   }
   stopCluster(cl)
@@ -977,43 +770,25 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
   if (length(y) > Ntip(t)) {#### p Rate Trend Multi####
     p.rbi.slopeA <- array()
     spread<-array()
-    yRT.multi<-list()
     for (i in 1:(dim(y)[2] + 1)) {
       cbind(y,y.multi)->yTot
       rbi.slopeRAS <- do.call(rbind, lapply(lapply(res,"[[", 2), function(x) x[i, 1]))
       yRT<- lapply(lapply(res,"[[",5), function(x) x[, i])
-      yRT->yRT.multi[[i]]
 
       nsim-length(which(rbi.slopeRAS<rbi.slopeA[i, 1]))->pp
 
-      seq(.3,.8,by=0.001)->cutter
-      e=1
-      repeat({
-        length(y[which(diag(vcv(t))< cutter[e]*max(diag(vcv(t))))])->l
-        if(l>(Ntip(t)/15)) break
-        e=e+1
-      })
+      sapply(lapply(res,"[[",7),"[[",i)->ee
 
-      cutter[e]->CT
-
-      sapply(yRT, function(x)  sd(residuals(lm(x[which(diag(vcv(t))< CT*max(diag(vcv(t))))]~diag(vcv(t))[which(diag(vcv(t))< CT*max(diag(vcv(t))))])))/sd(residuals(lm(x[which(diag(vcv(t))> CT*max(diag(vcv(t))))]~diag(vcv(t))[which(diag(vcv(t))> CT*max(diag(vcv(t))))]))))->ee
-      sd(residuals(lm(y[which(diag(vcv(t))< CT*max(diag(vcv(t))))]~diag(vcv(t))[which(diag(vcv(t))< CT*max(diag(vcv(t))))])))/sd(residuals(lm(y[which(diag(vcv(t))> CT*max(diag(vcv(t))))]~diag(vcv(t))[which(diag(vcv(t))> CT*max(diag(vcv(t))))])))->e1
-
-      if(pp>(nsim*.5) & length(which(ee>e1))>=(nsim*.95)){
+      if(pp>(nsim*.5) & length(which(ee>e1[i]))>=(nsim*.95) & rbi.slopeA[i, 1]>0){
         nsim-pp->pp
       } else {
-        if(pp<(nsim*.5) & length(which(ee>e1))<=(nsim*.05))
+        if(pp<(nsim*.5) & length(which(ee>e1[i]))<=(nsim*.05) & rbi.slopeA[i, 1]<0)
           nsim-pp->pp
       }
       pp/nsim->p.rbi.slopeA[i]
 
-      if((pp/nsim)<=0.5){
-        spR<-mean(unlist(lapply(yRT,function(x)(diff(range(range01(x)))/diff(range(range01(x)[which(diag(vcv(t))<(min(diag(vcv(t)))+diff(range(diag(vcv(t))))/2))]))))))
-        spread[i]<-(diff(range(range01(yTot[,i])))/diff(range(range01(yTot[,i])[which(diag(vcv(t))<(min(diag(vcv(t)))+diff(range(diag(vcv(t))))/2))])))/spR
-      }else{
-        spR<-mean(unlist(lapply(yRT,function(x)(diff(range(range01(x)))/diff(range(range01(x)[which(diag(vcv(t))>(min(diag(vcv(t)))+diff(range(diag(vcv(t))))/2))]))))))
-        spread[i]<-(diff(range(range01(yTot[,i])))/diff(range(range01(yTot[,i])[which(diag(vcv(t))>(min(diag(vcv(t)))+diff(range(diag(vcv(t))))/2))])))/spR
-      }
+      (diff(range(yTot[,i]))/diff(range(yTot[,i][which(diag(vcv(t))<diff(range(diag(vcv(t)))))])))*
+        mean(sapply(yRT,function(x)(diff(range(x))/diff(range(x[which(diag(vcv(t))<diff(range(diag(vcv(t)))))])))))->spread[i]
 
     }
     names(spread)<-names(p.rbi.slopeA) <- rownames(rbi.slopeA)
@@ -1026,34 +801,18 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
 
     nsim-length(which(rbi.slopesRAS<rbi.slopeA[1]))->pp
 
-    seq(.3,.8,by=0.001)->cutter
-    e=1
-    repeat({
-      length(y[which(diag(vcv(t))< cutter[e]*max(diag(vcv(t))))])->l
-      if(l>(Ntip(t)/15)) break
-      e=e+1
-    })
+    sapply(res,"[[",7)->ee
 
-    cutter[e]->CT
-
-    sapply(yRT, function(x)  sd(residuals(lm(x[which(diag(vcv(t))< CT*max(diag(vcv(t))))]~diag(vcv(t))[which(diag(vcv(t))< CT*max(diag(vcv(t))))])))/sd(residuals(lm(x[which(diag(vcv(t))> CT*max(diag(vcv(t))))]~diag(vcv(t))[which(diag(vcv(t))> CT*max(diag(vcv(t))))]))))->ee
-    sd(residuals(lm(y[which(diag(vcv(t))< CT*max(diag(vcv(t))))]~diag(vcv(t))[which(diag(vcv(t))< CT*max(diag(vcv(t))))])))/sd(residuals(lm(y[which(diag(vcv(t))> CT*max(diag(vcv(t))))]~diag(vcv(t))[which(diag(vcv(t))> CT*max(diag(vcv(t))))])))->e1
-
-    if(pp>(nsim*.5) & length(which(ee>e1))>=(nsim*.95)){
+    if(pp>(nsim*.5) & length(which(ee>e1))>=(nsim*.95) & rbi.slopeA[1]>0){
       nsim-pp->pp
     } else {
-      if(pp<(nsim*.5) & length(which(ee>e1))<=(nsim*.05))
+      if(pp<(nsim*.5) & length(which(ee>e1))<=(nsim*.05) & rbi.slopeA[1]<0)
         nsim-pp->pp
     }
     pp/nsim->p.rbi.slopeA
 
-    if((pp/nsim)<=0.5){
-      spR<-mean(unlist(lapply(yRT,function(x)(diff(range(range01(x)))/diff(range(range01(x)[which(diag(vcv(t))<(min(diag(vcv(t)))+diff(range(diag(vcv(t))))/2))]))))))
-      spread<-(diff(range(range01(y)))/diff(range(range01(y)[which(diag(vcv(t))<(min(diag(vcv(t)))+diff(range(diag(vcv(t))))/2))])))/spR
-    }else{
-      spR<-mean(unlist(lapply(yRT,function(x)(diff(range(range01(x)))/diff(range(range01(x)[which(diag(vcv(t))>(min(diag(vcv(t)))+diff(range(diag(vcv(t))))/2))]))))))
-      spread<-(diff(range(range01(y)))/diff(range(range01(y)[which(diag(vcv(t))>(min(diag(vcv(t)))+diff(range(diag(vcv(t))))/2))])))/spR
-    }
+    (diff(range(y))/diff(range(y[which(diag(vcv(t))<diff(range(diag(vcv(t)))))])))*
+      mean(sapply(yRT,function(x)(diff(range(x))/diff(range(x[which(diag(vcv(t))<diff(range(diag(vcv(t)))))])))))->spread
 
     rbi.slopeA <- unname(rbi.slopeA)
     p.rbi.slopeA <- c(slope = rbi.slopeA[1], p.real = rbi.slopeA[2],
@@ -1062,106 +821,31 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
 
 
   if (class(node) != "NULL") {
-    p.slopeA.sel <- list()
-    p.slopeR.sel <- list()
-    for (k in 1:length(node)) {
-      if (length(y) > Ntip(t)) {#### p Rate Trend Node Multi ####
-        pA <- array()
-        for (i in 1:(dim(y)[2] + 1)) {
-          rbi.slopeRAS.sel <- do.call(rbind, lapply(lapply(lapply(res,
-                                                                  "[[", 7), "[[", k), function(x) x[i, 1]))
-
-          yRT.sel<-lapply(yRT.multi[[i]],function(x) x[which(names(x)%in%tips(t,node[k]))])
-          yTot[match(tips(t,node[k]),rownames(yTot)),i]->ysel
-
-          nsim-length(which(rbi.slopeRAS.sel<rbi.slopeA.sel[[k]][i, 1]))->pp
-
-          sapply(yRT.sel, function(x)
-            sd(residuals(lm(x[which(diag(vcv(t)[names(x),names(x)])< median(diag(vcv(t)[names(x),names(x)])))]~
-                              diag(vcv(t)[names(x),names(x)])[which(diag(vcv(t)[names(x),names(x)])< median(diag(vcv(t)[names(x),names(x)])))])))/
-              sd(residuals(lm(x[which(diag(vcv(t)[names(x),names(x)])> median(diag(vcv(t)[names(x),names(x)])))]~
-                                diag(vcv(t)[names(x),names(x)])[which(diag(vcv(t)[names(x),names(x)])> median(diag(vcv(t)[names(x),names(x)])))]))))->ee
-
-
-          sd(residuals(lm(ysel[which(diag(vcv(t)[tips(t,node[k]),tips(t,node[k])])< median(diag(vcv(t)[tips(t,node[k]),tips(t,node[k])])))]~
-                            diag(vcv(t)[tips(t,node[k]),tips(t,node[k])])[which(diag(vcv(t)[tips(t,node[k]),tips(t,node[k])])< median(diag(vcv(t)[tips(t,node[k]),tips(t,node[k])])))])))/
-            sd(residuals(lm(ysel[which(diag(vcv(t)[tips(t,node[k]),tips(t,node[k])])> median(diag(vcv(t)[tips(t,node[k]),tips(t,node[k])])))]~
-                              diag(vcv(t)[tips(t,node[k]),tips(t,node[k])])[which(diag(vcv(t)[tips(t,node[k]),tips(t,node[k])])> median(diag(vcv(t)[tips(t,node[k]),tips(t,node[k])])))])))->e1
-
-          if(pp>(nsim*.5) & length(which(ee>e1))>=(nsim*.95)){
-            nsim-pp->pp
-          } else {
-            if(pp<(nsim*.5) & length(which(ee>e1))<=(nsim*.05))
-              nsim-pp->pp
-          }
-          pp/nsim->pA[i]
-        }
-
-      }else {#### p Rate Trend Node Uni ####
-        rbi.slopeRAS.sel <- do.call(rbind, lapply(lapply(res,
-                                                         "[[", 7), "[[", k))[, 1]
-
-        yRT.sel<-lapply(yRT,function(x) x[which(names(x)%in%tips(t,node[k]))])
-        y[match(tips(t,node[k]),names(y))]->ysel
-
-        nsim-length(which(rbi.slopeRAS.sel<rbi.slopeA.sel[[k]][1]))->pp
-
-        sapply(yRT.sel, function(x)
-          sd(residuals(lm(x[which(diag(vcv(t)[names(x),names(x)])< median(diag(vcv(t)[names(x),names(x)])))]~
-                            diag(vcv(t)[names(x),names(x)])[which(diag(vcv(t)[names(x),names(x)])< median(diag(vcv(t)[names(x),names(x)])))])))/
-            sd(residuals(lm(x[which(diag(vcv(t)[names(x),names(x)])> median(diag(vcv(t)[names(x),names(x)])))]~
-                              diag(vcv(t)[names(x),names(x)])[which(diag(vcv(t)[names(x),names(x)])> median(diag(vcv(t)[names(x),names(x)])))]))))->ee
-
-
-        sd(residuals(lm(ysel[which(diag(vcv(t)[tips(t,node[k]),tips(t,node[k])])< median(diag(vcv(t)[tips(t,node[k]),tips(t,node[k])])))]~
-                          diag(vcv(t)[tips(t,node[k]),tips(t,node[k])])[which(diag(vcv(t)[tips(t,node[k]),tips(t,node[k])])< median(diag(vcv(t)[tips(t,node[k]),tips(t,node[k])])))])))/
-          sd(residuals(lm(ysel[which(diag(vcv(t)[tips(t,node[k]),tips(t,node[k])])> median(diag(vcv(t)[tips(t,node[k]),tips(t,node[k])])))]~
-                            diag(vcv(t)[tips(t,node[k]),tips(t,node[k])])[which(diag(vcv(t)[tips(t,node[k]),tips(t,node[k])])> median(diag(vcv(t)[tips(t,node[k]),tips(t,node[k])])))])))->e1
-
-        if(pp>(nsim*.5) & length(which(ee>e1))>=(nsim*.95)){
-          nsim-pp->pp
-        } else {
-          if(pp<(nsim*.5) & length(which(ee>e1))<=(nsim*.05))
-            nsim-pp->pp
-        }
-        pp/nsim->pA
-      }
-
-      p.slopeA.sel[[k]] <- pA
-    }
-    names(p.slopeA.sel)  <- node
-    p.rbi.slopeA.sel <- list()
-    if (length(y) > Ntip(t)) {
-      for (p in 1:length(rbi.slopeA.sel)) {
-        p.rbi.slopeA.sel[[p]] <- cbind(slope = rbi.slopeA.sel[[p]][,
-                                                                   1], p.real = rbi.slopeA.sel[[p]][, 2],
-                                       p.random = p.slopeA.sel[[p]])
-      }
-    }else {
-      for (p in 1:length(rbi.slopeA.sel)) {
-        p.rbi.slopeA.sel[[p]] <- c(slope = unname(rbi.slopeA.sel[[p]])[1],
-                                   p.real = unname(rbi.slopeA.sel[[p]])[2],
-                                   p.random = p.slopeA.sel[[p]])
-      }
-    }
-    names(p.rbi.slopeA.sel) <- node
+    p.rbi.slopeA.sel<-rbi.slopeA.sel
     p.smaA <- sma.resA
-    if (length(y) > Ntip(t)) {#### p Phenotypic Slope Comparison Multi  ####
-      p.smaPP<-list()
-      for (k in 1:(dim(y)[2] + 1)) {
-        p.smaR<-array()
-        for(i in 1:nrow(sma.resPP[[k]])){
-          rank(c(sma.resPP[[k]][i,3],sapply(lapply(lapply(res,"[[",9),"[[",k),function(x) x[i,3])[1:(nsim-1)]))[1]/nsim->p.smaR[i]
+
+    if(is.null(sma.resPP)==FALSE){
+      if (length(y) > Ntip(t)) {#### p Phenotypic Slope Comparison Multi  ####
+        p.smaPP<-list()
+        for (k in 1:(dim(y)[2] + 1)) {
+          p.smaR<-array()
+          for(i in 1:nrow(sma.resPP[[k]])){
+            rank(c(sma.resPP[[k]][i,3],sapply(lapply(lapply(res,"[[",10),"[[",k),function(x) x[i,3])[1:(nsim-1)]))[1]/nsim->p.smaR[i]
+          }
+          if(length(which(p.smaR>0.5))>0) 1-p.smaR[which(p.smaR>0.5)]->p.smaR[which(p.smaR>0.5)]
+          data.frame(sma.resPP[[k]],p.value=p.smaR)->p.smaPP[[k]]
         }
-        data.frame(sma.resPP[[k]],p.value=p.smaR)->p.smaPP[[k]]
+        names(p.smaPP)<-names(trend.reg)
+      }else{
+        p.smaR<-array()
+        for(i in 1:nrow(sma.resPP)){
+          rank(c(sma.resPP[i,3],sapply(lapply(res,"[[",10),function(x) x[i,3])[1:(nsim-1)]))[1]/nsim->p.smaR[i]
+        }
+        if(length(which(p.smaR>0.5))>0) 1-p.smaR[which(p.smaR>0.5)]->p.smaR[which(p.smaR>0.5)]
+        p.smaPP <-data.frame(sma.resPP,p.value=p.smaR)
       }
-      names(p.smaPP)<-names(trend.reg)
     }else{
-      p.smaR<-array()
-      for(i in 1:nrow(sma.resPP)){
-        rank(c(sma.resPP[i,3],sapply(lapply(res,"[[",9),function(x) x[i,3])[1:(nsim-1)]))[1]/nsim->p.smaR[i]
-      }
-      p.smaPP <-data.frame(sma.resPP,p.value=p.smaR)
+      p.smaPP<-NULL
     }
   }
 
@@ -1315,32 +999,29 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
   }
 
 
-  if (class(node) != "NULL") { #### p Phenotypic Trend Node Multi ####
+  if (class(node) != "NULL") {
     p.trend.sel <- list()
     for (u in 1:length(node)) {
-      if (length(y) > Ntip(t)) {
+      if (length(y) > Ntip(t)) {#### p Phenotypic Trend Node Multi ####
         p.sele <- list()
         for (i in 1:(dim(y)[2] + 1)) {
           slopeR <- unlist(lapply(lapply(lapply(lapply(res,
-                                                       "[[", 8), "[[", u), "[[", i), function(x) x[2,
+                                                       "[[", 9), "[[", u), "[[", i), function(x) x[2,
                                                                                                    1]))
 
           p.sel <- (nsim-length(which(slopeR<trend.reg.sel[[u]][[i]][2,1])))/nsim
-          p.sele[[i]] <- c(slope = trend.reg.sel[[u]][[i]][2,
-                                                           1], p.real = trend.reg.sel[[u]][[i]][2,
-                                                                                                4], p.random = p.sel)
+          p.sele[[i]] <- c(estimate = trend.reg.sel[[u]][[i]][2,
+                                                              1],p.value = p.sel)
         }
         names(p.sele) <- names(trend.reg.sel[[u]])
         p.selt <- do.call(rbind, p.sele)
         p.trend.sel[[u]] <- p.selt
       } else {
         slopeR <- unlist(lapply(lapply(lapply(res, "[[",
-                                              8), "[[", u), function(x) x[2,1]))
+                                              9), "[[", u), function(x) x[2,1]))
 
         p.sel <- (nsim-length(which(slopeR<trend.reg.sel[[u]][2,1])))/nsim
-        p.trend.sel[[u]] <- c(slope = trend.reg.sel[[u]][2,
-                                                         1], p.real = trend.reg.sel[[u]][2, 4],
-                              p.random = p.sel)
+        p.trend.sel[[u]] <- c(estimate = trend.reg.sel[[u]][2,1],p.value = p.sel)
       }
     }
     names(p.trend.sel) <- names(trend.reg.sel)
@@ -1405,7 +1086,6 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
       }
       pdf(file = paste(foldername, "Evolutionary Rate Trend Test.pdf",
                        sep = "/"))
-      #par(mfrow = c(2, 1))
       bet <- A[, (dim(y) + 1)[2]]
       age <- A[, dim(A)[2]]
       names(bet)<-names(age)<-rownames(A)
@@ -1441,18 +1121,6 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
         abline(lm(abs(bet)~age), lwd = 4,
                col = "blue")
       }
-      #if (class(node) != "NULL") {
-      #  for (j in 1:length(node)) {
-      #    points(REG.betas.age.sel[[j]][[(dim(y) + 1)[2]]],
-      #           REG.betas.y.sel[[j]][[(dim(y) + 1)[2]]],
-      #           lwd = 4, col = cols[j], type = "l")
-      #  }
-      #  abline(REG.betas[[(dim(y) + 1)[2]]], lwd = 3,
-      #         col = "blue", lty = 2)
-      #}else {
-      #  abline(REG.betas[[(dim(y) + 1)[2]]], lwd = 4,
-      #         col = "blue")
-      #}
     }
     names(CIabsolute) <- c(paste("betas",seq(1, dim(y)[2]), sep = ""), "rate")
     dev.off()
@@ -1468,7 +1136,6 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
     RBTAci <- RBTAci[order(RBTAci[, 2]), ]
     pdf(file = paste(foldername, "Evolutionary Rate Trend Test.pdf",
                      sep = "/"))
-    #par(mar = c(3, 3.5, 1, 1.5))
     plot(abs(rate) ~ age, data = AA, ylab = "absolute rate",
          mgp = c(2, 0.5, 0))
     polygon(c(RBTAci[, 2], rev(RBTAci[, 2])), c(RBTAci[,
@@ -1518,54 +1185,44 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
 
   if (class(node) != "NULL") {
     if (length(y) > Ntip(t)) {
-      for (j in 1:length(p.smaPP)) {
+      for (i in 1:length(p.rbi.slopeA.sel)) {
+        for(k in 1:dim(p.rbi.slopeA.sel[[i]])[1]){
+          if(k==dim(p.rbi.slopeA.sel[[i]])[1]) ".multi"-> vv else k->vv
+          if(p.rbi.slopeA.sel[[i]][k,2]<=.05&p.rbi.slopeA.sel[[i]][k,1]>0)
+            print(paste("There is a trend for increase in absolute evolutionary rates for variable",paste("y",vv,sep=""),"through node",names(p.rbi.slopeA.sel)[i]))
+          if(p.rbi.slopeA.sel[[i]][k,2]<=.05&p.rbi.slopeA.sel[[i]][k,1]<0)
+            print(paste("There is a trend for decrease in absolute evolutionary rates for variable",paste("y",vv,sep=""),"through node",names(p.rbi.slopeA.sel)[i]))
+          if(p.trend.sel[[i]][k,2]<=.05)
+            print(paste("There is a trend for increase in phenotype for variable",paste("y",vv,sep=""),"through node",names(p.rbi.slopeA.sel)[i]))
+          if(p.trend.sel[[i]][k,2]>=.95)
+            print(paste("There is a trend for decrease in phenotype for variable",paste("y",vv,sep=""),"through node",names(p.rbi.slopeA.sel)[i]))
 
-        for (i in 1:dim(p.smaPP[[j]])[1]) {
-          if (p.smaPP[[j]][i, 2] == "others") {
-            if (p.smaPP[[j]][i, 4] <= 0.05){
-              if(p.smaPP[[j]][i, 3] >0){
-                print(paste("Phenotypic regression through node",
-                            lapply(strsplit(as.character(p.smaPP[[j]][i,
-                                                                      1]), "g"), "[[", 2), "is higher than regression through others for variable",
-                            colnames(y)[j]))
-              }else{
-                print(paste("Phenotypic regression through node",
-                            lapply(strsplit(as.character(p.smaPP[[j]][i,
-                                                                      1]), "g"), "[[", 2), "is lower than regression through others for variable",
-                            colnames(y)[j]))
-              }
-            }
-            if (p.smaA[[j]][i, 4] <= 0.05){
-              if(p.smaA[[j]][i, 3] >0){
-                print(paste("Absolute evolutionary rates regression through node",
-                            lapply(strsplit(as.character(p.smaA[[j]][i,
-                                                                     1]), "g"), "[[", 2), "is higher than regression through others for variable",
-                            colnames(y)[j]))
-              }else{
-                print(paste("Absolute evolutionary rates regression through node",
-                            lapply(strsplit(as.character(p.smaA[[j]][i,
-                                                                     1]), "g"), "[[", 2), "is lower than regression through others for variable",
-                            colnames(y)[j]))
-              }
-            }
 
-          }else {
+
+        }
+      }
+
+
+      if(is.null(p.smaPP)==FALSE){
+        for (j in 1:length(p.smaPP)) {
+          if(j==length(p.smaPP)) ".multi"->vv else j->vv
+          for (i in 1:dim(p.smaPP[[j]])[1]) {
+            if (p.smaPP[[j]][i, 4] >= 0.95){
+              print(paste("Phenotypic regression through node",
+                          lapply(strsplit(as.character(p.smaPP[[j]][i,
+                                                                    1]), "g"), "[[", 2), "is lower than regression through node",
+                          lapply(strsplit(as.character(p.smaPP[[j]][i,
+                                                                    2]), "g"), "[[", 2), "for variable",
+                          paste("y",vv,sep="")))
+            }
             if (p.smaPP[[j]][i, 4] <= 0.05){
-              if(p.smaPP[[j]][i, 3] >0){
-                print(paste("Phenotypic regression through node",
-                            lapply(strsplit(as.character(p.smaPP[[j]][i,
-                                                                      1]), "g"), "[[", 2), "is higher than regression through node",
-                            lapply(strsplit(as.character(p.smaPP[[j]][i,
-                                                                      2]), "g"), "[[", 2), "for variable",
-                            colnames(y)[j]))
-              }else{
-                print(paste("Phenotypic regression through node",
-                            lapply(strsplit(as.character(p.smaPP[[j]][i,
-                                                                      1]), "g"), "[[", 2), "is lower than regression through node",
-                            lapply(strsplit(as.character(p.smaPP[[j]][i,
-                                                                      2]), "g"), "[[", 2), "for variable",
-                            colnames(y)[j]))
-              }
+              print(paste("Phenotypic regression through node",
+                          lapply(strsplit(as.character(p.smaPP[[j]][i,
+                                                                    1]), "g"), "[[", 2), "is higher than regression through node",
+                          lapply(strsplit(as.character(p.smaPP[[j]][i,
+                                                                    2]), "g"), "[[", 2), "for variable",
+                          paste("y",vv,sep="")))
+
             }
             if (p.smaA[[j]][i, 4] <= 0.05){
               if(p.smaA[[j]][i, 3] >0){
@@ -1574,132 +1231,94 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
                                                                      1]), "g"), "[[", 2), "is higher than regression through node",
                             lapply(strsplit(as.character(p.smaA[[j]][i,
                                                                      2]), "g"), "[[", 2), "for variable",
-                            colnames(y)[j]))
+                            paste("y",vv,sep="")))
               }else{
                 print(paste("Absolute evolutionary rates regression through node",
                             lapply(strsplit(as.character(p.smaA[[j]][i,
                                                                      1]), "g"), "[[", 2), "is lower than regression through node",
                             lapply(strsplit(as.character(p.smaA[[j]][i,
                                                                      2]), "g"), "[[", 2), "for variable",
-                            colnames(y)[j]))
-              }
-            }
-          }
-
-          if (p.smaPP[[j]][i, 2] == "others") {
-            if (p.smaA[[length(p.smaA)]][i, 4] <= 0.05){
-              if (p.smaA[[length(p.smaA)]][i, 3] >0){
-                print(paste("Absolute evolutionary rates regression through node",
-                            lapply(strsplit(as.character(p.smaA[[length(p.smaA)]][i,
-                                                                                  1]), "g"), "[[", 2), "is higher than regression through others for variable y.multi"))
-              }else{
-                print(paste("Absolute evolutionary rates regression through node",
-                            lapply(strsplit(as.character(p.smaA[[length(p.smaA)]][i,
-                                                                                  1]), "g"), "[[", 2), "is lower than regression through others for variable y.multi"))
-              }
-            }
-
-          }else {
-            if (p.smaA[[length(p.smaA)]][i, 4] <= 0.05){
-              if (p.smaA[[length(p.smaA)]][i, 3] >0){
-                print(paste("Absolute evolutionary rates regression through node",
-                            lapply(strsplit(as.character(p.smaA[[length(p.smaA)]][i,
-                                                                                  1]), "g"), "[[", 2), "is higher than regression through node",
-                            lapply(strsplit(as.character(p.smaA[[length(p.smaA)]][i,
-                                                                                  2]), "g"), "[[", 2), "for variable y.multi"))
-              }else{
-                print(paste("Absolute evolutionary rates regression through node",
-                            lapply(strsplit(as.character(p.smaA[[length(p.smaA)]][i,
-                                                                                  1]), "g"), "[[", 2), "is lower than regression through node",
-                            lapply(strsplit(as.character(p.smaA[[length(p.smaA)]][i,
-                                                                                  2]), "g"), "[[", 2), "for variable y.multi"))
+                            paste("y",vv,sep="")))
               }
             }
           }
         }
       }
     }else {
-      for (i in 1:dim(p.smaPP)[1]) {
-        if (p.smaPP[i, 2] == "others") {
-          if (p.smaPP[i, 4] <= 0.05){
-            if (p.smaPP[i, 3] > 0){
-              print(paste("Phenotypic regression through node",
-                          lapply(strsplit(as.character(p.smaPP[i,
-                                                               1]), "g"), "[[", 2), "is higher than regression through others"))
-            }else{
-              print(paste("Phenotypic regression through node",
-                          lapply(strsplit(as.character(p.smaPP[i,
-                                                               1]), "g"), "[[", 2), "is lower than regression through others"))
-            }
+      for (i in 1:length(p.rbi.slopeA.sel)) {
+        if(p.rbi.slopeA.sel[[i]][,2]<=.05&p.rbi.slopeA.sel[[i]][,1]>0)
+          print(paste("There is a trend for increase in absolute evolutionary rates through node",names(p.rbi.slopeA.sel)[i]))
+        if(p.rbi.slopeA.sel[[i]][,2]<=.05&p.rbi.slopeA.sel[[i]][,1]<0)
+          print(paste("There is a trend for decrease in absolute evolutionary rates through node",names(p.rbi.slopeA.sel)[i]))
+        if(p.trend.sel[[i]][2]<=.05)
+          print(paste("There is a trend for increase in phenotype through node",names(p.rbi.slopeA.sel)[i]))
+        if(p.trend.sel[[i]][2]>=.95)
+          print(paste("There is a trend for decrease in phenotype through node",names(p.rbi.slopeA.sel)[i]))
+      }
+
+      if(is.null(p.smaPP)==FALSE){
+        for(i in 1:dim(p.smaPP)[1]){
+          if (p.smaPP[i, 4] >= 0.95){
+            print(paste("Phenotypic regression through node",
+                        lapply(strsplit(as.character(p.smaPP[i,
+                                                             1]), "g"), "[[", 2), "is lower than regression through node",
+                        lapply(strsplit(as.character(p.smaPP[i,
+                                                             2]), "g"), "[[", 2)))
           }
-
-          if (p.smaA[i, 4] <= 0.05){
-            if (p.smaA[i, 3]>0){print(paste("Absolute evolutionary rates regression through node",
-                                            lapply(strsplit(as.character(p.smaA[i,
-                                                                                1]), "g"), "[[", 2), "is higher than regression through others"))
-
-            }else{print(paste("Absolute evolutionary rates regression through node",
-                              lapply(strsplit(as.character(p.smaA[i,
-                                                                  1]), "g"), "[[", 2), "is lower than regression through others"))
-
-            }
-          }
-        }else {
 
           if (p.smaPP[i, 4] <= 0.05){
-            if (p.smaPP[i, 3] > 0){
-              print(paste("Phenotypic regression through node",
-                          lapply(strsplit(as.character(p.smaPP[i,
-                                                               1]), "g"), "[[", 2), "is higher than regression through node",
-                          lapply(strsplit(as.character(p.smaPP[i,
-                                                               2]), "g"), "[[", 2)))
-            }else{
-              print(paste("Phenotypic regression through node",
-                          lapply(strsplit(as.character(p.smaPP[i,
-                                                               1]), "g"), "[[", 2), "is lower than regression through node",
-                          lapply(strsplit(as.character(p.smaPP[i,
-                                                               2]), "g"), "[[", 2)))
-            }
+            print(paste("Phenotypic regression through node",
+                        lapply(strsplit(as.character(p.smaPP[i,
+                                                             1]), "g"), "[[", 2), "is higher than regression through node",
+                        lapply(strsplit(as.character(p.smaPP[i,
+                                                             2]), "g"), "[[", 2)))
+
           }
+        }
 
-          if (p.smaA[i, 4] <= 0.05){
-            if (p.smaA[i, 3]>0){
-              print(paste("Absolute evolutionary rates regression through node",
-                          lapply(strsplit(as.character(p.smaA[i,
-                                                              1]), "g"), "[[", 2), "is higher than regression through node",
-                          lapply(strsplit(as.character(p.smaA[i,
-                                                              2]), "g"), "[[", 2)))
+        if (p.smaA[i, 4] <= 0.05){
+          if (p.smaA[i, 3]>0){
+            print(paste("Absolute evolutionary rates regression through node",
+                        lapply(strsplit(as.character(p.smaA[i,
+                                                            1]), "g"), "[[", 2), "is higher than regression through node",
+                        lapply(strsplit(as.character(p.smaA[i,
+                                                            2]), "g"), "[[", 2)))
 
-            }else{
-              print(paste("Absolute evolutionary rates regression through node",
-                          lapply(strsplit(as.character(p.smaA[i,
-                                                              1]), "g"), "[[", 2), "is lower than regression through node",
-                          lapply(strsplit(as.character(p.smaA[i,
-                                                              2]), "g"), "[[", 2)))
+          }else{
+            print(paste("Absolute evolutionary rates regression through node",
+                        lapply(strsplit(as.character(p.smaA[i,
+                                                            1]), "g"), "[[", 2), "is lower than regression through node",
+                        lapply(strsplit(as.character(p.smaA[i,
+                                                            2]), "g"), "[[", 2)))
 
-            }
           }
         }
       }
+
     }
-    SMA.res <- list(p.smaPP, p.smaA)
+
+    if(is.null(p.smaPP)){
+      SMA.res<-NULL
+    }else{
+      SMA.res <- list(p.smaPP, p.smaA)
+      names(SMA.res) <- c("phenotype", "rate")
+    }
     CInts <- list(CIphenotype, CIabsolute)
-    names(SMA.res) <- c("phenotype", "abs.rate")
-    names(CInts) <- c("phenotype", "abs.rate")
+    names(CInts) <- c("phenotype", "rate")
     if (ConfInt == TRUE) {
       res <- list(rbiRES, PPtot, p.trend, p.rbi.slopeA,
                   p.trend.sel, p.rbi.slopeA.sel,
                   SMA.res, CInts)
-      names(res) <- c("rbt", "pbt", "p.trend", "rbt.rateA",
-                      "p.trend.nodes", "rbt.rateA.nodes",
-                      "group.comp", "ConfInts")
+      names(res) <- c("rbt", "pbt", "phenotypic.regression", "rate.regression",
+                      "node.phenotypic.regression", "node.rate.regression",
+                      "group.comparison", "ConfInts")
     }else {
       res <- list(rbiRES, PPtot, p.trend, p.rbi.slopeA,
                   p.trend.sel, p.rbi.slopeA.sel,
                   SMA.res)
-      names(res) <- c("rbt", "pbt", "p.trend", "rbt.rateA",
-                      "p.trend.nodes", "rbt.rateA.nodes",
-                      "group.comp")
+      names(res) <- c("rbt", "pbt", "phenotypic.regression", "rate.regression",
+                      "node.phenotypic.regression", "node.rate.regression",
+                      "group.comparison")
     }
   }else {
     if (ConfInt == TRUE) {
@@ -1707,13 +1326,15 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
       names(CInts) <- c("phenotype", "abs.rate")
       res <- list(rbi, PPtot, p.trend, p.rbi.slopeA,
                   CInts)
-      names(res) <- c("rbt", "pbt", "p.trend", "rbt.rateA",
+      names(res) <- c("rbt", "pbt", "phenotypic.regression", "rate.regression",
                       "ConfInts")
     }else {
       res <- list(rbi, PPtot, p.trend, p.rbi.slopeA)
-      names(res) <- c("rbt", "pbt", "p.trend", "rbt.rateA")
+      names(res) <- c("rbt", "pbt", "phenotypic.regression", "rate.regression")
     }
   }
-  return(res)
 
+  if(length(which(sapply(res,function(x) is.null(x))))>0)
+    res<-res[-which(sapply(res,function(x) is.null(x)))]
+  return(res)
 }
