@@ -832,8 +832,7 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
           for(i in 1:nrow(sma.resPP[[k]])){
             rank(c(sma.resPP[[k]][i,3],sapply(lapply(lapply(res,"[[",10),"[[",k),function(x) x[i,3])[1:(nsim-1)]))[1]/nsim->p.smaR[i]
           }
-          if(length(which(p.smaR>0.5))>0) 1-p.smaR[which(p.smaR>0.5)]->p.smaR[which(p.smaR>0.5)]
-          data.frame(sma.resPP[[k]],p.value=p.smaR)->p.smaPP[[k]]
+          data.frame(sma.resPP[[k]],p.value=1-p.smaR)->p.smaPP[[k]]
         }
         names(p.smaPP)<-names(trend.reg)
       }else{
@@ -841,8 +840,7 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
         for(i in 1:nrow(sma.resPP)){
           rank(c(sma.resPP[i,3],sapply(lapply(res,"[[",10),function(x) x[i,3])[1:(nsim-1)]))[1]/nsim->p.smaR[i]
         }
-        if(length(which(p.smaR>0.5))>0) 1-p.smaR[which(p.smaR>0.5)]->p.smaR[which(p.smaR>0.5)]
-        p.smaPP <-data.frame(sma.resPP,p.value=p.smaR)
+        p.smaPP <-data.frame(sma.resPP,p.value=1-p.smaR)
       }
     }else{
       p.smaPP<-NULL
