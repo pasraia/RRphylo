@@ -364,8 +364,7 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
     PP.sma <- cbind(PP.sma, group = rbi.sma[match(rownames(PP.sma),
                                                   rownames(rbi.sma)), ]$group)
     if (length(which(rbi.sma$group == "others")) < 3)
-      rbi.sma <- rbi.sma[-which(rbi.sma$group == "others"),
-                         ]
+      rbi.sma <- rbi.sma[-which(rbi.sma$group == "others"),]
 
     PP.sma <- PP.sma[-which(PP.sma$group == "others"),]
 
@@ -389,9 +388,16 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
         if(length(node)>1){
           sapply(lapply(trend.reg.sel,"[[",i),"[[",2)->slope.tot
           names(slope.tot)<-paste("g",names(trend.reg.sel),sep="")
-          data.frame(t(c(names(slope.tot)[2:1])),diff(slope.tot))->sma.resPP[[i]]
-          rownames(sma.resPP[[i]])<-NULL
+
+          combn(sort(unique(as.character(groupPP))),2)->pair
+          slope.diff<-array()
+          for(jj in 1:dim(pair)[2]){
+            slope.tot[match(pair[1,jj],names(slope.tot))]-slope.tot[match(pair[2,jj],names(slope.tot))]->slope.diff[jj]
+
+          }
+          data.frame(t(pair),slope.diff)->sma.resPP[[i]]
           colnames(sma.resPP[[i]])<-colnames(sma.resA[[i]])[1:3]
+
         }else{
           sma.resPP<-NULL
         }
@@ -435,9 +441,16 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
         PP.sma[,3]<-as.character(PP.sma[,3])
         sapply(trend.reg.sel,"[[",2)->slope.tot
         names(slope.tot)<-paste("g",names(trend.reg.sel),sep="")
-        data.frame(t(c(names(slope.tot)[2:1])),diff(slope.tot))->sma.resPP
-        rownames(sma.resPP)<-NULL
+
+        combn(sort(unique(PP.sma[,3])),2)->pair
+        slope.diff<-array()
+        for(jj in 1:dim(pair)[2]){
+          slope.tot[match(pair[1,jj],names(slope.tot))]-slope.tot[match(pair[2,jj],names(slope.tot))]->slope.diff[jj]
+
+        }
+        data.frame(t(pair),slope.diff)->sma.resPP
         colnames(sma.resPP)<-colnames(sma.resA)[1:3]
+
       }else{
         sma.resPP<-NULL
         sma.resA<-NULL
@@ -730,7 +743,7 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
       if(is.null(sma.resPP)==FALSE){
         PP.sma <- PP.sma[-which(PP.sma$group == "NA"),]
 
-        if (length(y) > Ntip(t)) {
+        if (length(y) > Ntip(t)) {#### Node Comparison Random Multi ####
           groupPP <- PP.sma[, (dim(PP.sma)[2])]
           agePP <- PP.sma[, (dim(PP.sma)[2] - 1)]
 
@@ -739,19 +752,34 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
 
             sapply(lapply(trend.reg.SEL,"[[",k),"[[",2)->slope.tot
             names(slope.tot)<-paste("g",names(trend.reg.sel),sep="")
-            data.frame(t(c(names(slope.tot)[2:1])),diff(slope.tot))->sma.resPP.R[[k]]
-            rownames(sma.resPP.R[[k]])<-NULL
+
+
+            combn(sort(unique(as.character(groupPP))),2)->pair
+            slope.diff<-array()
+            for(jj in 1:dim(pair)[2]){
+              slope.tot[match(pair[1,jj],names(slope.tot))]-slope.tot[match(pair[2,jj],names(slope.tot))]->slope.diff[jj]
+
+            }
+            data.frame(t(pair),slope.diff)->sma.resPP.R[[k]]
             colnames(sma.resPP.R[[k]])<-c("group_1","group_2","estimate")
+
           }
           names(sma.resPP.R)<-colnames(PP.sma)[1:(dim(PP.sma)[2] - 2)]
-        }else{
+        }else{#### Node Comparison Random Uni ####
 
           PP.sma[,3]<-as.character(PP.sma[,3])
           sapply(trend.reg.SEL,"[[",2)->slope.tot
           names(slope.tot)<-paste("g",names(trend.reg.sel),sep="")
-          data.frame(t(c(names(slope.tot)[2:1])),diff(slope.tot))->sma.resPP.R
-          rownames(sma.resPP.R)<-NULL
+
+          combn(sort(unique(PP.sma[,3])),2)->pair
+          slope.diff<-array()
+          for(jj in 1:dim(pair)[2]){
+            slope.tot[match(pair[1,jj],names(slope.tot))]-slope.tot[match(pair[2,jj],names(slope.tot))]->slope.diff[jj]
+
+          }
+          data.frame(t(pair),slope.diff)->sma.resPP.R
           colnames(sma.resPP.R)<-c("group_1","group_2","estimate")
+
         }
       }else{
         sma.resPP.R<-NULL
