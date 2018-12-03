@@ -17,6 +17,7 @@ makeL1<-function (tree)
   t <- tree
   internals <- unique(c(t$edge[, 1], t$edge[, 2][which(t$edge[,
                                                               2] > Ntip(t))]))
+  sort(internals)->internals
   edgedX <- data.frame(t$edge, t$edge.length)
   edged.1 <- edgedX[edgedX$X2 > Ntip(t), ]
   L1 <- matrix(ncol = length(internals), nrow = length(internals))
