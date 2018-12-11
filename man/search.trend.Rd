@@ -9,7 +9,7 @@ search.trend(RR,y,nsim=100,clus=.5,node=NULL,cov=NULL,foldername,ConfInt=FALSE)
 \arguments{
 \item{RR}{an object produced by \code{\link{RRphylo}}.}
 
-\item{y}{the vector (or matrix if multivariate) of phenotypes.}
+\item{y}{the named vector (or matrix if multivariate) of phenotypes.}
 
 \item{nsim}{number of simulations to be performed. It is set at 100 by default.}
 
