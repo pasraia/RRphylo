@@ -2,7 +2,7 @@
 #' @description This function searches for evolutionary trends in the phenotypic mean and the evolutionary rates for the entire tree and individual clades.
 #' @usage search.trend(RR,y,nsim=100,clus=.5,node=NULL,cov=NULL,foldername,ConfInt=FALSE)
 #' @param RR an object produced by \code{\link{RRphylo}}.
-#' @param y the vector (or matrix if multivariate) of phenotypes.
+#' @param y the named vector (or matrix if multivariate) of phenotypes.
 #' @param node the node number of individual clades to be specifically tested and contrasted to each other. It is \code{NULL} by default. Notice the node number must refer to the dichotomic version of the original tree, as produced by \code{RRphylo}.
 #' @param nsim number of simulations to be performed. It is set at 100 by default.
 #' @param clus the proportion of clusters to be used in parallel computing.
@@ -84,7 +84,6 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
   #require(outliers)
   #require(car)
 
-
   range01 <- function(x, ...){(x - min(x, ...)) / (max(x, ...) - min(x, ...))}
   t <- RR$tree
   rates <- RR$rates
@@ -92,6 +91,9 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
   aceRR <- RR$aces
   L <- RR$tip.path
   L1 <- RR$node.path
+  if (length(y) > Ntip(t)&is.null(rownames(y))) stop("The matrix of phenotypes needs to be named")
+  if (length(y) == Ntip(t)&is.null(names(y))) stop("The vector of phenotypes needs to be named")
+
   if (class(y) == "data.frame")
     y <- treedata(t, y, sort = TRUE)[[2]]
   H <- max(nodeHeights(t))
