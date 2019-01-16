@@ -1,3 +1,12 @@
+# RRphylo 1.6.0
+
+What’s new in version 1.6.0
+A new function and new versions of "search.conv" and "distNodes" added! 
+Now "search.conv" further scans the morphological convergence between species evolving under specific states 
+The new version of "distNodes"  now computes distances between pairs of nodes, pairs of tips, or between nodes and tips. 
+The new "PGLS_fossil" function performs pgls for non-ultrametric trees with lambda correlation structure.
+
+
 # RRphylo 1.5.0
 
 What’s new in version 1.5.0
