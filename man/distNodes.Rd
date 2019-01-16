@@ -2,27 +2,34 @@
 % Please edit documentation in R/distNodes.R
 \name{distNodes}
 \alias{distNodes}
-\title{Finding distance between nodes}
+\title{Finding distance between nodes and tips}
 \usage{
-distNodes(tree,n)
+distNodes(tree,node=NULL,clus=0.5)
 }
 \arguments{
 \item{tree}{a phylogenetic tree. The tree needs not to be ultrametric and fully dichotomous.}
 
-\item{n}{either a single node or a pair of nodes.}
+\item{node}{either a single node/tip or a pair of nodes/tips.}
+
+\item{clus}{the proportion of clusters to be used in parallel computing.}
 }
 \value{
-The function returns a data frame with distances between the focal node and the other nodes on the tree (or for the selected pair only).
+If \code{node} is specified, the function returns a data frame with distances between the focal node/tip and the other nodes/tips on the tree (or for the selected pair only). Otherwise, the function returns a matrix containing the number of nodes intervening between each pair of nodes and tips.
 }
 \description{
-The function returns the distance between pairs of nodes. The distance is meant as both patristic distance and the number of nodes intervening between the pair.
+The function computes the distance between pairs of nodes, pairs of tips, or between nodes and tips. The distance is meant as both patristic distance and the number of nodes intervening between the pair.
 }
 \examples{
+\donttest{
 data("DataApes")
 DataApes$Tstage->Tstage
 
-distNodes(tree=Tstage,n=64)
-distNodes(tree=Tstage,n=c(64,48))
+distNodes(tree=Tstage)
+distNodes(tree=Tstage,node=64)
+distNodes(tree=Tstage,node="Tro_2")
+distNodes(tree=Tstage,node=c(64,48))
+distNodes(tree=Tstage,node=c(64,"Tro_2"))
+}
 }
 \author{
 Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto

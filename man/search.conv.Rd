@@ -2,136 +2,90 @@
 % Please edit documentation in R/search.conv.R
 \name{search.conv}
 \alias{search.conv}
-\title{Searching morphological convergence}
+\title{Searching for morphological convergence among species and clades}
 \usage{
-search.conv(RR,y,nodes=NULL,min.dim=NULL,max.dim=NULL,min.dist=NULL,nsim=1000,clus=.5)
+search.conv(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
+min.dim=NULL,max.dim=NULL,min.dist=NULL,PGLSf=TRUE,nsim=1000,rsim=1000,
+clus=.5,foldername=NULL)
 }
 \arguments{
-\item{RR}{an object produced by \code{\link{RRphylo}}.}
+\item{RR}{an object produced by \code{\link{RRphylo}}. This is not indicated if convergence among states is tested.}
 
-\item{y}{a multivariate dataset of phenotypic variables.}
+\item{tree}{a phylogenetic tree. The tree needs not to be ultrametric or fully dichotomous. This is not indicated if convergence among clades is tested.}
 
-\item{nodes}{node pair to be tested. If unspecified, the function automatically searches for converging subtrees.}
+\item{y}{a multivariate phenotype. The object \code{y} should be either a matrix or dataframe with species names as rownames.}
 
-\item{min.dim}{the minimum size of the subtrees to be compared. When \code{nodes} is indicated, it coincides with the size of the smallest clades in \code{nodes}, otherwise it is set at one tenth of the tree size.}
+\item{nodes}{node pair to be tested. If unspecified, the function automatically searches for convergence among clades.}
 
-\item{max.dim}{the maximum size of the subtrees to be compared. When \code{nodes} is indicated, it is \code{min.dim}*2 if the largest clade in \code{nodes} is smaller than this value, otherwise it corresponds to the size of the largest clade. Whitout \code{nodes} it is set at one third of the tree size.}
+\item{state}{the state of the tips.}
 
-\item{min.dist}{the minimum distance, in terms of number of nodes, between the subtrees to be compared. When \code{nodes} is indicated, it is the distance between the pair, otherwise it is set at 10 nodes.}
+\item{aceV}{phenotypic values at internal nodes. The object \code{aceV} should be either a matrix or dataframe with nodes as rownames. If \code{aceV} are not indicated, ancestral phenotypes are estimated via \code{RRphylo}.}
 
-\item{nsim}{number of simulations to be performed. It is set at 1000 by default.}
+\item{min.dim}{the minimum size of the clades to be compared. When \code{nodes} is indicated, it indicates the minimum size of the smallest clades in \code{nodes}, otherwise it is set at one tenth of the tree size.}
+
+\item{max.dim}{the maximum size of the clades to be compared. When \code{nodes} is indicated, it is \code{min.dim}*2 if the largest clade in \code{nodes} is smaller than this value, otherwise it corresponds to the size of the largest clade. Whitout \code{nodes} it is set at one third of the tree size.}
+
+\item{min.dist}{the minimum distance, in terms of number of nodes, between the clades to be compared. When \code{nodes} is indicated, it indicates the minimum distance between the pair, otherwise it is set at 10 nodes.}
+
+\item{PGLSf}{if the argument is set to \code{TRUE} (default), the function tests whether states have phylogenetic structure, by running a runs test. If the states are phylogenetically structured, a \code{\link{PGLS_fossil}} is performed using states as the predictor variables. PGLS residuals will be used to test for convergence.}
+
+\item{nsim}{number of simulations to perform sampling within the theta random distribution. It is set at 1000 by default.}
+
+\item{rsim}{number of simulations to be performed to produce the random distribution of theta values. It is set at 1000 by default.}
 
 \item{clus}{the proportion of clusters to be used in parallel computing.}
+
+\item{foldername}{the path of the folder where plots are to be found.}
 }
 \value{
-A data frame including for each pair of nodes:
+If convergence between clades is tested, the function returns a list including:
 
-\strong{real.diff} the difference between the mean evolutionary direction of the tips of the respective nodes divided by squared \code{nod.dist}
+\itemize{\item\strong{$node pairs}: a dataframe containing for each pair of nodes:
+\itemize{\item ang.bydist.tip: the mean theta angle between clades divided by the time distance.
+\item ang.conv: the mean theta angle between clades plus the angle between aces, divided by the time distance.
+\item ang.ace: the angle between aces.
+\item ang.tip: the mean theta angle between clades.
+\item nod.dist: the distance intervening between clades in terms of number of nodes.
+\item time.dist: the time distance intervening between the clades.
+\item p.ang.bydist: the p-value computed for ang.bydist.tip.
+\item p.ang.conv: the p-value computed for ang.conv.
+\item clade.size: the size of clades.
+}
+\item\strong{$node pairs comparison}: pairwise comparison between significantly convergent pairs (all pairs if no istance of significance was found) performed on the distance from group centroids (the mean phenotype per clade).
+\item\strong{$average distance from group centroids}: smaller average distances mean less variable phenotypes within the pair.
+}
 
-\strong{diff} the difference between the mean evolutionary direction of the tips of the respective nodes plus the angle between ancestral shapes (\code{ang}), divided by squared \code{nod.dist}
-
-\strong{ang} the angle between ancestral shapes
-
-\strong{nod.dist} the distance in number of nodes between the focal nodes pair
-
-\strong{p.real.diff} the p-value for \code{real.diff}
-
-\strong{p.diff} the p-value for \code{diff}
+If convergence between states is tested, the function returns a dataframe including for each pair of states:
+\itemize{
+\item ang.state: the mean theta angle between species belonging to different states.
+\item ang.state.time: the mean of theta angle between species belonging to different states divided by time distance.
+\item p.ang.state: the p-value computed for ang.state.
+\item p.ang.state.time: the p-value computed for ang.state.time.
+}
 }
 \description{
-The function scans a phylogenetic tree looking for morphological convergence between pairs of distant nodes. (For further details see \code{\link{evo.dir}})
+The function scans a phylogenetic tree looking for morphological convergence between entire clades or species evolving under specific states.
+}
+\details{
+Regardless the case (either ‘state’ or ‘clade’), the function stores a plot into the folder specified by \code{foldername}. If convergence among clades is tested, the clade pair plotted corresponds to those clades with the smallest \code{$average distance from group centroid}. The figure shows the Euclidean distances computed between the MRCAs of the clades and the mean Euclidean distance computed between all the tips belonging to the converging clades, as compared to the distribution of these same figures across the rest of the tree. Furthermore, the function stores the PC1/PC2 plot obtained by PCA of the species phenotypes. Convergent clades are indicated by colored convex hulls. Large colored dots represent the mean phenotypes per clade (i.e. their group centroids). Eventually, a modified traitgram plot is produced, highlighting the branches of the clades found to converge. In both PCA and traitgram, asterisks represent the ancestral phenotypes of the individual clades. If convergence among states is tested, the function produces a PC plot with colored convex hulls enclosing species belonging to different states. Furthermore, it generates circular plots of the mean angle between states (blue lines) and the range of random angles (gray shaded area). The p- value for the convergence test is printed within the circular plots.
 }
 \examples{
- \donttest{
-### Tree and data preparation ###
-library(RRphylo)
-library(ape)
-library(geiger)
-library(phytools)
+  data("DataUng")
+  DataUng$PCscoresung->PCscoresung
+  DataUng$treeung->treeung
+  DataUng$stateung->stateung
 
-repeat({
-  rtree(100)->tree
-  sizedsubtree(tree,11)->n
-  if(length(tips(tree,n))<15) break
-})
+  data("DataFelids")
+  DataFelids$PCscoresfel->PCscoresfel
+  DataFelids$treefel->treefel
 
+  \donttest{
+  search.conv(tree=treeung, y=PCscoresung, state=stateung, foldername = tempdir())
 
-setBM(tree,type="brown",nY=4)->y
-y[match(tree$tip.label,rownames(y)),]->y
-y[match(tips(tree,n),rownames(y)),]->a
-
-
-apply(y,2,range)->m.a
-m.a[2,]*.7->m.a
-
-a1<-matrix(ncol=dim(y)[2],nrow=dim(a)[1])
-for(m in 1:dim(a)[1])
-{
-  v<-array()
-  for(i in 1:length(m.a)) jitter(m.a[i],amount=(sd(a[,i])*1))->v[i]
-  v->a1[m,]
-}
-
-rownames(a1)<-rownames(a)
-y[match(tips(tree,n),rownames(y)),]<-a1
-
-
-extract.clade(tree,n)->t1
-swapONE(t1)[[1]]->t1
-drop.tip(t1,t1$tip.label[c(1,length(t1$tip.label))])->t1
-t1$root.edge<-data.frame(tree$edge,tree$edge.length)[which(
-  data.frame(tree$edge,tree$edge.length)[,2]==n),3]
-
-apply(y[match(t1$tip.label,rownames(y)),],2,jitter)->y.t1
-
-
-tree$tip.label<-paste("a",seq(1,Ntip(tree)),sep="")
-rownames(y)<-tree$tip.label
-t1$tip.label<-paste("a",seq((Ntip(tree)+1),(Ntip(tree)+Ntip(t1))),sep="")
-rownames(y.t1)<-t1$tip.label
-
-
-distNodes(tree,n)->dfN
-dfN[which(dfN[,2]<=Ntip(tree)*0.1),1]->bar
-dfN[-which(dfN[,2]<=Ntip(tree)*0.1),1]->nodN
-sample(nodN,1)->tar
-
-if(length(which(getDescendants(tree,tar)\%in\%bar))>0)
-{
-  getDescendants(tree,tar)->ta
-  ta[which(ta\%in\%bar)]->ex
-  exa<-list()
-  for(w in 1:length(ex)) tips(tree,ex[i])->exa[[w]]
-  unlist(exa)->exil
-  tips(tree,tar)->tipper
-  tipper[-which(exil\%in\%tipper)]->tipper
-  sample(tipper,1)->at.tip
-}else{
-  sample(tips(tree,tar),1)->at.tip
-}
-
-at<-which(tree$tip.label==at.tip)
-data.frame(tree$edge,tree$edge.length)[which(data.frame(tree$edge,
-  tree$edge.length)[,2]==at),3]->pos
-bind.tree(tree,t1,where=at,position=pos/2)->tree1
-c(getMRCA(tree1,tree$tip.label[which(tree$tip.label\%in\%tips(tree,n))]),
-  getMRCA(tree1,t1$tip.label))->nod.par
-
-### nod.par is the node pair set to converge
-
-rbind(y,y.t1)->y
-RRphylo(tree1,y)->RR
-length((tips(tree1,nod.par[2])))->min.dim
-
-search.conv(RR,y,min.dim = min.dim,min.dist = NULL)
-
-search.conv(RR,y,nodes=nod.par)
-
-    }
-}
-\references{
-Castiglione, S., Tesone, G., Piccolo, M., Melchionna, M., Mondanaro, A., Serio, C., Di Febbraro, M., & Raia, P.(2018). A new method for testing evolutionary rate variation and shifts in phenotypic evolution. \emph{Methods in Ecology and Evolution}, in press.doi:10.1111/2041-210X.12954
+  RRphylo(treefel,PCscoresfel)->RRfel
+  search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, foldername = tempdir())
+  }
 }
 \author{
-Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
+Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto, Paolo Piras, Davide Tamagnini
 }
