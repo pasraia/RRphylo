@@ -9,7 +9,7 @@
 #' @return The function produces a vector of node numbers as integers, collated from a node or a tip towards the tree root.
 #' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
 #' @references
-#' Revell, L. J. (2012). phytools: An R package for phylogenetic comparative biology (and other things). \emph{Methods in Ecology and Evolution}, \strong{3}, 217--223.doi:10.1111/j.2041-210X.2011.00169.x
+#' Revell, L. J. (2012). phytools: An R package for phylogenetic comparative biology (and other things). \emph{Methods in Ecology and Evolution}, 3: 217-223.doi:10.1111/j.2041-210X.2011.00169.x
 #' @examples
 #' data("DataApes")
 #' DataApes$Tstage->Tstage

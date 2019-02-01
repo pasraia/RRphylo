@@ -10,5 +10,5 @@
 #' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
 #' @keywords RRphylo
 #' @usage data(DataFelids)
-#' @references Piras, P., Silvestro, D., Carotenuto, F., Castiglione, S., Kotsakis, A., Maiorino, L., Melchionna, M.,Mondanaro, A., Sansalone, G., Serio, C., Vero, V. A., & Raia, P. (2018). Evolution of the sabertooth mandible: A deadly ecomorphological specialization. Palaeogeography, Palaeoclimatology, Palaeoecology, 496, 166-174.
+#' @references Piras, P., Silvestro, D., Carotenuto, F., Castiglione, S., Kotsakis, A., Maiorino, L., Melchionna, M.,Mondanaro, A., Sansalone, G., Serio, C., Vero, V. A., & Raia, P. (2018). Evolution of the sabertooth mandible: A deadly ecomorphological specialization. \emph{Palaeogeography, Palaeoclimatology, Palaeoecology}, 496, 166-174.
 NULL

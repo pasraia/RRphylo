@@ -10,7 +10,7 @@
 #' @importFrom phangorn KF.dist
 #' @return The function returns a list containing the 'swapped' version of the original tree, and the Kuhner-Felsenstein distance between the trees.
 #' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
-#' @references Kuhner, M. K. & Felsenstein, J. (1994). A simulation comparison of phylogeny algorithms under equal and unequal evolutionary rates, \emph{Molecular Biology and Evolution}, \strong{11}, 459-–468
+#' @references Kuhner, M. K. & Felsenstein, J. (1994). A simulation comparison of phylogeny algorithms under equal and unequal evolutionary rates, \emph{Molecular Biology and Evolution}, 11: 459–468.
 #' @examples
 #' data("DataOrnithodirans")
 #' DataOrnithodirans$treedino->treedino

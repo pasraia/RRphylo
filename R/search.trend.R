@@ -27,6 +27,7 @@
 #' @importFrom car outlierTest
 #' @importFrom emmeans emmeans
 #' @export
+#' @references Castiglione, S., Serio, C., Mondanaro, A., Di Febbraro, M., Profico, A., Girardi, G., & Raia, P. (2019) Simultaneous detection of macroevolutionary patterns in phenotypic means and rate of change with and within phylogenetic trees including extinct species. \emph{PLoS ONE}, 14: e0210101. https://doi.org/10.1371/journal.pone.0210101
 #' @examples
 #'  \donttest{
 #' data("DataOrnithodirans")

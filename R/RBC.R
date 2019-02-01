@@ -30,13 +30,13 @@
 #' @references
 #' Piras, P., Silvestro, D., Carotenuto, F., Castiglione, S., Kotsakis, A., Maiorino, L., Melchionna, M., Mondanaro, A., Sansalone, G., Serio, C., Vero, V.A., & Raia, P. (2018). Evolution of the sabertooth mandible: A deadly ecomorphological specialization. \emph{Palaeogeography, Palaeoclimatology, Palaeoecology}, in press
 #' @references
-#' O'Meara, B. C., Ané, C., Sanderson, M. J., & Wainwright, P. C. (2006). Testing for different rates of continuous trait evolution using likelihood. \emph{Evolution}, \strong{60}, 922--933.
+#' O'Meara, B. C., Ané, C., Sanderson, M. J., & Wainwright, P. C. (2006). Testing for different rates of continuous trait evolution using likelihood. \emph{Evolution}, 60: 922-933.
 #' @references
 #' Suzuki, R., & Shimodaira, H. (2015). pvclust: Hierarchical Clustering with P-Values via Multiscale Bootstrap Resampling. R package version 2.0-0. https://CRAN.R-project.org/package=pvclust
 #' @references
-#' Revell, L. J. (2012). phytools: An R package for phylogenetic comparative biology (and other things). \emph{Methods in Ecology and Evolution}, \strong{3}, 217--223.doi:10.1111/j.2041-210X.2011.00169.x
+#' Revell, L. J. (2012). phytools: An R package for phylogenetic comparative biology (and other things). \emph{Methods in Ecology and Evolution}, 3: 217-223.doi:10.1111/j.2041-210X.2011.00169.x
 #' @references
-#' Clavel, J., Escarguel, G., & Merceron, G.(2015). mvMORPH: an R package for fitting multivariate evolutionary models to morphometric data. \emph{Methods in Ecology and Evolution}, \strong{6}:1311--1319. doi: 10.1111/2041-210X.12420
+#' Clavel, J., Escarguel, G., & Merceron, G.(2015). mvMORPH: an R package for fitting multivariate evolutionary models to morphometric data. \emph{Methods in Ecology and Evolution}, 6: 1311-1319. doi: 10.1111/2041-210X.12420
 #' @examples
 #' data("DataOrnithodirans")
 #' DataOrnithodirans$treedino->treedino
