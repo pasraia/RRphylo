@@ -1,3 +1,7 @@
+# RRphylo 2.0.0
+What’s new in version 2.0.0
+The package namesake function RRphylo now allows to specify values at internal nodes as derived from the fossil record.
+
 # RRphylo 1.6.0
 
 What’s new in version 1.6.0
