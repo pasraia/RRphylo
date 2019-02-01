@@ -17,7 +17,7 @@ data(DataOrnithodirans)
 Ornithodirans' body mass, phylogenetic tree and locomotory type  (\cite{Castiglione et al 2017}).
 }
 \references{
-Castiglione, S., Tesone, G., Piccolo, M., Melchionna, M., Mondanaro, A., Serio, C., Di Febbraro Mirko, & Raia, P. A new method for testing evolutionary rate variation and shifts in phenotypic evolution. Methods in Ecology and Evolution.doi:10.1111/2041-210X.12954
+Castiglione, S., Tesone, G., Piccolo, M., Melchionna, M., Mondanaro, A., Serio, C., Di Febbraro, M., & Raia, P.(2018). A new method for testing evolutionary rate variation and shifts in phenotypic evolution. \emph{Methods in Ecology and Evolution}, 9: 974-983.doi:10.1111/2041-210X.12954
 }
 \author{
 Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto

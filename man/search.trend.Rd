@@ -83,6 +83,9 @@ DataOrnithodirans$massdino->massdino
    search.trend(RR=RRpteroCov, y=log(massptero), nsim=100, node=143, clus=0.5,
    foldername=tempdir(),ConfInt=FALSE,cov=cov.values)}
 }
+\references{
+Castiglione, S., Serio, C., Mondanaro, A., Di Febbraro, M., Profico, A., Girardi, G., & Raia, P. (2019) Simultaneous detection of macroevolutionary patterns in phenotypic means and rate of change with and within phylogenetic trees including extinct species. \emph{PLoS ONE}, 14: e0210101. https://doi.org/10.1371/journal.pone.0210101
+}
 \author{
 Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
 }

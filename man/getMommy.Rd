@@ -29,7 +29,7 @@ DataApes$Tstage->Tstage
 getMommy(tree=Tstage,N=12)
 }
 \references{
-Revell, L. J. (2012). phytools: An R package for phylogenetic comparative biology (and other things). \emph{Methods in Ecology and Evolution}, \strong{3}, 217--223.doi:10.1111/j.2041-210X.2011.00169.x
+Revell, L. J. (2012). phytools: An R package for phylogenetic comparative biology (and other things). \emph{Methods in Ecology and Evolution}, 3: 217-223.doi:10.1111/j.2041-210X.2011.00169.x
 }
 \author{
 Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto

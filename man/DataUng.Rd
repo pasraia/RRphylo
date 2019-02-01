@@ -17,7 +17,7 @@ data(DataUng)
 Geometric morphometrics shape data regarding mandible and phylogentic tree of 'Ungulatomorpha' (\cite{Raia et al., 2010}).
 }
 \references{
-Raia, P., Carotenuto, F., Meloro, C., Piras, P., & Pushkina, D. (2010). The shape of contention: adaptation, history, and contingency in ungulate mandibles. Evolution, 64(5), 1489-1503.
+Raia, P., Carotenuto, F., Meloro, C., Piras, P., & Pushkina, D. (2010). The shape of contention: adaptation, history, and contingency in ungulate mandibles. \emph{Evolution}, 64: 1489-1503.
 }
 \author{
 Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
