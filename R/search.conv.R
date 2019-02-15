@@ -7,7 +7,7 @@
 #' @param tree a phylogenetic tree. The tree needs not to be ultrametric or fully dichotomous. This is not indicated if convergence among clades is tested.
 #' @param y a multivariate phenotype. The object \code{y} should be either a matrix or dataframe with species names as rownames.
 #' @param nodes node pair to be tested. If unspecified, the function automatically searches for convergence among clades.
-#' @param state the state of the tips.
+#' @param state the state of the tips. The state for non-focal species (i.e. not belonging to any convergent group) must be indicated as "nostate".
 #' @param aceV phenotypic values at internal nodes. The object \code{aceV} should be either a matrix or dataframe with nodes as rownames. If \code{aceV} are not indicated, ancestral phenotypes are estimated via \code{RRphylo}.
 #' @param min.dim the minimum size of the clades to be compared. When \code{nodes} is indicated, it indicates the minimum size of the smallest clades in \code{nodes}, otherwise it is set at one tenth of the tree size.
 #' @param max.dim the maximum size of the clades to be compared. When \code{nodes} is indicated, it is \code{min.dim}*2 if the largest clade in \code{nodes} is smaller than this value, otherwise it corresponds to the size of the largest clade. Whitout \code{nodes} it is set at one third of the tree size.
@@ -71,18 +71,18 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
                       min.dim=NULL,max.dim=NULL,min.dist=NULL,PGLSf=TRUE,
                       nsim=1000,rsim=1000,clus=.5,foldername=NULL)
 {
-  #require(ape)
-  #require(geiger)
-  #require(phytools)
-  #require(foreach)
-  #require(doParallel)
-  #require(parallel)
-  #require(vegan)
-  #require(cluster)
-  #require(picante)
-  #require(plotrix)
-  #require(RColorBrewer)
-  #require(tseries)
+  # require(ape)
+  # require(geiger)
+  # require(phytools)
+  # require(foreach)
+  # require(doParallel)
+  # require(parallel)
+  # require(vegan)
+  # require(cluster)
+  # require(picante)
+  # require(plotrix)
+  # require(RColorBrewer)
+  # require(tseries)
 
 
   traitgram = function(
@@ -103,7 +103,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
     phy = picante::node.age(phy)
     ages = phy$ages[match(1:Ntot,phy$edge[,2])]
     ages[Ntaxa+1]=0
-    #ages
+
 
     if (class(x) %in% c('matrix','array')) {
       xx = as.numeric(x)
@@ -155,7 +155,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
 
     par(mar = c(3, 2.5, 2, 1))
     plot(range(c(a0,a1)),range(c(x0,x1)),
-         #plot(range(c(x0,x1)),range(c(a0,a1)),
+
          type='n',xaxt='n',yaxt='n',
          xlab='',ylab='',bty='n',cex.axis=0.8)
     if (xaxt=='s') if (show.xaxis.values) axis(1,labels=TRUE,mgp=magp) else axis(1,labels=FALSE,mgp=magp)
@@ -174,7 +174,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
            srt=90,
            cex=.3)
     }
-    #on.exit(par(tg))
+
     return(data.frame(a1,x1))
   }
 
@@ -380,10 +380,6 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       }
 
       colnames(AD)<-c("ang.by.dist","dist","n1","n2","combo")
-      # data.frame(tip.ang=(mean.aRd*AD[,2]),ace.ang=(AD[,1]-mean.aRd)*AD[,2],dist=AD[,2])->aad
-      # colnames(aad)<-c("ang.diff.tip","ang.diff.ace","dist")
-      #
-      # plot(aad[,c(3,2)],xlab="distance",ylab="direction difference ACE")
 
       res.ran <- list()
       cl <- makeCluster(round((detectCores() * clus), 0))
@@ -428,7 +424,6 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
                                sample(seq(1:dim(ADD)[1]),1)->s
                                mean.aRd[s]->rdiff
                                ADD[s,1]->mdiff
-                               #if(length(which(names(mean.aRd)%in%exx[,1]))>0) sample(mean.aRd[-which(names(mean.aRd)%in%exx[,1])],1)[[1]]->M.ARD else sample(mean.aRd,1)[[1]]->M.ARD
                                data.frame(dir.diff=rdiff,diff=mdiff)->diff.pR[[j]]
 
                              }
@@ -457,7 +452,6 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       }
       names(mean.diff)->names(diff.rank)
 
-      #lapply(diff.rank,function(x) abs(x[order(abs(x[,1])),]))->diff.rank
       lapply(diff.rank,function(x) abs(x[order(abs(x[,1])),]))->diff.rank
 
 
@@ -469,7 +463,6 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
 
       df->sc
       sc[which(sc$p.ang.bydist<=0.05 | sc$p.ang.conv<=0.05),]->sc.sel
-      #sc[which(sc$p.diff<=0.05),]->sc.sel
       if(nrow(sc.sel)==0){
         print("no candidate node pairs selected, no convergence found")
         sc->sc.sel
@@ -527,7 +520,6 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
           if(length(which(sc.sel[,4]/sc.sel[,5]>1.1))>0) print("convergent trajectories") else print("parallel and convergent trajectories")
         }
 
-        #print("possible issue for convergence in the tree")
 
         ### phenotypic vectors descending from node pairs resulting from search.conv ###
         phen2<-list()
@@ -717,10 +709,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
 
 
       colnames(AD)<-c("ang.by.dist","dist","n1","n2","combo")
-      # data.frame(tip.ang=(mean.aRd*AD[,2]),ace.ang=(AD[,1]-mean.aRd)*AD[,2],dist=AD[,2])->aad
-      # colnames(aad)<-c("ang.diff.tip","ang.diff.ace","dist")
-      #
-      # plot(aad[,c(3,2)],xlab="distance",ylab="direction difference ACE")
+
 
       res.ran <- list()
       cl <- makeCluster(round((detectCores() * clus), 0))
@@ -794,7 +783,6 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       }
       names(mean.diff)->names(diff.rank)
 
-      #lapply(diff.rank,function(x) abs(x[order(abs(x[,1])),]))->diff.rank
       lapply(diff.rank,function(x) abs(x[order(abs(x[,1])),]))->diff.rank
 
 
@@ -805,7 +793,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
 
       df->sc
       sc[which(sc$p.ang.bydist<=0.05 | sc$p.ang.conv<=0.05),]->sc.sel
-      #sc[which(sc$p.diff<=0.05),]->sc.sel
+
       if(nrow(sc.sel)==0){
         print("no candidate node pairs selected, no convergence found")
         sc->sc.sel
@@ -863,7 +851,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
           if(length(which(sc.sel[,4]/sc.sel[,5]>1.1))>0) print("convergent trajectories") else print("parallel and convergent trajectories")
         }
 
-        #print("possible issue for convergence in the tree")
+
 
         ### phenotypic vectors descending from node pairs resulting from search.conv ###
         phen2<-list()
@@ -948,7 +936,6 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
     pdf(file = paste(foldername, "convergence plot.pdf",
                      sep = "/"))
 
-    #par(mfrow = c(2, 2))
     layout(matrix(c(1,3,2,4),ncol=2,nrow=2, byrow = TRUE),widths = c(1,2))
 
     par(mar = c(3, 1, 2, 1))
@@ -988,28 +975,29 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
     state[match(rownames(y),names(state))]->state
     if(sort(table(state),decreasing = TRUE)[1]<Ntip(tree1)*0.5) warning("one or more states apply to a large portion of the tree, this might be inappropriate for testing convergence")
     combn(unique(state),2)->stcomb
+    combn(unique(state)[-which(unique(state)=="nostate")],2)->stcomb1
 
     if(PGLSf){
       ranp<-array()
-      for(k in 1:ncol(stcomb)){
+      for(k in 1:ncol(stcomb1)){
         f<-array()
         for(i in 1:length(state)) {
-          if(state[i]%in%stcomb[,k]) f[i]<-"A" else f[i]<-"B"
+          if(state[i]%in%stcomb1[,k]) f[i]<-"A" else f[i]<-"B"
         }
         runs.test(as.factor(f))$p->ranp[k]
       }
     }else{
-      ranp<-rep(1,ncol(stcomb))
+      ranp<-rep(1,ncol(stcomb1))
     }
 
 
     ape::cophenetic.phylo(tree1)->cop
-    ang.by.state<-matrix(ncol=4,nrow=ncol(stcomb))
-    for(i in 1:ncol(stcomb)){
+    ang.by.state<-matrix(ncol=4,nrow=ncol(stcomb1))
+    for(i in 1:ncol(stcomb1)){
       if(ranp[i]<=0.05) suppressWarnings(residuals(PGLS_fossil(tree1,state,y))->y)
-      y[which(state==stcomb[1,i]),]->tt1
+      y[which(state==stcomb1[1,i]),]->tt1
       mean(apply(tt1,1,unitV))->vs1
-      y[which(state==stcomb[2,i]),]->TT
+      y[which(state==stcomb1[2,i]),]->TT
       mean(apply(TT,1,unitV))->vs2
       expand.grid(rownames(tt1),rownames(TT))->ctt
       aa<-array()
@@ -1022,7 +1010,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       }
       c(mean(aa),mean(aa/dt),vs1,vs2)->ang.by.state[i,]
     }
-    data.frame(state1=t(stcomb)[,1],state2=t(stcomb)[,2],ang.state=ang.by.state[,1],ang.state.time=ang.by.state[,2],size.v1=ang.by.state[,3],size.v2=ang.by.state[,4])->ang2state
+    data.frame(state1=t(stcomb1)[,1],state2=t(stcomb1)[,2],ang.state=ang.by.state[,1],ang.state.time=ang.by.state[,2],size.v1=ang.by.state[,3],size.v2=ang.by.state[,4])->ang2state
     ang2stateR <- list()
     cl <- makeCluster(round((detectCores() * clus), 0))
     registerDoParallel(cl)
@@ -1061,8 +1049,6 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
     }
 
     #### Plot preparation ####
-    #data.frame(res.tot[,3],rlim=apply(rlim,1,diff),res.tot[,5:6])->bbb
-    #data.frame(res.tot[,3],rlim=rlim[,1],res.tot[,5:6])->bbb
     data.frame(res.tot[,3]*res.tot[,4]/res.tot[1,4],rlim=rlim[,1],res.tot[,5:6])->bbb
     data.frame(bbb,l1=bbb[,1]/2,l2=360-(bbb[,1]/2),rlim1=bbb[,2]/2,
                rlim2=360-bbb[,2]/2,p=res.tot[,8])->ccc
@@ -1127,4 +1113,5 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
 
   return(res.tot)
 }
+
 
