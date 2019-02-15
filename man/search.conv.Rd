@@ -17,7 +17,7 @@ clus=.5,foldername=NULL)
 
 \item{nodes}{node pair to be tested. If unspecified, the function automatically searches for convergence among clades.}
 
-\item{state}{the state of the tips.}
+\item{state}{the state of the tips. The state for non-focal species (i.e. not belonging to any convergent group) must be indicated as "nostate".}
 
 \item{aceV}{phenotypic values at internal nodes. The object \code{aceV} should be either a matrix or dataframe with nodes as rownames. If \code{aceV} are not indicated, ancestral phenotypes are estimated via \code{RRphylo}.}
 
