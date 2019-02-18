@@ -17,7 +17,7 @@ clus=.5,foldername=NULL)
 
 \item{nodes}{node pair to be tested. If unspecified, the function automatically searches for convergence among clades.}
 
-\item{state}{the state of the tips. The state for non-focal species (i.e. not belonging to any convergent group) must be indicated as "nostate".}
+\item{state}{the state of the tips. If a single convergent state is indicated species within the state are tested. Otherwise, species belonging to different parts of the tree could be tested for convergence on each other by indicating different states. This latter case is especially meant to test for iterative evolution (i.e. the appearance of repeated morphotypes into different clades). The state for non-focal species (i.e. not belonging to any convergent group) must be indicated as "nostate".}
 
 \item{aceV}{phenotypic values at internal nodes. The object \code{aceV} should be either a matrix or dataframe with nodes as rownames. If \code{aceV} are not indicated, ancestral phenotypes are estimated via \code{RRphylo}.}
 
@@ -55,10 +55,10 @@ If convergence between clades is tested, the function returns a list including:
 \item\strong{$average distance from group centroids}: smaller average distances mean less variable phenotypes within the pair.
 }
 
-If convergence between states is tested, the function returns a dataframe including for each pair of states:
+If convergence between (or within a single state) states is tested, the function returns a dataframe including for each pair of states (or single state):
 \itemize{
-\item ang.state: the mean theta angle between species belonging to different states.
-\item ang.state.time: the mean of theta angle between species belonging to different states divided by time distance.
+\item ang.state: the mean theta angle between species belonging to different states (or within a single state).
+\item ang.state.time: the mean of theta angle between species belonging to different states (or within a single state) divided by time distance.
 \item p.ang.state: the p-value computed for ang.state.
 \item p.ang.state.time: the p-value computed for ang.state.time.
 }
