@@ -7,7 +7,7 @@
 #' @param tree a phylogenetic tree. The tree needs not to be ultrametric or fully dichotomous. This is not indicated if convergence among clades is tested.
 #' @param y a multivariate phenotype. The object \code{y} should be either a matrix or dataframe with species names as rownames.
 #' @param nodes node pair to be tested. If unspecified, the function automatically searches for convergence among clades.
-#' @param state the state of the tips. The state for non-focal species (i.e. not belonging to any convergent group) must be indicated as "nostate".
+#' @param state the state of the tips. If a single convergent state is indicated species within the state are tested. Otherwise, species belonging to different parts of the tree could be tested for convergence on each other by indicating different states. This latter case is especially meant to test for iterative evolution (i.e. the appearance of repeated morphotypes into different clades). The state for non-focal species (i.e. not belonging to any convergent group) must be indicated as "nostate".
 #' @param aceV phenotypic values at internal nodes. The object \code{aceV} should be either a matrix or dataframe with nodes as rownames. If \code{aceV} are not indicated, ancestral phenotypes are estimated via \code{RRphylo}.
 #' @param min.dim the minimum size of the clades to be compared. When \code{nodes} is indicated, it indicates the minimum size of the smallest clades in \code{nodes}, otherwise it is set at one tenth of the tree size.
 #' @param max.dim the maximum size of the clades to be compared. When \code{nodes} is indicated, it is \code{min.dim}*2 if the largest clade in \code{nodes} is smaller than this value, otherwise it corresponds to the size of the largest clade. Whitout \code{nodes} it is set at one third of the tree size.
@@ -40,10 +40,10 @@
 #' \item\strong{$node pairs comparison}: pairwise comparison between significantly convergent pairs (all pairs if no istance of significance was found) performed on the distance from group centroids (the mean phenotype per clade).
 #' \item\strong{$average distance from group centroids}: smaller average distances mean less variable phenotypes within the pair.
 #' }
-#' @return If convergence between states is tested, the function returns a dataframe including for each pair of states:
+#' @return If convergence between (or within a single state) states is tested, the function returns a dataframe including for each pair of states (or single state):
 #' \itemize{
-#' \item ang.state: the mean theta angle between species belonging to different states.
-#' \item ang.state.time: the mean of theta angle between species belonging to different states divided by time distance.
+#' \item ang.state: the mean theta angle between species belonging to different states (or within a single state).
+#' \item ang.state.time: the mean of theta angle between species belonging to different states (or within a single state) divided by time distance.
 #' \item p.ang.state: the p-value computed for ang.state.
 #' \item p.ang.state.time: the p-value computed for ang.state.time.
 #' }
@@ -754,7 +754,6 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
                                sample(seq(1:dim(ADD)[1]),1)->s
                                mean.aRd[s]->rdiff
                                ADD[s,1]->mdiff
-                               #if(length(which(names(mean.aRd)%in%exx[,1]))>0) sample(mean.aRd[-which(names(mean.aRd)%in%exx[,1])],1)[[1]]->M.ARD else sample(mean.aRd,1)[[1]]->M.ARD
                                data.frame(dir.diff=rdiff,diff=mdiff)->diff.pR[[j]]
 
                              }
@@ -973,33 +972,23 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
     if (class(y) == "data.frame")
       y <- treedata(tree1, y, sort = TRUE)[[2]]
     state[match(rownames(y),names(state))]->state
-    if(sort(table(state),decreasing = TRUE)[1]<Ntip(tree1)*0.5) warning("one or more states apply to a large portion of the tree, this might be inappropriate for testing convergence")
-    combn(unique(state),2)->stcomb
-    combn(unique(state)[-which(unique(state)=="nostate")],2)->stcomb1
+    if(sort(table(state[-which(state=="nostate")]),decreasing = TRUE)[1]>Ntip(tree1)*0.5) warning("one or more states apply to a large portion of the tree, this might be inappropriate for testing convergence")
 
-    if(PGLSf){
-      ranp<-array()
-      for(k in 1:ncol(stcomb1)){
-        f<-array()
-        for(i in 1:length(state)) {
-          if(state[i]%in%stcomb1[,k]) f[i]<-"A" else f[i]<-"B"
-        }
-        runs.test(as.factor(f))$p->ranp[k]
+    if(length(unique(state[-which(state=="nostate")]))<2){
+      unique(state[-which(state=="nostate")])->onestate
+      if(PGLSf){
+        rep("B",length(state))->f
+        f[which(state==onestate)]<-"A"
+        runs.test(as.factor(f))$p->ranp
+      }else{
+        ranp<-1
       }
-    }else{
-      ranp<-rep(1,ncol(stcomb1))
-    }
 
 
-    ape::cophenetic.phylo(tree1)->cop
-    ang.by.state<-matrix(ncol=4,nrow=ncol(stcomb1))
-    for(i in 1:ncol(stcomb1)){
-      if(ranp[i]<=0.05) suppressWarnings(residuals(PGLS_fossil(tree1,state,y))->y)
-      y[which(state==stcomb1[1,i]),]->tt1
-      mean(apply(tt1,1,unitV))->vs1
-      y[which(state==stcomb1[2,i]),]->TT
-      mean(apply(TT,1,unitV))->vs2
-      expand.grid(rownames(tt1),rownames(TT))->ctt
+      ape::cophenetic.phylo(tree1)->cop
+      if(ranp<=0.05) suppressWarnings(residuals(PGLS_fossil(tree1,state,y))->y)
+      mean(apply(y[which(state==onestate),],1,unitV))->vs1->vs2
+      t(combn(names(state[which(state==onestate)]),2))->ctt
       aa<-array()
       dt<-array()
       for(g in 1:dim(ctt)[1]){
@@ -1008,20 +997,117 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
         aa[g] <- rad2deg(acos((ppTT[1,]%*%ppTT[2,])/(unitV(ppTT[1,]) *unitV(ppTT[2,]))))
         cop[match(as.character(ctt[g,1]),rownames(cop)),match(as.character(ctt[g,2]),rownames(cop))]->dt[g]
       }
-      c(mean(aa),mean(aa/dt),vs1,vs2)->ang.by.state[i,]
-    }
-    data.frame(state1=t(stcomb1)[,1],state2=t(stcomb1)[,2],ang.state=ang.by.state[,1],ang.state.time=ang.by.state[,2],size.v1=ang.by.state[,3],size.v2=ang.by.state[,4])->ang2state
-    ang2stateR <- list()
-    cl <- makeCluster(round((detectCores() * clus), 0))
-    registerDoParallel(cl)
-    ang2stateR <- foreach(j = 1:nsim) %dopar%
-    {
-      gc()
-      ang.by.stateR<-matrix(ncol=2,nrow=ncol(stcomb))
-      for(i in 1:ncol(stcomb)){
-        sample(state)->state
-        y[which(state==stcomb[1,i]),]->tt1
-        y[which(state==stcomb[2,i]),]->TT
+      c(mean(aa),mean(aa/dt),vs1,vs2)->ang.by.state
+
+
+      cl <- makeCluster(round((detectCores() * clus), 0))
+      registerDoParallel(cl)
+      ang.by.stateR<- foreach(j = 1:nsim,.combine = 'rbind') %dopar%
+      {
+        gc()
+        sample(state,length(which(state==onestate)))->sam
+        t(combn(names(sam),2))->ctt
+        aa<-array()
+        dt<-array()
+        for(g in 1:dim(ctt)[1]){
+          y[match(c(as.character(ctt[g,1]),as.character(ctt[g,2])),rownames(y)),]->ppTT
+          as.matrix(ppTT)->ppTT
+          aa[g] <- rad2deg(acos((ppTT[1,]%*%ppTT[2,])/(unitV(ppTT[1,]) *unitV(ppTT[2,]))))
+          cop[match(as.character(ctt[g,1]),rownames(cop)),match(as.character(ctt[g,2]),rownames(cop))]->dt[g]
+        }
+        c(mean(aa),mean(aa/dt))->ang.by.stateR
+      }
+      stopCluster(cl)
+
+
+      apply(rbind(ang.by.state[1:2],ang.by.stateR[1:(nsim-1),]),2,rank)[1,]/nsim->pval
+      quantile(ang.by.stateR[,1],c(0.05,0.95))->rlim
+
+      c(ang.state=ang.by.state[1],ang.state.time=ang.by.state[2],ang.by.state[c(3,4)],p.ang.state=pval[1],p.ang.state.time=pval[2])->res.tot
+
+      if(res.tot[4]<=0.05) print(paste("species within group", onestate, "converge"))
+
+      #### Plot preparation ####
+      c(res.tot[1],rlim=rlim[1],res.tot[3:4])->bbb
+      c(bbb,l1=bbb[1]/2,l2=360-(bbb[1]/2),rlim1=bbb[2]/2,
+        rlim2=360-bbb[2]/2,p=res.tot[6])->ccc
+
+
+
+      pdf(file = paste(foldername, "convergence plot.pdf",
+                       sep = "/"))
+
+      mat<-matrix(c(1,2),ncol=1,nrow=2,byrow=TRUE)
+      ht<-c(1,1)
+
+      layout(mat,heights = ht)
+
+      names(sort(table(state),decreasing = TRUE))->statetoplot
+      princomp(y)->compy
+      compy$scores[,1:2]->sco
+      sco[match(names(state),rownames(sco)),]->sco
+      brewer.pal(3,"Set2")[1]->cols
+      par(mar=c(2.5,2.5,1,1))
+      plot(sco, ylab="PC2",xlab="PC1",cex=1.5,mgp=c(1.5,0.5,0),font.lab=2,xlim=c(range(sco[,1])[1]*1.1,range(sco[,1])[2]),col="white")
+      for(h in 1:length(statetoplot)){
+        if(h==1){
+          points(sco[which(state==statetoplot[h]),],pch=21,bg="gray",cex=1.5)
+          Plot_ConvexHull(xcoord=sco[which(state==statetoplot[h]),1], ycoord=sco[which(state==statetoplot[h]),2], lcolor = "#bebebe",lwd=3,lty=2, col.p = paste("#bebebe","4D",sep=""))
+        }else{
+          points(sco[which(state==statetoplot[h]),],pch=21,bg=cols,cex=1.5)
+          Plot_ConvexHull(xcoord=sco[which(state==statetoplot[h]),1], ycoord=sco[which(state==statetoplot[h]),2], lcolor = cols,lwd=3,lty=2, col.p = paste(cols,"4D",sep=""))
+        }
+      }
+      legend(min(sco[,1])*1.1,max(sco[,2])*1.1, legend = statetoplot,fill = c("#bebebe",cols), bg = rgb(0, 0, 0, 0),
+             box.col = rgb(0,0, 0, 0), border = NA, x.intersp = 0.25,y.intersp=0.8)
+
+
+      lp<-seq(0,340,20)
+      lbs<-seq(0,340,20)
+
+      par(cex.axis=.75)
+      polar.plot(lengths=c(0,mean(unname(as.matrix(ccc)[c(3,4)])),mean(unname(as.matrix(ccc)[c(3,4)]))),
+                 polar.pos = c(0,ccc[7],ccc[8]),rp.type="p",line.col=rgb(0,0,0,0.6),
+                 poly.col=rgb(127/255,127/255,127/255,0.4),start=90,radial.lim=range(0,max(ccc[c(3,4)])),radial.labels=""
+                 ,boxed.radial = F,mar=c(1,1,2,1),label.pos=lp,labels=lbs)
+      title(main=onestate,cex.main = 2)
+      polar.plot(lengths=c(0,ccc[3],ccc[4]),polar.pos = c(0,ccc[5],ccc[6]),
+                 line.col="blue",lwd=4,start=90,add=TRUE,radial.labels="",boxed.radial = F)
+      text(paste("p-value = ",ccc[9]),x=0,y=-max(ccc[c(3,4)])/2.3,cex=1.5,col="red")
+
+      dev.off()
+
+      res.tot[-c(3,4)]->res.tot
+      t(as.data.frame(res.tot))->res.tot
+      rownames(res.tot)<-onestate
+
+    }else{
+
+      combn(unique(state),2)->stcomb
+      combn(unique(state)[-which(unique(state)=="nostate")],2)->stcomb1
+
+      if(PGLSf){
+        ranp<-array()
+        for(k in 1:ncol(stcomb1)){
+          f<-array()
+          for(i in 1:length(state)) {
+            if(state[i]%in%stcomb1[,k]) f[i]<-"A" else f[i]<-"B"
+          }
+          runs.test(as.factor(f))$p->ranp[k]
+        }
+      }else{
+        ranp<-rep(1,ncol(stcomb1))
+      }
+
+
+      ape::cophenetic.phylo(tree1)->cop
+      ang.by.state<-matrix(ncol=4,nrow=ncol(stcomb1))
+      for(i in 1:ncol(stcomb1)){
+        if(ranp[i]<=0.05) suppressWarnings(residuals(PGLS_fossil(tree1,state,y))->y)
+        y[which(state==stcomb1[1,i]),]->tt1
+        mean(apply(tt1,1,unitV))->vs1
+        y[which(state==stcomb1[2,i]),]->TT
+        mean(apply(TT,1,unitV))->vs2
         expand.grid(rownames(tt1),rownames(TT))->ctt
         aa<-array()
         dt<-array()
@@ -1031,86 +1117,109 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
           aa[g] <- rad2deg(acos((ppTT[1,]%*%ppTT[2,])/(unitV(ppTT[1,]) *unitV(ppTT[2,]))))
           cop[match(as.character(ctt[g,1]),rownames(cop)),match(as.character(ctt[g,2]),rownames(cop))]->dt[g]
         }
-        c(mean(aa),mean(aa/dt))->ang.by.stateR[i,]
+        c(mean(aa),mean(aa/dt),vs1,vs2)->ang.by.state[i,]
       }
-      data.frame(state1=t(stcomb)[,1],state2=t(stcomb)[,2],ang.state=ang.by.stateR[,1],ang.state.time=ang.by.stateR[,2])->ang2stateR[[j]]
-    }
-    stopCluster(cl)
-    pval<-matrix(ncol=2,nrow=nrow(ang2state))
-    rlim<-matrix(ncol=2,nrow=nrow(ang2state))
-    for(k in 1:nrow(ang2state)){
-      apply(rbind(ang2state[k,3:4],do.call(rbind,lapply(ang2stateR,function(x) x[k,3:4]))[1:(nsim-1),]),2,rank)[1,]/nsim->pval[k,]
-      quantile(do.call(rbind,lapply(ang2stateR,function(x) x[k,]))[,3],c(0.05,0.95))->rlim[k,]
-    }
-    data.frame(ang2state,p.ang.state=pval[,1],p.ang.state.time=pval[,2])->res.tot
+      data.frame(state1=t(stcomb1)[,1],state2=t(stcomb1)[,2],ang.state=ang.by.state[,1],ang.state.time=ang.by.state[,2],size.v1=ang.by.state[,3],size.v2=ang.by.state[,4])->ang2state
+      ang2stateR <- list()
+      cl <- makeCluster(round((detectCores() * clus), 0))
+      registerDoParallel(cl)
+      ang2stateR <- foreach(j = 1:nsim) %dopar%
+      {
+        gc()
+        ang.by.stateR<-matrix(ncol=2,nrow=ncol(stcomb))
+        for(i in 1:ncol(stcomb)){
+          sample(state)->state
+          y[which(state==stcomb[1,i]),]->tt1
+          y[which(state==stcomb[2,i]),]->TT
+          expand.grid(rownames(tt1),rownames(TT))->ctt
+          aa<-array()
+          dt<-array()
+          for(g in 1:dim(ctt)[1]){
+            y[match(c(as.character(ctt[g,1]),as.character(ctt[g,2])),rownames(y)),]->ppTT
+            as.matrix(ppTT)->ppTT
+            aa[g] <- rad2deg(acos((ppTT[1,]%*%ppTT[2,])/(unitV(ppTT[1,]) *unitV(ppTT[2,]))))
+            cop[match(as.character(ctt[g,1]),rownames(cop)),match(as.character(ctt[g,2]),rownames(cop))]->dt[g]
+          }
+          c(mean(aa),mean(aa/dt))->ang.by.stateR[i,]
+        }
+        data.frame(state1=t(stcomb)[,1],state2=t(stcomb)[,2],ang.state=ang.by.stateR[,1],ang.state.time=ang.by.stateR[,2])->ang2stateR[[j]]
+      }
+      stopCluster(cl)
+      pval<-matrix(ncol=2,nrow=nrow(ang2state))
+      rlim<-matrix(ncol=2,nrow=nrow(ang2state))
+      for(k in 1:nrow(ang2state)){
+        apply(rbind(ang2state[k,3:4],do.call(rbind,lapply(ang2stateR,function(x) x[k,3:4]))[1:(nsim-1),]),2,rank)[1,]/nsim->pval[k,]
+        quantile(do.call(rbind,lapply(ang2stateR,function(x) x[k,]))[,3],c(0.05,0.95))->rlim[k,]
+      }
+      data.frame(ang2state,p.ang.state=pval[,1],p.ang.state.time=pval[,2])->res.tot
 
-    for(j in 1:nrow(res.tot)){
-      if(res.tot[j,8]<=0.05) print(paste("convergent trajectories between",res.tot[j,1], "and",res.tot[j,2]))
-    }
+      for(j in 1:nrow(res.tot)){
+        if(res.tot[j,8]<=0.05) print(paste("convergent trajectories between",res.tot[j,1], "and",res.tot[j,2]))
+      }
 
-    #### Plot preparation ####
-    data.frame(res.tot[,3]*res.tot[,4]/res.tot[1,4],rlim=rlim[,1],res.tot[,5:6])->bbb
-    data.frame(bbb,l1=bbb[,1]/2,l2=360-(bbb[,1]/2),rlim1=bbb[,2]/2,
-               rlim2=360-bbb[,2]/2,p=res.tot[,8])->ccc
+      #### Plot preparation ####
+      data.frame(res.tot[,3],rlim=rlim[,1]*res.tot[,4]/res.tot[1,4],res.tot[,5:6])->bbb
+      data.frame(bbb,l1=bbb[,1]/2,l2=360-(bbb[,1]/2),rlim1=bbb[,2]/2,
+                 rlim2=360-bbb[,2]/2,p=res.tot[,8])->ccc
 
-    pdf(file = paste(foldername, "convergence plot for different states.pdf",
-                     sep = "/"))
+      pdf(file = paste(foldername, "convergence plot for different states.pdf",
+                       sep = "/"))
 
-    if(nrow(res.tot)==1) {
-      mat<-matrix(c(1,2),ncol=1,nrow=2,byrow=TRUE)
-      ht<-c(1,1)
-    }else{
-      if(nrow(res.tot)%%2==0) matrix(ncol=nrow(res.tot)/2,nrow=3)->mat else matrix(ncol=(nrow(res.tot)/2+1),nrow=3)->mat
-      mat[1,]<-rep(1,ncol(mat))
-      if(nrow(res.tot)%%2==0) mat[2:nrow(mat),]<-seq(2,(nrow(res.tot))+1,1) else mat[2:nrow(mat),]<-seq(2,(nrow(res.tot))+2,1)
-      mat->mat
-      ht<-(c(1.5,1,1))
-
-    }
-    layout(mat,heights = ht)
-
-    names(sort(table(state),decreasing = TRUE))->statetoplot
-    princomp(y)->compy
-    compy$scores[,1:2]->sco
-    sco[match(names(state),rownames(sco)),]->sco
-    brewer.pal(length(unique(state)),"Set2")->cols
-    par(mar=c(2.5,2.5,1,1))
-    plot(sco, ylab="PC2",xlab="PC1",cex=1.5,mgp=c(1.5,0.5,0),font.lab=2,xlim=c(range(sco[,1])[1]*1.1,range(sco[,1])[2]),col="white")
-    for(h in 1:length(statetoplot)){
-      if(h==1){
-        points(sco[which(state==statetoplot[h]),],pch=21,bg="gray",cex=1.5)
-        Plot_ConvexHull(xcoord=sco[which(state==statetoplot[h]),1], ycoord=sco[which(state==statetoplot[h]),2], lcolor = "#bebebe",lwd=3,lty=2, col.p = paste("#bebebe","4D",sep=""))
+      if(nrow(res.tot)==1) {
+        mat<-matrix(c(1,2),ncol=1,nrow=2,byrow=TRUE)
+        ht<-c(1,1)
       }else{
-        points(sco[which(state==statetoplot[h]),],pch=21,bg=cols[h-1],cex=1.5)
-        Plot_ConvexHull(xcoord=sco[which(state==statetoplot[h]),1], ycoord=sco[which(state==statetoplot[h]),2], lcolor = cols[h-1],lwd=3,lty=2, col.p = paste(cols[h-1],"4D",sep=""))
+        if(nrow(res.tot)%%2==0) matrix(ncol=nrow(res.tot)/2,nrow=3)->mat else matrix(ncol=(nrow(res.tot)/2+1),nrow=3)->mat
+        mat[1,]<-rep(1,ncol(mat))
+        if(nrow(res.tot)%%2==0) mat[2:nrow(mat),]<-seq(2,(nrow(res.tot))+1,1) else mat[2:nrow(mat),]<-seq(2,(nrow(res.tot))+2,1)
+        mat->mat
+        ht<-(c(1.5,1,1))
+
       }
-    }
-    legend(min(sco[,1])*1.1,max(sco[,2])*1.1, legend = unique(state),fill = c("#bebebe",cols), bg = rgb(0, 0, 0, 0),
-           box.col = rgb(0,0, 0, 0), border = NA, x.intersp = 0.25,y.intersp=0.8)
+      layout(mat,heights = ht)
 
-    if(nrow(res.tot)>6) {
-      lp<-seq(0,340,40)
-      lbs<-seq(0,340,40)
-    }else{
-      lp<-seq(0,340,20)
-      lbs<-seq(0,340,20)
-    }
-    for(i in 1:nrow(res.tot)){
-      par(cex.axis=.75)
-      polar.plot(lengths=c(0,mean(unname(as.matrix(ccc)[i,c(3,4)])),mean(unname(as.matrix(ccc)[i,c(3,4)]))),
-                 polar.pos = c(0,ccc[i,7],ccc[i,8]),rp.type="p",line.col=rgb(0,0,0,0.6),
-                 poly.col=rgb(127/255,127/255,127/255,0.4),start=90,radial.lim=range(0,max(ccc[,c(3,4)])),radial.labels=""
-                 ,boxed.radial = F,mar=c(1,1,2,1),label.pos=lp,labels=lbs)
-      title(main=paste(as.character(res.tot[i,1]),as.character(res.tot[i,2]),sep="-"),cex.main = 2)
-      polar.plot(lengths=c(0,ccc[i,3],ccc[i,4]),polar.pos = c(0,ccc$l1[i],ccc$l2[i]),
-                 line.col="blue",lwd=4,start=90,add=TRUE,radial.labels="",boxed.radial = F)
-      text(paste("p-value = ",ccc[i,9]),x=0,y=-max(ccc[i,c(3,4)])/2.3,cex=1.5,col="red")
-    }
-    dev.off()
+      names(sort(table(state),decreasing = TRUE))->statetoplot
+      princomp(y)->compy
+      compy$scores[,1:2]->sco
+      sco[match(names(state),rownames(sco)),]->sco
+      brewer.pal(length(unique(state)),"Set2")->cols
+      par(mar=c(2.5,2.5,1,1))
+      plot(sco, ylab="PC2",xlab="PC1",cex=1.5,mgp=c(1.5,0.5,0),font.lab=2,xlim=c(range(sco[,1])[1]*1.1,range(sco[,1])[2]),col="white")
+      for(h in 1:length(statetoplot)){
+        if(h==1){
+          points(sco[which(state==statetoplot[h]),],pch=21,bg="gray",cex=1.5)
+          Plot_ConvexHull(xcoord=sco[which(state==statetoplot[h]),1], ycoord=sco[which(state==statetoplot[h]),2], lcolor = "#bebebe",lwd=3,lty=2, col.p = paste("#bebebe","4D",sep=""))
+        }else{
+          points(sco[which(state==statetoplot[h]),],pch=21,bg=cols[h-1],cex=1.5)
+          Plot_ConvexHull(xcoord=sco[which(state==statetoplot[h]),1], ycoord=sco[which(state==statetoplot[h]),2], lcolor = cols[h-1],lwd=3,lty=2, col.p = paste(cols[h-1],"4D",sep=""))
+        }
+      }
+      legend(min(sco[,1])*1.1,max(sco[,2])*1.1, legend = statetoplot,fill = c("#bebebe",cols), bg = rgb(0, 0, 0, 0),
+             box.col = rgb(0,0, 0, 0), border = NA, x.intersp = 0.25,y.intersp=0.8)
 
-    res.tot[,-c(5,6)]->res.tot
+      if(nrow(res.tot)>6) {
+        lp<-seq(0,340,40)
+        lbs<-seq(0,340,40)
+      }else{
+        lp<-seq(0,340,20)
+        lbs<-seq(0,340,20)
+      }
+      for(i in 1:nrow(res.tot)){
+        par(cex.axis=.75)
+        polar.plot(lengths=c(0,mean(unname(as.matrix(ccc)[i,c(3,4)])),mean(unname(as.matrix(ccc)[i,c(3,4)]))),
+                   polar.pos = c(0,ccc[i,7],ccc[i,8]),rp.type="p",line.col=rgb(0,0,0,0.6),
+                   poly.col=rgb(127/255,127/255,127/255,0.4),start=90,radial.lim=range(0,max(ccc[,c(3,4)])),radial.labels=""
+                   ,boxed.radial = F,mar=c(1,1,2,1),label.pos=lp,labels=lbs)
+        title(main=paste(as.character(res.tot[i,1]),as.character(res.tot[i,2]),sep="-"),cex.main = 2)
+        polar.plot(lengths=c(0,ccc[i,3],ccc[i,4]),polar.pos = c(0,ccc$l1[i],ccc$l2[i]),
+                   line.col="blue",lwd=4,start=90,add=TRUE,radial.labels="",boxed.radial = F)
+        text(paste("p-value = ",ccc[i,9]),x=0,y=-max(ccc[i,c(3,4)])/2.3,cex=1.5,col="red")
+      }
+      dev.off()
+
+      res.tot[,-c(5,6)]->res.tot
+    }
   }
-
   return(res.tot)
 }
 
