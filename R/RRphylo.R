@@ -1,11 +1,12 @@
 #' @title Evolutionary rates computation along phylogenies
 #' @description The function \code{RRphylo} (\cite{Castiglione et al. 2018}) performs the phylogenetic ridge regression. It takes a tree and a vector of tip data (phenotypes) as entries, calculates the regularization factor, produces the matrices of tip to root (\code{\link{makeL}}), and node to root distances (\code{\link{makeL1}}), the vector of ancestral state estimates, the vector of predicted phenotypes, and the rates vector for all the branches of the tree. For multivariate data, rates are given as both one vector per variable, and as a multivariate vector obtained by computing the Euclidean Norm of individual rate vectors.
-#' @usage RRphylo(tree,y,cov=NULL,rootV=NULL,aces=NULL)
+#' @usage RRphylo(tree,y,cov=NULL,rootV=NULL,aces=NULL,clus=0.5)
 #' @param tree a phylogenetic tree. The tree needs not to be ultrametric or fully dichotomous.
 #' @param y either a single vector variable or a multivariate dataset of class \sQuote{matrix}. In any case, \code{y} must be named.
 #' @param cov the covariate to be indicated if its effect on the rates must be accounted for. In this case residuals of the covariate versus the rates are used as rates. \code{'cov'} must be as long as the number of nodes plus the number of tips of the tree, which can be obtained by running \code{RRphylo} on the covariate as well, and taking the vector of ancestral states and tip values to form the covariate, as in the example below.
 #' @param rootV phenotypic value (values if multivariate) at the tree root. If \code{rootV=NULL} the function 'learns' about the root value from the 10\% tips being closest in time to the tree root, weighted by their temporal distance from the root itself (close tips phenotypes weigh more than more distant tips).
 #' @param aces a named vector (or matrix if \code{y} is multivariate) of ancestral character values at nodes. Names correspond to the nodes in the tree.
+#' @param clus the proportion of clusters to be used in parallel computing (only if \code{y} is multivariate).
 #' @export
 #' @importFrom ape multi2di Ntip is.binary.tree Nnode
 #' @importFrom stats dist lm residuals weighted.mean
@@ -53,12 +54,16 @@
 
 
 
-RRphylo<-function (tree, y, cov = NULL, rootV = NULL,aces=NULL)
+
+RRphylo<-function (tree, y, cov = NULL, rootV = NULL,aces=NULL, clus=0.5)
 {
-  #require(ape)
-  #require(phytools)
-  #require(geiger)
-  #require(stats4)
+  # require(ape)
+  # require(phytools)
+  # require(geiger)
+  # require(stats4)
+  # require(foreach)
+  # require(doParallel)
+  # require(parallel)
 
   insert.at <- function(a, pos, ...){
     dots <- list(...)
@@ -186,34 +191,41 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL,aces=NULL)
 
   if(length(y)>Ntip(t)){
     dim(y)[2]->k
-    lam<-array()
     y->y.real
     m.aces<-matrix(ncol=k,nrow=Ntip(t)-1)
     m.betas<-matrix(ncol=k,nrow=Ntip(t)+Nnode(t))
     m.yhat<-matrix(ncol=k,nrow=Ntip(t))
     rootV->rv.real
-    for(i in 1:k){
-      rv.real[i]->rootV
-      y.real[,i]->y
-      h <- mle(optL, start = list(lambda = 1), method = "L-BFGS-B",
-               upper = 10, lower = 0.001)
 
-      lambda <- h@coef
-      lambda->lam[i]
-      betas <- (solve(t(L) %*% L + lambda * diag(ncol(L))) %*%
-                  t(L)) %*% (as.matrix(y) - rootV)
-      aceRR <- (L1 %*% betas[1:Nnode(t), ]) + rootV
-      y.hat <- (L %*% betas) + rootV
-      aceRR->m.aces[,i]
-      betas->m.betas[,i]
-      y.hat->m.yhat[,i]
-    }
 
-    m.yhat->y.hat
-    m.aces->aceRR
-    m.betas->betas
+    res<-list()
+    cl <- makeCluster(round((detectCores() * clus), 0))
+    registerDoParallel(cl)
+    res <- foreach(i = 1:k,
+                   .packages = c("stats4","ape")) %dopar%
+                   {
+
+                     gc()
+
+                     rv.real[i]->rootV
+                     y.real[,i]->y
+                     h <- mle(optL, start = list(lambda = 1), method = "L-BFGS-B",
+                              upper = 10, lower = 0.001)
+
+                     lambda <- h@coef
+                     betas <- (solve(t(L) %*% L + lambda * diag(ncol(L))) %*%
+                                 t(L)) %*% (as.matrix(y) - rootV)
+                     aceRR <- (L1 %*% betas[1:Nnode(t), ]) + rootV
+                     y.hat <- (L %*% betas) + rootV
+                     list(aceRR, betas, y.hat, lambda)->res[[i]]
+                   }
+    stopCluster(cl)
+
+    do.call(cbind, lapply(res,"[[",1))->aceRR
+    do.call(cbind, lapply(res,"[[",2))->betas
+    do.call(cbind, lapply(res,"[[",3))->y.hat
+    unname(sapply(res,"[[",4))->lambda
     rv.real->rootV
-    lam->lambda
     y.real->y
     rownames(betas)<-colnames(L)
     rownames(y.hat)<-rownames(y)
