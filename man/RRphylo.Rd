@@ -4,7 +4,7 @@
 \alias{RRphylo}
 \title{Evolutionary rates computation along phylogenies}
 \usage{
-RRphylo(tree,y,cov=NULL,rootV=NULL,aces=NULL)
+RRphylo(tree,y,cov=NULL,rootV=NULL,aces=NULL,clus=0.5)
 }
 \arguments{
 \item{tree}{a phylogenetic tree. The tree needs not to be ultrametric or fully dichotomous.}
@@ -16,6 +16,8 @@ RRphylo(tree,y,cov=NULL,rootV=NULL,aces=NULL)
 \item{rootV}{phenotypic value (values if multivariate) at the tree root. If \code{rootV=NULL} the function 'learns' about the root value from the 10\% tips being closest in time to the tree root, weighted by their temporal distance from the root itself (close tips phenotypes weigh more than more distant tips).}
 
 \item{aces}{a named vector (or matrix if \code{y} is multivariate) of ancestral character values at nodes. Names correspond to the nodes in the tree.}
+
+\item{clus}{the proportion of clusters to be used in parallel computing (only if \code{y} is multivariate).}
 }
 \value{
 \strong{tree} the tree used by \code{RRphylo}. The fully dichotomous version of the tree argument. For trees with polytomies, the tree is resolved by using \code{multi2di} function in the package \pkg{ape}. If the latter is a dichotomous tree, the two trees will be identical.

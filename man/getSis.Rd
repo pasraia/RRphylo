@@ -4,7 +4,7 @@
 \alias{getSis}
 \title{Get sister clade}
 \usage{
-getSis(tree,n,printZoom=c(FALSE,TRUE))
+getSis(tree,n,printZoom=TRUE)
 }
 \arguments{
 \item{tree}{a phylogenetic tree. The tree needs not to be ultrametric and fully dichotomous.}
