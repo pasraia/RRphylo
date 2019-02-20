@@ -1,6 +1,6 @@
 #' @title Get sister clade
 #' @description The function identifies and returns the sister clade of a given node/tip.
-#' @usage getSis(tree,n,printZoom=c(FALSE,TRUE))
+#' @usage getSis(tree,n,printZoom=TRUE)
 #' @param tree a phylogenetic tree. The tree needs not to be ultrametric and fully dichotomous.
 #' @param n number of focal node or name of focal tip.
 #' @param printZoom if \code{TRUE} the function plots the tree section of interest.
@@ -16,7 +16,7 @@
 
 
 
-getSis<-function(tree,n,printZoom=c(FALSE,TRUE))
+getSis<-function(tree,n,printZoom=TRUE)
 {
   #require(ape)
   #require(geiger)
