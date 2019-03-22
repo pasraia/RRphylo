@@ -1,7 +1,8 @@
 Package: RRphylo
 Type: Package
 Title: Phylogenetic Ridge Regression Methods for Comparative Studies
-Version: 2.0.3
+Date: 2019-3-22
+Version: 2.0.4
 Author: Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
 Maintainer: Pasquale Raia <pasquale.raia@unina.it>
 Description: Functions for phylogenetic analysis (Castiglione et al, 2017 <doi:10.1111/2041-210X.12954>). The functions perform the estimation of phenotypic evolutionary rates, identification of phenotypic evolutionary rate shifts, quantification of direction and size of evolutionary change in multivariate traits, and the computation of ontogenetic shape vectors.
@@ -13,4 +14,4 @@ Imports:
   ape, phytools, geiger, stats4, foreach, doParallel, pvclust, mvMORPH, lmtest, 
   parallel, phangorn, rlist, scales, R.utils, binr, RColorBrewer, nlme, penalized, smatr,
   data.tree, car, outliers, emmeans, picante, vegan, plotrix, cluster, tseries
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.1
