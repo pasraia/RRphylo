@@ -1,9 +1,9 @@
 #' @title Plot RRphylo rates at a specified node
-#' @usage plotRates(RR,node,export.tiff = c(TRUE,FALSE),foldername)
+#' @usage plotRates(RR,node,export.tiff =TRUE,foldername)
 #' @description The function \code{plotRates} plots the \code{\link{RRphylo}} rates computed for a given clade as compared to the rates computed for the rest of the tree.
 #' @param RR an object produced by \code{\link{RRphylo}}.
 #' @param node the node subtending the clade of interest.
-#' @param export.tiff if \code{TRUE} the function save a "rate_bars.tiff" file inside the working directory.
+#' @param export.tiff if \code{TRUE} the function save a "rate_bars.tiff" file inside the working directory. It is \code{TRUE} by default.
 #' @param foldername the path of the folder where plots are to be found.
 #' @export
 #' @importFrom grDevices tiff
@@ -23,7 +23,7 @@
 
 
 
-plotRates<-function(RR, node, export.tiff=c(TRUE, FALSE),foldername){
+plotRates<-function(RR, node, export.tiff=TRUE,foldername){
   #require(phytools)
 
   RR$rates->FULLrates

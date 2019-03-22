@@ -12,12 +12,15 @@
 #' @return The function returns a ‘list’ object including:
 #' @return \strong{$rbt} for each branch of the tree, there are the age of the daughter node/tip (D.age), the age of the parental node (P.age), the \code{RRphylo} rates, and the distance from the tree root (age). If y is multivariate, it also includes the multiple rates for each y vector.
 #' @return \strong{$pbt} a data frame of phenotypic values and their distance from the tree root for each node (i.e. ancestral states) and tip of the tree.
-#' @return \strong{$phenotypic.regression} results of phenotype versus age regression. It reports a p-value for the regression slope between the variables (p.real) a p-value computed contrasting the real slope to Brownian motion simulations (p.random). Only the latter should be inspected to assess significance.
-#' @return \strong{$rate.regression} results of the rates (absolute values) versus age regression. It reports a p-value for the regression between the variables (p.real), a p-value computed contrasting the real slope to Brownian motion simulations (p.random). Only the latter should be inspected to assess significance.
+#' @return \strong{$phenotypic.regression} results of phenotype versus age regression. It reports a p-value for the regression slope between the variables (p.real), a p-value computed contrasting the real slope to Brownian motion simulations (p.random), and a parameter indicating the deviation of the phenotypic mean from the root value in terms of the number of standard deviations of the trait distribution (dev). dev is 1 under Brownian Motion. Only p.random should be inspected to assess significance.
+#' @return \strong{$rate.regression} results of the rates (absolute values) versus age regression. It reports a p-value for the regression between the variables (p.real), a p-value computed contrasting the real slope to Brownian motion simulations (p.random), and a parameter indicating the ratio between the range of phenotypic values and the range of such values halfway along the tree height, divided to the same figure under Brownian motion (spread). spread is 1 under Brownian Motion. Only p.random should be inspected to assess significance.
 #' @return \strong{$ConfInts} the 95\% confidence intervals around phenotypes and rates produced according to the Brownian motion model of evolution.
-#' @return If specified, individual nodes are tested as the whole tree, the results are summarized in the objects \strong{$node.phenotypic.regression} and \strong{$node.rate.regression}. If more than one node is specified, the object  \strong{$group.comparison} reports the results obtained by comparing individual clades to each other.
+#' @return If specified, individual nodes are tested as the whole tree, the results are summarized in the objects:
+#' @return \strong{$node.phenotypic.regression} results of phenotype versus age regression through node. It reports the slope for the regression between the variables at node (slope), a p-value computed contrasting the real slope to Brownian motion simulations (p.random), the difference between estimated marginal means predictions for the group and for the rest of the tree (emm.difference), and a p-value for the emm.difference (p.emm).
+#' @return \strong{$node.rate.regression} results of the rates (absolute values) versus age regression through node. It reports the difference between estimated marginal means predictions for the group and for the rest of the tree (emm.difference), a p-value for the emm.difference (p.emm), the difference between regression slopes for the group and for the rest of the tree (slope.difference), and a p-value for the slope.difference (p.slope).
+#' @return If more than one node is specified, the object \strong{$group.comparison} reports the same results as $node.phenpotypic.regression and $node.rate.regression obtained by comparing individual clades to each other.
 #' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
-#' @details The function simultaneously returns the regression of phenotypes and phenotypic evolutionary rates against age (in terms of distance from the tree root) tested against Brownian motion simulations to assess signficance. It stores the rates (absolute values) versus age regression and the phenotype versus age regression plots as .pdf files. In the plots, the 95\% confidence intervals of phenotypes and rates simulated under the Brownian motion for each node are plotted as shaded areas. Regression lines are printed for all regressions. To assess significance, slopes are compared to a family of simulated slopes (BMslopes, where the number of simulations is equal to \code{nsim}), generated under the Brownian motion, using the \code{fastBM} function in the package \pkg{phytools}. Individual nodes are compared to the rest of the tree in different ways depending on whether phenotypes or rates versus age regressions are tested. With the former, the regression slopes for individual clades and the slope difference between clades is contrasted slopes obtained through Brownian motion simulations. For the latter, regression models are tested and contrasted to each other referring to estimated marginal means, by using the \code{emmeans} function in the package \pkg{emmeans}.
+#' @details The function simultaneously returns the regression of phenotypes and phenotypic evolutionary rates against age (in terms of distance from the tree root) tested against Brownian motion simulations to assess significance. It stores the rates (absolute values) versus age regression and the phenotype versus age regression plots as .pdf files. In the plots, the 95\% confidence intervals of phenotypes and rates simulated under the Brownian motion for each node are plotted as shaded areas. Regression lines are printed for all regressions. To assess significance, slopes are compared to a family of simulated slopes (BMslopes, where the number of simulations is equal to \code{nsim}), generated under the Brownian motion, using the \code{fastBM} function in the package \pkg{phytools}. Individual nodes are compared to the rest of the tree in different ways depending on whether phenotypes or rates versus age regressions are tested. With the former, the regression slopes for individual clades and the slope difference between clades is contrasted slopes obtained through Brownian motion simulations. For the latter, regression models are tested and contrasted to each other referring to estimated marginal means, by using the \code{emmeans} function in the package \pkg{emmeans}.
 #' @importFrom graphics points text title polygon pairs
 #' @importFrom stats as.formula coef resid density predict
 #' @importFrom binr bins.greedy
@@ -25,7 +28,7 @@
 #' @importFrom nlme gls varFunc
 #' @importFrom outliers outlier
 #' @importFrom car outlierTest
-#' @importFrom emmeans emmeans
+#' @importFrom emmeans emmeans emtrends
 #' @export
 #' @references Castiglione, S., Serio, C., Mondanaro, A., Di Febbraro, M., Profico, A., Girardi, G., & Raia, P. (2019) Simultaneous detection of macroevolutionary patterns in phenotypic means and rate of change with and within phylogenetic trees including extinct species. \emph{PLoS ONE}, 14: e0210101. https://doi.org/10.1371/journal.pone.0210101
 #' @examples
@@ -68,22 +71,22 @@
 #'    foldername=tempdir(),ConfInt=FALSE,cov=cov.values)}
 
 search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
-                        foldername, ConfInt = FALSE)
+                         foldername, ConfInt = FALSE)
 {
-  #require(ape)
-  #require(phytools)
-  #require(geiger)
-  #require(stats4)
-  #require(foreach)
-  #require(doParallel)
-  #require(lmtest)
-  #require(parallel)
-  #require(binr)
-  #require(nlme)
-  #require(RColorBrewer)
-  #require(emmeans)
-  #require(outliers)
-  #require(car)
+  # require(ape)
+  # require(phytools)
+  # require(geiger)
+  # require(stats4)
+  # require(foreach)
+  # require(doParallel)
+  # require(lmtest)
+  # require(parallel)
+  # require(binr)
+  # require(nlme)
+  # require(RColorBrewer)
+  # require(emmeans)
+  # require(outliers)
+  # require(car)
 
   range01 <- function(x, ...){(x - min(x, ...)) / (max(x, ...) - min(x, ...))}
   t <- RR$tree
@@ -259,8 +262,6 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
       if (length(y) > Ntip(t)) { #### Rate Trend Real Node Multi ####
         rbi.rate <- rbi.sel[, c(5:(dim(rbi.sel)[2] -
                                      1), dim(rbi.sel)[2])]
-        rbi.slopeAn <- matrix(ncol = 2, nrow = (dim(rbi.rate)[2] -
-                                                  1))
         REG.betas.age <- list()
         REGabs.betas.y <- list()
         for (i in 1:(dim(rbi.rate)[2] - 1)) {
@@ -268,65 +269,19 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
           age <- rbi.rate[, dim(rbi.rate)[2]]
           names(bet)<-names(age)<-rownames(rbi.rate)
           as.matrix(as.data.frame(abs(bet)))->rts
-          rts->rtsA
           REG.betas.age[[i]]<-age
-          REGabs.betas.y[[i]]<-predict(lm(rtsA~age))
-          log(range01(rts))->rts
-          age->ageC
-
-          c(which(rts=="-Inf"),which(age=="-Inf"))->outs
-          if(length(outs)>0)
-          {
-            as.matrix(as.data.frame(rts[-outs,]))->rts
-            age[-outs]->age
-          }
-          lm(rts~age)->bb
-
-          residuals(bb)[order(residuals(bb),decreasing=TRUE)][1:(Ntip(t)/15)]->resout
-          if((Ntip(t)+1)%in%names(resout)){
-            as.matrix(as.data.frame(rts[-1,]))->rts
-            age[-1]->age
-          }
-
-          lm(rts~age)->regr.1
-          rbi.slopeAn[i, ] <- coef(summary(regr.1))[2, c(1, 4)]
-
-
+          REGabs.betas.y[[i]]<-predict(lm(rts~age))
         }
-
-        colnames(rbi.slopeAn) <- c("slope","p-value")
-        rownames(rbi.slopeAn) <- names(REG.betas.age) <- names(REGabs.betas.y) <- colnames(data)[5:(5 +dim(y)[2])]
+        names(REG.betas.age) <- names(REGabs.betas.y) <- colnames(data)[5:(5 +dim(y)[2])]
       }else {#### Rate Trend Real Node Uni ####
 
         rbi.rate <- rbi.sel[, 5:6]
-
         bet <- rbi.rate[, 1]
         age <- rbi.rate[, 2]
         names(bet)<-names(age)<-rownames(rbi.rate)
         as.matrix(as.data.frame(abs(bet)))->rts
-        rts->rtsA
-        log(range01(rts))->rts
-        age->ageC
-
         REG.betas.age<-age
-        REGabs.betas.y<-predict(lm(rtsA~age))
-
-        c(which(rts=="-Inf"),which(age=="-Inf"))->outs
-        if(length(outs)>0)
-        {
-          as.matrix(as.data.frame(rts[-outs,]))->rts
-          age[-outs]->age
-        }
-        lm(rts~age)->bb
-
-        residuals(bb)[order(residuals(bb),decreasing=TRUE)][1:(Ntip(t)/15)]->resout
-        if((Ntip(t)+1)%in%names(resout)){
-          as.matrix(as.data.frame(rts[-1,]))->rts
-          age[-1]->age
-        }
-
-        lm(rts~age)->regr.1
-        rbi.slopeAn<- coef(summary(regr.1))[2, c(1, 4)]
+        REGabs.betas.y<-predict(lm(rts~age))
 
       }
 
@@ -370,24 +325,43 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
     if (length(which(rbi.sma$group == "others")) < 3)
       rbi.sma <- rbi.sma[-which(rbi.sma$group == "others"),]
 
-    PP.sma <- PP.sma[-which(PP.sma$group == "others"),]
+    #PP.sma <- PP.sma[-which(PP.sma$group == "others"),]
 
     rbiRES <- rbi.sma
     if (length(y) > Ntip(t)) { #### Node Comparison Multi ####
       sma.resA <- list()
       sma.resPP <- list()
+      sma.resPPemm<-list()
+      PPmeans.multi<-list()
 
       group <- rbi.sma[, (dim(rbi.sma)[2])]
       age <- rbi.sma[, (dim(rbi.sma)[2] - 1)]
-      groupPP <- PP.sma[, (dim(PP.sma)[2])]
+      groupPP <- PP.sma[-which(PP.sma$group == "others"), (dim(PP.sma)[2])]
       agePP <- PP.sma[, (dim(PP.sma)[2] - 1)]
       for (i in 1:(dim(rbi.sma)[2] - 2)) {
         bets <- rbi.sma[, i]
         dat <- data.frame(bets, age, group)
-        suppressMessages(as.data.frame(pairs(emmeans(lm(abs(bets)~age*group,data=rbi.sma),specs="group")))->smaA)
-        data.frame(do.call(rbind,strsplit(as.character(smaA[,1])," - ")),smaA[,-c(1,3,4,5)])->sma.resA[[i]]
+        suppressMessages(mmeans<-as.data.frame(pairs(emmeans(lm(abs(bets)~age*group,data=rbi.sma),specs="group"))))
+        mtrends<-as.data.frame(pairs(emtrends(lm(abs(bets)~age*group,data=rbi.sma),specs="group",var="age")))
+        mtrends[match(mmeans[,1],mtrends[,1]),]->mtrends
+        data.frame(do.call(rbind,strsplit(as.character(mmeans[,1])," - ")),mmeans[,-c(1,3,4,5)],mtrends[,c(2,6)])->sma.resA[[i]]
+        colnames(sma.resA[[i]])<-c("group_1","group_2","emm.difference","p.emm","slope.difference","p.slope")
 
-        colnames(sma.resA[[i]])[1:2]<-c("group_1","group_2")
+        yPP<-PP.sma[,i]
+        suppressMessages(PPpairs<-as.data.frame(pairs(emmeans(lm(range01(yPP)~age*group,data=PP.sma),specs="group"))))
+        data.frame(do.call(rbind,strsplit(as.character(PPpairs[,1])," - ")),PPpairs[,-c(1,3,4,5)])->sma.resPPemt
+        colnames(sma.resPPemt)<-c("group_1","group_2","mean","p.mean")
+        subset(sma.resPPemt,sma.resPPemt$group_2=="others")->PPmeans
+        subset(sma.resPPemt,sma.resPPemt$group_2!="others")->sma.resPPemt
+        sma.resPPemt->sma.resPPemm[[i]]
+
+
+        sapply(strsplit(as.character(PPmeans[,1]),"g"),"[[",2)->PPnam
+        PPmeans[,3:4]->PPmeans
+        rownames(PPmeans)<-PPnam
+        PPmeans[match(node,rownames(PPmeans)),]->PPmeans
+        PPmeans->PPmeans.multi[[i]]
+
 
         if(length(node)>1){
           sapply(lapply(trend.reg.sel,"[[",i),"[[",2)->slope.tot
@@ -400,12 +374,16 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
 
           }
           data.frame(t(pair),slope.diff)->sma.resPP[[i]]
-          colnames(sma.resPP[[i]])<-colnames(sma.resA[[i]])[1:3]
+          colnames(sma.resPP[[i]])<-c(colnames(sma.resA[[i]])[1:2],"estimate")
 
         }else{
           sma.resPP<-NULL
+          sma.resPPemm<-NULL
         }
       }
+
+
+      names(PPmeans.multi)<-colnames(PP.sma)[1:(dim(y)[2]+1)]
 
 
       lapply(sma.resA,function(x) subset(x,x$group_2=="others"))->n.ot
@@ -415,18 +393,16 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
       lapply(n.ot,function(x) x[match(node,grn),])->n.ot
       rbi.slopeA.sel<-list()
       for(i in 1:length(node)){
-        do.call(rbind,lapply(n.ot,function(x) x[i,3:4]))->rbi.slopeA.sel[[i]]
+        do.call(rbind,lapply(n.ot,function(x) x[i,3:6]))->rbi.slopeA.sel[[i]]
         rownames(rbi.slopeA.sel[[i]])<-rownames(rbi.slopeA)
       }
 
-
-
     }else {#### Node Comparison Uni ####
-
-      colnames(PP.sma)[1] <- "y"
-      suppressMessages(sma.resA<-as.data.frame(pairs(emmeans(lm(abs(rate)~age*group,data=rbi.sma),specs="group"))))
-      data.frame(do.call(rbind,strsplit(as.character(sma.resA[,1])," - ")),sma.resA[,-c(1,3,4,5)])->sma.resA
-      colnames(sma.resA)[1:2]<-c("group_1","group_2")
+      suppressMessages(mmeans<-as.data.frame(pairs(emmeans(lm(abs(rate)~age*group,data=rbi.sma),specs="group"))))
+      mtrends<-as.data.frame(pairs(emtrends(lm(abs(rate)~age*group,data=rbi.sma),specs="group",var="age")))
+      mtrends[match(mmeans[,1],mtrends[,1]),]->mtrends
+      data.frame(do.call(rbind,strsplit(as.character(mmeans[,1])," - ")),mmeans[,-c(1,3,4,5)],mtrends[,c(2,6)])->sma.resA
+      colnames(sma.resA)<-c("group_1","group_2","emm.difference","p.emm","slope.difference","p.slope")
 
       subset(sma.resA,sma.resA$group_2=="others")->n.ot
       subset(sma.resA,sma.resA$group_2!="others")->sma.resA
@@ -436,9 +412,21 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
       rownames(n.ot)<-NULL
       rbi.slopeA.sel<-list()
       for(i in 1:nrow(n.ot)){
-        n.ot[i,c(3,4)]->rbi.slopeA.sel[[i]]
+        n.ot[i,c(3,4,5,6)]->rbi.slopeA.sel[[i]]
         rownames(rbi.slopeA.sel[[i]])<-NULL
       }
+
+      colnames(PP.sma)[1] <- "y"
+      suppressMessages(PPmeans<-as.data.frame(pairs(emmeans(lm(range01(y)~age*group,data=PP.sma),specs="group"))))
+      data.frame(do.call(rbind,strsplit(as.character(PPmeans[,1])," - ")),PPmeans[,-c(1,3,4,5)])->sma.resPPemm
+      colnames(sma.resPPemm)<-c("group_1","group_2","mean","p.mean")
+
+      subset(sma.resPPemm,sma.resPPemm$group_2=="others")->PPmeans
+      subset(sma.resPPemm,sma.resPPemm$group_2!="others")->sma.resPPemm
+      sapply(strsplit(as.character(PPmeans[,1]),"g"),"[[",2)->PPnam
+      PPmeans[,c(3,4)]->PPmeans
+      rownames(PPmeans)<-PPnam
+      PPmeans[match(node,rownames(PPmeans)),]->PPmeans
 
 
       if(dim(sma.resA)[1]>0){
@@ -446,17 +434,18 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
         sapply(trend.reg.sel,"[[",2)->slope.tot
         names(slope.tot)<-paste("g",names(trend.reg.sel),sep="")
 
-        combn(sort(unique(PP.sma[,3])),2)->pair
+        combn(sort(unique(PP.sma[-which(PP.sma$group == "others"),3])),2)->pair
         slope.diff<-array()
         for(jj in 1:dim(pair)[2]){
           slope.tot[match(pair[1,jj],names(slope.tot))]-slope.tot[match(pair[2,jj],names(slope.tot))]->slope.diff[jj]
 
         }
         data.frame(t(pair),slope.diff)->sma.resPP
-        colnames(sma.resPP)<-colnames(sma.resA)[1:3]
+        colnames(sma.resPP)<-c(colnames(sma.resA)[1:2],"estimate")
 
       }else{
         sma.resPP<-NULL
+        sma.resPPemm<-NULL
         sma.resA<-NULL
       }
     }
@@ -464,7 +453,7 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
     if (class(sma.resA) == "list") {
       if(is.null(sma.resPP)==FALSE){
         names(sma.resA) <- colnames(rbi.sma)[1:(dim(rbi.sma)[2] - 2)]
-        names(sma.resPP) <- names(trend.reg)
+        names(sma.resPP) <- names(sma.resPPemm) <- names(trend.reg)
       }
     }
   }
@@ -492,6 +481,7 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
   res <- foreach(i = 1:nsim, .packages = c("car","outliers","nlme", "ape",
                                            "geiger", "phytools", "penalized", "doParallel", "lmtest"
   )) %dopar% {
+
     gc()
     if (length(y) > Ntip(t)) {
       vec <- seq(1:nsim)
@@ -704,6 +694,7 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
 
     PPtot <- PP
 
+    #### Nodes Random ####
     if (class(node) != "NULL") {
       PP.sma <- PP
       PP.sma$group <- rep("NA", dim(PP.sma)[1])
@@ -841,6 +832,7 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
       if(pp<(nsim*.5) & length(which(ee>e1))<=(nsim*.05) & rbi.slopeA[1]<0)
         nsim-pp->pp
     }
+
     pp/nsim->p.rbi.slopeA
 
     (diff(range(y))/diff(range(y[which(diag(vcv(t))<diff(range(diag(vcv(t)))))])))*
@@ -861,18 +853,24 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
         p.smaPP<-list()
         for (k in 1:(dim(y)[2] + 1)) {
           p.smaR<-array()
+          mean.diff<-array()
           for(i in 1:nrow(sma.resPP[[k]])){
             rank(c(sma.resPP[[k]][i,3],sapply(lapply(lapply(res,"[[",10),"[[",k),function(x) x[i,3])[1:(nsim-1)]))[1]/nsim->p.smaR[i]
+            if(as.character(interaction(sma.resPP[[k]][i,c(1,2)]))==as.character(interaction(sma.resPPemm[[k]][i,c(1,2)]))) sma.resPPemm[[k]][i,3]->mean.diff[i] else
+              -1*sma.resPPemm[[k]][i,3]->mean.diff[i]
           }
-          data.frame(sma.resPP[[k]],p.value=1-p.smaR)->p.smaPP[[k]]
+          data.frame(slope=sma.resPP[[k]],p.slope=1-p.smaR,emm.difference=mean.diff,p.emm=sma.resPPemm[[k]][,4])->p.smaPP[[k]]
         }
         names(p.smaPP)<-names(trend.reg)
       }else{
         p.smaR<-array()
+        mean.diff<-array()
         for(i in 1:nrow(sma.resPP)){
           rank(c(sma.resPP[i,3],sapply(lapply(res,"[[",10),function(x) x[i,3])[1:(nsim-1)]))[1]/nsim->p.smaR[i]
+          if(as.character(interaction(sma.resPP[i,c(1,2)]))==as.character(interaction(sma.resPPemm[i,c(1,2)]))) sma.resPPemm[i,3]->mean.diff[i] else
+            -1*sma.resPPemm[i,3]->mean.diff[i]
         }
-        p.smaPP <-data.frame(sma.resPP,p.value=1-p.smaR)
+        p.smaPP <-data.frame(slope=sma.resPP,p.slope=1-p.smaR,emm.difference=mean.diff,p.emm=sma.resPPemm[,4])
       }
     }else{
       p.smaPP<-NULL
@@ -1040,8 +1038,11 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
                                                                                                    1]))
 
           p.sel <- (nsim-length(which(slopeR<trend.reg.sel[[u]][[i]][2,1])))/nsim
-          p.sele[[i]] <- c(estimate = trend.reg.sel[[u]][[i]][2,
-                                                              1],p.value = p.sel)
+
+          p.sele[[i]] <- c(slope = trend.reg.sel[[u]][[i]][2,1],
+                           p.slope = p.sel,emm.difference=PPmeans.multi[[i]][match(names(trend.reg.sel)[u],rownames(PPmeans.multi[[i]])),1],
+                           p.emm=PPmeans.multi[[i]][match(names(trend.reg.sel)[u],rownames(PPmeans.multi[[i]])),2])
+
         }
         names(p.sele) <- names(trend.reg.sel[[u]])
         p.selt <- do.call(rbind, p.sele)
@@ -1051,7 +1052,9 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
                                               9), "[[", u), function(x) x[2,1]))
 
         p.sel <- (nsim-length(which(slopeR<trend.reg.sel[[u]][2,1])))/nsim
-        p.trend.sel[[u]] <- c(estimate = trend.reg.sel[[u]][2,1],p.value = p.sel)
+        p.trend.sel[[u]] <- c(slope = trend.reg.sel[[u]][2,1],p.slope = p.sel,
+                              emm.difference=unname(PPmeans[match(names(trend.reg.sel)[u],rownames(PPmeans)),1]),
+                              p.emm=unname(PPmeans[match(names(trend.reg.sel)[u],rownames(PPmeans)),2]))
       }
     }
     names(p.trend.sel) <- names(trend.reg.sel)
@@ -1206,12 +1209,20 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
         if (p.rbi.slopeA[i, 3] >= 0.95) print(paste("There is a trend for decrease in absolute evolutionary rates for variable y",i, sep = ""))
       }
     }
+    for(i in 1:nrow(p.trend)){
+      if(p.trend[i,3]>=0.5) 1-p.trend[i,3]->p.trend[i,3]
+      if(p.rbi.slopeA[i,3]>=0.5) 1-p.rbi.slopeA[i,3]->p.rbi.slopeA[i,3]
+    }
   }else {
     if (p.trend[3] <= 0.05) print("There is a trend for increase in phenotype")
     if (p.trend[3] >= 0.95) print("There is a trend for decrease in phenotype")
     if (p.rbi.slopeA[3] <= 0.05) print("There is a trend for increase in absolute evolutionary rates")
     if (p.rbi.slopeA[3] >= 0.95) print("There is a trend for decrease in absolute evolutionary rates")
+
+    if(p.trend[3] >= 0.5) 1-p.trend[3]->p.trend[3]
+    if(p.rbi.slopeA[3] >= 0.5) 1-p.rbi.slopeA[3]->p.rbi.slopeA[3]
   }
+
 
   if (class(node) != "NULL") {
     if (length(y) > Ntip(t)) {
@@ -1227,8 +1238,7 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
           if(p.trend.sel[[i]][k,2]>=.95)
             print(paste("There is a trend for decrease in phenotype for variable",paste("y",vv,sep=""),"through node",names(p.rbi.slopeA.sel)[i]))
 
-
-
+          if(p.trend.sel[[i]][k,2]>=.5) 1-p.trend.sel[[i]][k,2]->p.trend.sel[[i]][k,2]
         }
       }
 
@@ -1254,6 +1264,9 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
                           paste("y",vv,sep="")))
 
             }
+
+            if (p.smaPP[[j]][i, 4] >= 0.5) 1-p.smaPP[[j]][i, 4]->p.smaPP[[j]][i, 4]
+
             if (p.smaA[[j]][i, 4] <= 0.05){
               if(p.smaA[[j]][i, 3] >0){
                 print(paste("Absolute evolutionary rates regression through node",
@@ -1284,6 +1297,7 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
           print(paste("There is a trend for increase in phenotype through node",names(p.rbi.slopeA.sel)[i]))
         if(p.trend.sel[[i]][2]>=.95)
           print(paste("There is a trend for decrease in phenotype through node",names(p.rbi.slopeA.sel)[i]))
+        if(p.trend.sel[[i]][2]>=.5) 1-p.trend.sel[[i]][2]->p.trend.sel[[i]][2]
       }
 
       if(is.null(p.smaPP)==FALSE){
@@ -1304,6 +1318,7 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
                                                              2]), "g"), "[[", 2)))
 
           }
+          if (p.smaPP[i, 4] >= 0.5) 1-p.smaPP[i, 4]->p.smaPP[i, 4]
         }
 
         if (p.smaA[i, 4] <= 0.05){
@@ -1350,6 +1365,7 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
                       "node.phenotypic.regression", "node.rate.regression",
                       "group.comparison")
     }
+
   }else {
     if (ConfInt == TRUE) {
       CInts <- list(CIphenotype, CIabsolute)
