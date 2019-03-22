@@ -4,14 +4,14 @@
 \alias{plotRates}
 \title{Plot RRphylo rates at a specified node}
 \usage{
-plotRates(RR,node,export.tiff = c(TRUE,FALSE),foldername)
+plotRates(RR,node,export.tiff =TRUE,foldername)
 }
 \arguments{
 \item{RR}{an object produced by \code{\link{RRphylo}}.}
 
 \item{node}{the node subtending the clade of interest.}
 
-\item{export.tiff}{if \code{TRUE} the function save a "rate_bars.tiff" file inside the working directory.}
+\item{export.tiff}{if \code{TRUE} the function save a "rate_bars.tiff" file inside the working directory. It is \code{TRUE} by default.}
 
 \item{foldername}{the path of the folder where plots are to be found.}
 }
