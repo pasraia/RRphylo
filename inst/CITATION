@@ -1,0 +1,46 @@
+citHeader("To cite RRphylo, search.shift, search.trend and auxilliary functions in publications use:")
+citEntry(entry        = "Article",
+         header       = "RRphylo, search.shift, and auxilliary functions",
+         title        = "A new method for testing evolutionary rate variation and shifts in phenotypic evolution.",
+         author       = personList(as.person("Silvia Castiglione"),
+                                   as.person("Gianmarco Tesone"),
+                                   as.person("Martina Piccolo"),
+                                   as.person("Marina Melchionna"),
+                                   as.person("Alessandro Mondanaro"),
+                                   as.person("Carmela Serio"),
+                                   as.person("Mirko Di Febbraro"),
+                                   as.person("Pasquale Raia")),
+         journal      = "Methods in Ecology and Evolution",
+         year         = "2018",
+         volume       = "9",
+         pages        = "974-983",
+         url          = "https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.12954",
+         textVersion  = paste("Castiglione, S., Tesone, G., Piccolo, M., Melchionna, M., Mondanaro, A., Serio, C., Di                            Febbraro, M., & Raia, P.(2018)",
+                        "A new method for testing evolutionary rate variation and shifts in phenotypic evolution.",
+                        "Methods in Ecology and Evolution, 9: 974-983.",
+                        "doi:10.1111/2041-210X.12954")
+)
+
+
+
+citEntry(entry = "Article",
+         title        = "Simultaneous detection of macroevolutionary patterns in phenotypic means and rate of change                          with and within phylogenetic trees including extinct species.",
+         header       = "search.trend",
+         author       = personList(as.person("Silvia Castiglione"),
+                                   as.person("Carmela Serio"),
+                                   as.person("Alessandro Mondanaro"),
+                                   as.person("Mirko Di Febbraro"),
+                                   as.person("Antponio Profico"),
+                                   as.person("Giorgia Girardi"),
+                                   as.person("Pasquale Raia")),
+         journal      = "PLoS ONE",
+         year         = "2019",
+         volume       = "14",
+         pages        = "e0210101",
+         url          = "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0210101",
+         textVersion  = paste("Castiglione, S., Serio, C., Mondanaro, A., Di Febbraro, M., Profico, A., Girardi, G.,                         & Raia, P.(2019)",
+                        "Simultaneous detection of macroevolutionary patterns in phenotypic means and rate of change                          with and within phylogenetic trees including extinct species.",
+                        "PLoS ONE, 14: e0210101.",
+                        "doi.org/10.1371/journal.pone.0210101")
+
+)
