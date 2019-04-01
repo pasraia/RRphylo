@@ -127,7 +127,7 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL,aces=NULL, clus=0.5)
       if(class(aceV)=="data.frame") as.matrix(aceV)->aceV
 
       aceV->P
-      rownames(aceV)->N
+      as.numeric(rownames(aceV))->N
       lapply(N,function(x) tips(t,x))->tar.tips
       names(tar.tips)<-N
 
@@ -159,7 +159,7 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL,aces=NULL, clus=0.5)
       }
 
       aceV->P
-      names(aceV)->N
+      as.numeric(names(aceV))->N
       lapply(N, function(x) tips(t,x))->tar.tips
       names(tar.tips)<-N
 
