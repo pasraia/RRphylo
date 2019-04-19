@@ -1,16 +1,13 @@
 #' @title Locating shifts in phenotypic evolutionary rates
 #'
-#' @usage search.shift(RR, status.type = c("clade", "sparse"),
-#' auto.recognize = c("yes","no"), node = NULL, test.single = c("yes", "no"),
+#' @usage search.shift(RR, status.type = c("clade", "sparse"),node = NULL,
 #' state = NULL, cov = NULL, nrep = 1000, f = NULL,foldername)
 #' @description The function \code{search.shift} (\cite{Castiglione et al. 2018}) tests whether individual clades or isolated tips dispersed through the phylogeny evolve at different \code{\link{RRphylo}} rates as compared to the rest of the tree. Instances of rate shifts may be automatically found.
 #' @param RR an object fitted by the function \code{\link{RRphylo}}.
 #' @param status.type whether the \code{"clade"} or \code{"sparse"} condition must be tested.
-#' @param auto.recognize indicates whether individual clades must be tested for rate shift without any a priori indication of particular nodes to be tested.
-#' @param node under the \code{"clade"} condition, the node of the tree to be tested for the rate shift. When multiple nodes are tested, they need to be written as in the example below.
-#' @param test.single whether multiple nodes indicated under the \code{"clade"} condition should be tested individually (\code{"yes"}) or not (\code{"no"}).
+#' @param node under the \code{"clade"} condition, the node (clade) to be tested for the rate shift. When multiple nodes are tested, they need to be written as in the example below. If \code{node} is left unspecified, the function performs under the 'auto-recognize' feature, meaning it will automatically test individual clades for deviation of their rates from the background rate of the rest of the tree (see details).
 #' @param state the state of the tips specified under the \code{"sparse"} condition.
-#' @param cov the covariate to be indicated if its effect on rate values must be accounted for. Contrary to \code{RRphylo}, \code{'cov'} needs to be as long as the number of tips of the tree.
+#' @param cov the covariate to be indicated if its effect on rate values must be accounted for. Contrary to \code{RRphylo}, \code{cov} needs to be as long as the number of tips of the tree.
 #' @param nrep the number of simulations to be performed for the rate shift test, by default \code{nrep} is set at 1000.
 #' @param f the size of the smallest clade to be tested. By default, nodes subtending to one tenth of the tree tips are tested.
 #' @param foldername the path of the folder where plots are to be found.
@@ -19,20 +16,16 @@
 #' @importFrom scales alpha
 #' @importFrom utils globalVariables
 #' @export
-#' @details The function \code{search.shift} takes the object produced by \code{\link{RRphylo}}. Two different conditions of rate change can be investigated. Under the \code{"clade"} condition the vector of node or nodes subjected to the shift must be provided. Alternatively, under the \code{"sparse"} case the (named) vector of states (indicating which tips are or are not evolving under the rate shift according to the tested hypothesis) must be indicated. In the \code{"clade"} case, the function may perform an \code{'auto.recognize'} feature. Under such specification, the function automatically tests individual clades (from clades as large as one half of the tree down to a specified clade size) for deviation of their rates from the background rate of the rest of the tree, which is identical to the \code{"clade"} case. An inclusive clade with significantly high rates is likely to include descending clades with similarly significantly high rates. Hence, with \code{'auto.recognize'} the \code{search.shift} function is written as to scan clades individually and to select only the node subtending to the highest difference in mean absolute rates as compared to the rest of the tree. A plot of the tree highlighting nodes subtending to significantly different rates is automatically produced. Caution must be put into interpreting the \code{'auto.recognize'} results. For instance, a clade with small rates and another with large rates could be individuated even under BM. This does not mean these clades are actual instances for rate shifts. Clades must be tested on their own without the \code{'auto.recognize'} feature, which serves as guidance to the investigator, when no strong a priori hypothesis to be tested is advanced. The \code{'auto.recognize'} feature is not meant to provide a test for a specific hypothesis. It serves as an optional guidance to understand whether and which clades show significantly large or small rates as compared to the rest of the tree. Individual clades are tested at once, meaning that significant instances of rate variation elsewhere on the tree are ignored. Conversely, running the \code{"clade"} condition without including the \code{'auto.recognize'} feature, multiple clades presumed to evolve under the same shift are tested together, meaning that their rates are collectively contrasted to the rest of the tree, albeit they can additionally be compared to each other upon request. Under both the \code{"clade"} and \code{"sparse"} conditions, multiple clades could be specified at once, and optionally tested individually (for deviation of rates) against the rates of the rest of the tree and against each other. The histogram of random differences of mean rates distribution along with the position of the real difference of means is automatically generated by \code{search.shift}. Regardless of which condition is specified, the function output produces the real difference of means, and their significance value.
+#' @details The function \code{search.shift} takes the object produced by \code{\link{RRphylo}}. Two different conditions of rate change can be investigated. Under the \code{"clade"} condition the vector of node or nodes subjected to the shift must be provided. Alternatively, under the \code{"sparse"} case the (named) vector of states (indicating which tips are or are not evolving under the rate shift according to the tested hypothesis) must be indicated. In the \code{"clade"} case, the function may perform an 'auto-recognize' feature. Under such specification, the function automatically tests individual clades (from clades as large as one half of the tree down to a specified clade size) for deviation of their rates from the background rate of the rest of the tree, which is identical to the \code{"clade"} case. An inclusive clade with significantly high rates is likely to include descending clades with similarly significantly high rates. Hence, with 'auto-recognize' the \code{search.shift} function is written as to scan clades individually and to select only the node subtending to the highest difference in mean absolute rates as compared to the rest of the tree. A plot of the tree highlighting nodes subtending to significantly different rates is automatically produced. Caution must be put into interpreting the 'auto-recognize' results. For instance, a clade with small rates and another with large rates could be individuated even under BM. This does not mean these clades are actual instances for rate shifts. Clades must be tested on their own without the 'auto-recognize' feature, which serves as guidance to the investigator, when no strong a priori hypothesis to be tested is advanced. The 'auto-recognize' feature is not meant to provide a test for a specific hypothesis. It serves as an optional guidance to understand whether and which clades show significantly large or small rates as compared to the rest of the tree. Individual clades are tested at once, meaning that significant instances of rate variation elsewhere on the tree are ignored. Conversely, running the \code{"clade"} condition without including the 'auto-recognize' feature, multiple clades presumed to evolve under the same shift are tested together, meaning that their rates are collectively contrasted to the rest of the tree, albeit they can additionally be compared to each other upon request. Under both the \code{"clade"} and \code{"sparse"} conditions, multiple clades could be specified at once, and optionally tested individually (for deviation of rates) against the rates of the rest of the tree and against each other. The histogram of random differences of mean rates distribution along with the position of the real difference of means is automatically generated by \code{search.shift}. Regardless of which condition is specified, the function output produces the real difference of means, and their significance value.
 #' @return Under all circumstances, \code{search.shift} provides a vector of \code{$rates}. If \code{'cov'} values are provided, rates are regressed against the covariate and the residuals of such regression form the vector \strong{\code{$rates}}. Otherwise, \strong{\code{$rates}} are the same rates as with the \code{RR} argument.
-#' @return Under \code{'auto.recognize'}, a list including:
-#' @return \strong{$`all different clades`} the probability that the nodes subtending to the largest and smallest average rates (in absolute values) do represent a real shift. Probabilities are contrasted to simulations shuffling the rates across the tree branches, a number of times specified by the argument \code{nrep}. Note that the p-values refer to the number of times the real average rates are larger (or smaller) than the rates averaged over the rest of the tree, divided by the number of simulations. Hence, large rates are significantly larger than the rest of the tree (at alpha = 0.05), when the probability is > 0.975; and small rates are significantly small for p < 0.025.
-#' @return \strong{$`all clades rate difference`} the nodes subtending to the largest and smallest rates (in absolute values) in the tree, and the average rate differences, computed as the mean rate over all branches subtended by the node, minus the average rate for the rest of the tree.
-#' @return \strong{$`shift test single clades`} the same as with 'all different clades' but restricted to the largest/smallest rate values along a single clade (i.e. nested clades with smaller rate shifts are excluded). Large rates are significantly larger than the rest of the tree (at alpha = 0.05), when the probability is > 0.975; and small rates are significantly small for p < 0.025.
-#' @return \strong{$`average rate difference`} the average rate differences for the branches descending by the nodes indicated in 'shift test single clades'.
-#' @return \code{'clade'} condition, without \code{'auto.recognize'}:
-#' @return   \strong{$`shift test`} this specifies the significance of the rate shift test, by considering all the specified nodes as a evolving under a single rate. As with the \code{'auto.recognize'} feature, large rates are significantly larger than the rest of the tree (at alpha = 0.05), when the probability is > 0.975; and small rates are significantly small for p < 0.025.
-#' @return \strong{$`shift test single clades`} if \code{test.single = "yes"}, this gives the significance for individual clades, tested separately. As with the \code{'auto.recognize'} feature, large rates are significantly larger than the rest of the tree (at alpha = 0.05), when the probability is > 0.975; and small rates are significantly small for p < 0.025.
-#' @return \strong{$`average rate difference`} this is the average rate difference, computed as the mean rate over all branches subtended by the node, minus the average rate for the rest of the tree. Nodes along a single path are not permitted. In this case, only the largest/smallest rate values are selected large rates are significantly larger than the rest of the tree (at alpha = 0.05), when the probability is > 0.975; and small rates are significantly small for p < 0.025.
-#' @return Under the \code{'sparse'} condition:
-#' @return   \strong{$`rate difference`} this is the average rate difference, computed as the mean rate over all leaves (terminal nodes) evolving under a given state, minus the average rate for each other state.
-#' @return \strong{$`p rate diff`} the probability that the shift under the sparse condition is real. Large rates are significantly larger than the rest of the tree (at alpha = 0.05), when the probability is > 0.975; and small rates are significantly small for p < 0.025. States are compare pairwise.
+#' @return Under \code{"clade"} case without specifying nodes (i.e. 'auto-recognize') a list including:
+#' @return \strong{$all.clades} for each detected node, the data-frame includes the average rate difference (computed as the mean rate over all branches subtended by the node minus the average rate for the rest of the tree) and the probability that it do represent a real shift. Probabilities are contrasted to simulations shuffling the rates across the tree branches for a number of replicates specified by the argument \code{nrep}. Note that the p-values refer to the number of times the real average rates are larger (or smaller) than the rates averaged over the rest of the tree, divided by the number of simulations. Hence, large rates are significantly larger than the rest of the tree (at alpha = 0.05), when the probability is > 0.975; and small rates are significantly small for p < 0.025.
+#' @return \strong{$single.clades} the same as with 'all.clades' but restricted to the largest/smallest rate values along a single clade (i.e. nested clades with smaller rate shifts are excluded). Large rates are significantly larger than the rest of the tree (at alpha = 0.05), when the probability is > 0.975; and small rates are significantly small for p < 0.025.
+#' @return Under \code{"clade"} condition by specifying the \code{node} argument:
+#' @return \strong{$all.clades.together} if more than one node is tested, this specifies the average rate difference and the significance of the rate shift, by considering all the specified nodes as evolving under a single rate. As with the 'auto-recognize' feature, large rates are significantly larger than the rest of the tree (at alpha = 0.05), when the probability is > 0.975; and small rates are significantly small for p < 0.025.
+#' @return \strong{$single.clades} this gives the significance for individual clades, tested separately. As previously, large rates are significantly larger than the rest of the tree (at alpha = 0.05), when the probability is > 0.975; and small rates are significantly small for p < 0.025.
+#' @return Under the \code{"sparse"} condition:
+#' @return   \strong{$state.results} for each state, the data-frame includes the average rate difference (computed as the mean rate over all leaves evolving under a given state, minus the average rate for each other state or the rest of the tree) and the probability that the shift is real. Large rates are significantly larger (at alpha = 0.05), when the probability is > 0.975; and small rates are significantly small for p < 0.025. States are compared pairwise.
 #' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
 #' @references
 #' Castiglione, S., Tesone, G., Piccolo, M., Melchionna, M., Mondanaro, A., Serio, C., Di Febbraro, M., & Raia, P.(2018). A new method for testing evolutionary rate variation and shifts in phenotypic evolution. \emph{Methods in Ecology and Evolution}, 9: 974-983.doi:10.1111/2041-210X.12954
@@ -48,44 +41,43 @@
 #' # Case 1. Without accounting for the effect of a covariate
 #'
 #'  # Case 1.1 "clade" condition
-#'   # with auto.recognize
-#'     search.shift(dinoRates,auto.recognize="yes",test.single= "no",
-#'     status.type= "clade",foldername=tempdir())
+#'   # with auto-recognize
+#'     search.shift(dinoRates, status.type= "clade",foldername=tempdir())
 #'   # testing two hypothetical clades
-#'     search.shift(dinoRates,auto.recognize= "no",test.single= "yes",
-#'     status.type= "clade", node=c(697,746),foldername=tempdir())
+#'     search.shift(dinoRates, status.type= "clade", node=c(697,746),
+#'     foldername=tempdir())
 #'
 #'  # Case 1.2 "sparse" condition
 #'   # testing the sparse condition.
-#'     search.shift(dinoRates,auto.recognize= "no",test.single= "no",
-#'     status.type= "sparse", state=statedino,foldername=tempdir())
+#'     search.shift(dinoRates, status.type= "sparse", state=statedino,
+#'     foldername=tempdir())
 #'
 #'
 #' # Case 2. Accounting for the effect of a covariate
 #'
 #'  # Case 2.1 "clade" condition
-#'     search.shift(dinoRates,auto.recognize= "yes",test.single= "no",
-#'     status.type= "clade", cov=massdino,foldername=tempdir())
+#'     search.shift(dinoRates, status.type= "clade", cov=massdino,
+#'     foldername=tempdir())
 #'
 #'  # Case 2.2 "sparse" condition
-#'     search.shift(dinoRates,status.type="sparse",state=statedino,cov=massdino,foldername=tempdir())
+#'     search.shift(dinoRates,status.type="sparse",state=statedino,
+#'     cov=massdino,foldername=tempdir())
 #'     }
+
 
 
 search.shift<-function(RR,
                        status.type=c("clade","sparse"),
-                       auto.recognize=c("yes","no"),
                        node=NULL,
-                       test.single=c("yes","no"),
                        state=NULL,
                        cov=NULL,
                        nrep=1000,
                        f=NULL,
                        foldername)
 {
-  #require(phytools)
-  #require(geiger)
-  #require(scales)
+  # require(phytools)
+  # require(geiger)
+  # require(scales)
   tree <- RR$tree
   rates <- RR$rates
   betas<-RR$multiple.rates
@@ -150,10 +142,9 @@ search.shift<-function(RR,
 
 
 
-  match.arg(status.type)
+
   if (status.type == "clade") {
-    match.arg(auto.recognize)
-    if (auto.recognize == "yes") {
+    if (is.null(node)) {
       ST <- subtrees(tree)
       len <- array()
       for (i in 1:length(ST)) {
@@ -273,7 +264,7 @@ search.shift<-function(RR,
       for (w in 1:length(p.single)) {
         xy[[w]] <- unlist(sapply(get("last_plot.phylo",
                                      envir =ape::.PlotPhyloEnv), function(x) x[as.numeric(names(p.single)[w])]))[c(21,
-                                                                                                              22)]
+                                                                                                                   22)]
       }
 
 
@@ -286,44 +277,55 @@ search.shift<-function(RR,
                                                              1), text = names(p.single), frame = "none", bg = "white",
                  col = "purple")
       dev.off()
-      p.shift = "AR mode, p.shift not implemented"
-      return(list(`shift test` = p.shift, `all different clades` = p.init,
-                  `all clades rate difference` = l2N.init, `shift test single clades` = p.single,
-                  `average rate difference` = leaf2N.diff,`rates`=rates))
+
+      res<-list(data.frame("rate difference"=l2N.init[match(names(p.init),names(l2N.init))],"p-value"=p.init),
+                data.frame("rate difference"=leaf2N.diff[match(names(p.single),names(leaf2N.diff))],"p-value"=p.single),
+                rates)
+      names(res)<-c("all.clades","single.clades","rates")
+      return(res)
     } else {
-      match.arg(test.single)
-      if (test.single == "yes") {
-        node = node
-        Cbranch <- list()
-        for (i in 1:length(node)) {
-          Cbranch[[i]] <- getDescendants(tree, node[i])
-        }
-        Cbranch <- unlist(Cbranch)
-        Cbranch <- Cbranch[-which(Cbranch < Ntip(tree))]
-        Ctips <- list()
-        for (i in 1:length(node)) {
-          Ctips[[i]] <- tips(tree, node[i])
-        }
-        Ctips <- unlist(Ctips)
-        Ctips <- unique(Ctips)
-        Cbranch <- unique(Cbranch)
-        Cleaf <- c(Cbranch, Ctips)
-        leaf.rates <- rates[match(Cleaf, rownames(rates)),
-                            ]
-        leaf.rates <- na.omit(leaf.rates)
-        NCrates <- rates[-match(names(leaf.rates), rownames(rates))]
-        leafR <- mean(abs(leaf.rates))
-        NCR <- mean(abs(NCrates))
-        leaf2NC.diff <- leafR - NCR
-        NC <- length(rates) - length(leaf.rates)
-        C <- length(leaf.rates)
-        ran.diffR <- array()
-        for (i in 1:nrep) {
-          ran.diffR[i] <- mean(sample(abs(rates), C)) - mean(sample(abs(rates),
-                                                                    NC))
-        }
-        p.shift <- rank(c(leaf2NC.diff, ran.diffR[1:(nrep -
-                                                       1)]))[1]/nrep
+      node = node
+      Cbranch <- list()
+      for (i in 1:length(node)) {
+        Cbranch[[i]] <- getDescendants(tree, node[i])
+      }
+      Cbranch <- unlist(Cbranch)
+      Cbranch <- Cbranch[-which(Cbranch < Ntip(tree))]
+      Ctips <- list()
+      for (i in 1:length(node)) {
+        Ctips[[i]] <- tips(tree, node[i])
+      }
+      Ctips <- unlist(Ctips)
+      Ctips <- unique(Ctips)
+      Cbranch <- unique(Cbranch)
+      Cleaf <- c(Cbranch, Ctips)
+      leaf.rates <- rates[match(Cleaf, rownames(rates)),
+                          ]
+      leaf.rates <- na.omit(leaf.rates)
+      NCrates <- rates[-match(names(leaf.rates), rownames(rates))]
+      leafR <- mean(abs(leaf.rates))
+      NCR <- mean(abs(NCrates))
+      leaf2NC.diff <- leafR - NCR
+      NC <- length(rates) - length(leaf.rates)
+      C <- length(leaf.rates)
+      ran.diffR <- array()
+      for (i in 1:nrep) {
+        ran.diffR[i] <- mean(sample(abs(rates), C)) - mean(sample(abs(rates),
+                                                                  NC))
+      }
+      p.shift <- rank(c(leaf2NC.diff, ran.diffR[1:(nrep -
+                                                     1)]))[1]/nrep
+      if(length(node)==1){
+        par(mar = c(1, 1, 1, 1))
+        hist(ran.diffR, xlab = "random differences",
+             main = "selected clade", xlim = c(2.5 * range(ran.diffR)[1],
+                                               2.5 * range(ran.diffR)[2]))
+        abline(v = leaf2NC.diff, col = "green", lwd = 3)
+        names(leaf2NC.diff)<-names(p.shift)<-node
+        res<-list(data.frame("rate difference"=leaf2NC.diff,"p-value"=p.shift),
+                  rates)
+        names(res)<-c("single.clade","rates")
+      }else{
         par(mar = c(1, 1, 1, 1))
         par(mfrow = c(length(node) + 1, 1))
         hist(ran.diffR, xlab = "random differences",
@@ -379,48 +381,15 @@ search.shift<-function(RR,
                           range(ran.diff[[m]])[2]))
           abline(v = leaf2N.diff[m], col = "blue", lwd = 3)
         }
-        return(list(`shift test` = p.shift,
-                    `shift test single clades` = p.single,
-                    `average rate difference` = leaf2N.diff,`rates`=rates))
-      } else {
-        node = node
-        Cbranch <- list()
-        for (i in 1:length(node)) {
-          Cbranch[[i]] <- getDescendants(tree, node[i])
-        }
-        Cbranch <- unlist(Cbranch)
-        Cbranch <- Cbranch[-which(Cbranch < Ntip(tree))]
-        Ctips <- list()
-        for (i in 1:length(node)) {
-          Ctips[[i]] <- tips(tree, node[i])
-        }
-        Ctips <- unlist(Ctips)
-        Ctips <- unique(Ctips)
-        Cbranch <- unique(Cbranch)
-        Cleaf <- c(Cbranch, Ctips)
-        leaf.rates <- rates[match(Cleaf, rownames(rates)),
-                            ]
-        leaf.rates <- na.omit(leaf.rates)
-        NCrates <- rates[-match(names(leaf.rates), rownames(rates))]
-        leafR <- mean(abs(leaf.rates))
-        NCR <- mean(abs(NCrates))
-        leaf2NC.diff <- leafR - NCR
-        NC <- length(rates) - length(leaf.rates)
-        C <- length(leaf.rates)
-        ran.diffR <- array()
-        for (i in 1:nrep) {
-          ran.diffR[i] <- mean(sample(abs(rates), C)) - mean(sample(abs(rates),
-                                                                    NC))
-        }
-        p.shift <- rank(c(leaf2NC.diff, ran.diffR[1:(nrep -
-                                                       1)]))[1]/nrep
-        hist(ran.diffR, xlab = "random differences",
-             main = "all clades", xlim = c(2.5 * range(ran.diffR)[1],
-                                           2.5 * range(ran.diffR)[2]))
-        abline(v = leaf2NC.diff, col = "green", lwd = 3)
-        return(list(`shift test` = p.shift,
-                    `average rate difference` = leaf2NC.diff,`rates`=rates))
+        res<-list(data.frame("rate.difference"=leaf2NC.diff,"p.value"=p.shift),
+                  data.frame("rate difference"=leaf2N.diff[match(names(p.single),names(leaf2N.diff))],"p-value"=p.single),
+                  rates)
+
+        names(res)<-c("all.clades.together","single.clades","rates")
       }
+
+
+      return(res)
     }
   } else {
     frame <- data.frame(status = state, rate = rates[match(names(state),
@@ -470,7 +439,12 @@ search.shift<-function(RR,
       for (i in 1:length(status.diff)) p.status.diff[i] <- rank(c(status.diff[i],
                                                                   status.diffS[1:(nrep - 1), i]))[1]/nrep
       names(p.status.diff) <- names(status.diff)
-      return(list(`rate difference` = status.diff, `p rate diff` = p.status.diff,`rates`=rates))
+      unlist(p.status.diff)->p.status.diff
+      unlist(status.diff)->status.diff
+
+      res<-list(data.frame("rate difference"=status.diff[match(names(p.status.diff),names(status.diff))],p.status.diff),rates)
+      names(res)<-c("state.results","rates")
+      return(res)
     } else {
       status.diff <- diff(tapply(abs(frame$rate), state,
                                  mean))
@@ -489,7 +463,9 @@ search.shift<-function(RR,
       abline(v = status.diff, lwd = 3, col = "green")
       p.status.diff <- rank(c(status.diff, status.diffS[1:(nrep -
                                                              1)]))[1]/nrep
-      return(list(`rate difference` = status.diff, `p rate diff` = p.status.diff,`rates`=rates))
+      res<-list(data.frame("rate difference"=status.diff[match(names(p.status.diff),names(status.diff))],"p.value"=p.status.diff),rates)
+      names(res)<-c("state.results","rates")
+      return(res)
     }
   }
 }
