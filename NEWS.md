@@ -1,3 +1,7 @@
+# RRphylo 2.0.6
+What's new in version 2.0.6
+Improvements in search.shift and search.trend outputs and plots.
+
 # RRphylo 2.0.0
 What’s new in version 2.0.0
 The package namesake function RRphylo now allows to specify values at internal nodes as derived from the fossil record.
