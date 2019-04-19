@@ -930,7 +930,7 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
         polygon(c(PPci[,2], rev(PPci[, 2])), c(PPci[,3], rev(PPci[, 4])), col = rgb(0.5, 0.5,0.5, 0.4), border = NA)
         title(xlab = "age", ylab = paste(colnames(PP)[i]),
               line = 1.5)
-        points((max(diag(vcv(t)))-diag(vcv(t))+PP[dim(PP)[1], dim(PP)[2]]), yTot[, i],xlim=c(max(PP[,dim(PP)[2]]),min(PP[,dim(PP)[2]])), pch = 21, col = "black",
+        points((max(diag(vcv(t)))-diag(vcv(t))), yTot[, i],xlim=c(max(PP[,dim(PP)[2]]),min(PP[,dim(PP)[2]])), pch = 21, col = "black",
                bg = "red")
         if (class(node) != "NULL") {
           for (j in 1:length(node)) {
@@ -966,7 +966,7 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
              0.9, labels = paste("p=", pp), cex = 1)
       abline(v = trend.reg[[i]][2, 1], lwd = 3, col = "red")
       plot(PP[, c(dim(PP)[2], i)], xlab = "", ylab = "",mgp = c(2, 0.5, 0),xlim=c(max(PP[,dim(PP)[2]]),min(PP[,dim(PP)[2]])))
-      points((max(diag(vcv(t)))-diag(vcv(t))+PP[dim(PP)[1], dim(PP)[2]]), yTot[, i], pch = 21, col = "black",
+      points((max(diag(vcv(t)))-diag(vcv(t))), yTot[, i], pch = 21, col = "black",
              bg = "red")
       title(xlab = "age", ylab = "y.multi",
             line = 1.5)
@@ -1013,7 +1013,7 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
     PPci <- PPci[order(PPci[, 2]), ]
     polygon(c(PPci[, 2], rev(PPci[, 2])), c(PPci[, 3], rev(PPci[,
                                                                 4])), col = rgb(0.5, 0.5, 0.5, 0.4), border = NA)
-    points((max(diag(vcv(t)))-diag(vcv(t))+PP[nrow(PP), 2]), y, pch = 21, col = "black", bg = "red")
+    points((max(diag(vcv(t)))-diag(vcv(t))), y, pch = 21, col = "black", bg = "red")
     if (class(node) != "NULL") {
       for (j in 1:length(node)) {
         cols <- suppressWarnings(brewer.pal(length(node), "Set2"))
