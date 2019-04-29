@@ -374,14 +374,16 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
         mtrends[match(mmeans[,1],mtrends[,1]),]->mtrends
         data.frame(do.call(rbind,strsplit(as.character(mmeans[,1])," - ")),mmeans[,-c(1,3,4,5)],mtrends[,c(2,6)])->sma.resA[[i]]
         colnames(sma.resA[[i]])<-c("group_1","group_2","emm.difference","p.emm","slope.difference","p.slope")
-        subset(sma.resA[[i]],group_2!="others")->sma.resA[[i]]
+        #subset(sma.resA[[i]],group_2!="others")->sma.resA[[i]]
+        sma.resA[[i]][-which(sma.resA[[i]]$group_2=="others"),]->sma.resA[[i]]
 
         dat <- data.frame(yPP, age=PP.sma$age, group=PP.sma$group)
         suppressMessages(PPpairs<-as.data.frame(pairs(emmeans(lm(range01(yPP)~age*group,data=dat),specs="group"))))
         data.frame(do.call(rbind,strsplit(as.character(PPpairs[,1])," - ")),PPpairs[,-c(1,3,4,5)])->sma.resPPemt
         colnames(sma.resPPemt)<-c("group_1","group_2","mean","p.mean")
         #subset(sma.resPPemt,sma.resPPemt$group_2=="others")->PPmeans
-        subset(sma.resPPemt,sma.resPPemt$group_2!="others")->sma.resPPemt
+        #subset(sma.resPPemt,sma.resPPemt$group_2!="others")->sma.resPPemt
+        sma.resPPemt[-which(sma.resPPemt$group_2=="others"),]->sma.resPPemt
         sma.resPPemt->sma.resPPemm[[i]]
 
 
@@ -454,7 +456,8 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
       data.frame(do.call(rbind,strsplit(as.character(mmeans[,1])," - ")),mmeans[,-c(1,3,4,5)],mtrends[,c(2,6)])->sma.resA
 
       colnames(sma.resA)<-c("group_1","group_2","emm.difference","p.emm","slope.difference","p.slope")
-      subset(sma.resA,sma.resA$group_2!="others")->sma.resA
+      #subset(sma.resA,sma.resA$group_2!="others")->sma.resA
+      sma.resA[-which(sma.resA$group_2=="others"),]->sma.resA
 
       #subset(sma.resA,sma.resA$group_2=="others")->n.ot
       #subset(sma.resA,sma.resA$group_2!="others")->sma.resA
@@ -474,7 +477,8 @@ search.trend<-function (RR, y, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
       colnames(sma.resPPemm)<-c("group_1","group_2","mean","p.mean")
 
       PPn.ot->PPmeans
-      subset(sma.resPPemm,sma.resPPemm$group_2!="others")->sma.resPPemm
+      #subset(sma.resPPemm,sma.resPPemm$group_2!="others")->sma.resPPemm
+      sma.resPPemm[-which(sma.resPPemm$group_2=="others"),]->sma.resPPemm
       sapply(strsplit(as.character(PPmeans[,1]),"g"),"[[",2)->PPnam
       PPmeans[,c(3,4)]->PPmeans
       rownames(PPmeans)<-PPnam
