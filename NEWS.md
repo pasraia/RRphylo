@@ -1,3 +1,9 @@
+# RRphylo 2.1.0
+What's new in version 2.1.0
+New functions added!
+The function StableTraitsR runs the StableTraits software (Elliot and Mooers 2014) from within the R environment.
+The function overfitRR provide a test of robustness to sampling effects and phylogenetic uncertainty for both search.trend and search.shift functions.
+
 # RRphylo 2.0.6
 What's new in version 2.0.6
 Improvements in search.shift and search.trend outputs and plots.
