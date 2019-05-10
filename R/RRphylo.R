@@ -120,7 +120,7 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL,aces=NULL, clus=0.5)
       if (is.binary.tree(tree)==FALSE){
         ac<-array()
         for(i in 1:nrow(aceV)){
-          getMRCA(t,tips(tree,rownames(aceV)[i]))->ac[i]
+          getMRCA(t,tips(tree,as.numeric(rownames(aceV)[i])))->ac[i]
         }
         ac->rownames(aceV)
       }
@@ -153,7 +153,7 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL,aces=NULL, clus=0.5)
       if (is.binary.tree(tree)==FALSE){
         ac<-array()
         for(i in 1:length(aceV)){
-          getMRCA(t,tips(tree,names(aceV)[i]))->ac[i]
+          getMRCA(t,as.numeric(tips(tree,names(aceV)[i])))->ac[i]
         }
         ac->names(aceV)
       }
