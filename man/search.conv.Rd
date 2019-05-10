@@ -15,11 +15,11 @@ clus=.5,foldername=NULL)
 
 \item{y}{a multivariate phenotype. The object \code{y} should be either a matrix or dataframe with species names as rownames.}
 
-\item{nodes}{node pair to be tested. If unspecified, the function automatically searches for convergence among clades.}
+\item{nodes}{node pair to be tested. If unspecified, the function automatically searches for convergence among clades. Notice the node number must refer to the dichotomic version of the original tree, as produced by \code{RRphylo}.}
 
 \item{state}{the state of the tips. If a single convergent state is indicated species within the state are tested. Otherwise, species belonging to different parts of the tree could be tested for convergence on each other by indicating different states. This latter case is especially meant to test for iterative evolution (i.e. the appearance of repeated morphotypes into different clades). The state for non-focal species (i.e. not belonging to any convergent group) must be indicated as "nostate".}
 
-\item{aceV}{phenotypic values at internal nodes. The object \code{aceV} should be either a matrix or dataframe with nodes as rownames. If \code{aceV} are not indicated, ancestral phenotypes are estimated via \code{RRphylo}.}
+\item{aceV}{phenotypic values at internal nodes. The object \code{aceV} should be either a matrix or dataframe with nodes (referred to the dichotomic version of the original tree, as produced by \code{RRphylo}) as rownames. If \code{aceV} are not indicated, ancestral phenotypes are estimated via \code{RRphylo}.}
 
 \item{min.dim}{the minimum size of the clades to be compared. When \code{nodes} is indicated, it indicates the minimum size of the smallest clades in \code{nodes}, otherwise it is set at one tenth of the tree size.}
 
