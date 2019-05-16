@@ -25,7 +25,7 @@ clus=.5,foldername=NULL)
 
 \item{max.dim}{the maximum size of the clades to be compared. When \code{nodes} is indicated, it is \code{min.dim}*2 if the largest clade in \code{nodes} is smaller than this value, otherwise it corresponds to the size of the largest clade. Whitout \code{nodes} it is set at one third of the tree size.}
 
-\item{min.dist}{the minimum distance, in terms of number of nodes, between the clades to be compared. When \code{nodes} is indicated, it indicates the minimum distance between the pair, otherwise it is set at 10 nodes.}
+\item{min.dist}{the minimum distance, in terms of number of nodes, between the clades to be compared. When \code{nodes} is indicated, it indicates the minimum distance between the pair, otherwise it is set at one tenth of the tree size.}
 
 \item{PGLSf}{if the argument is set to \code{TRUE} (default), the function tests whether states have phylogenetic structure, by running a runs test. If the states are phylogenetically structured, a \code{\link{PGLS_fossil}} is performed using states as the predictor variables. PGLS residuals will be used to test for convergence.}
 
