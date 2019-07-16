@@ -4,12 +4,14 @@
 \alias{search.trend}
 \title{Searching for evolutionary trends in phenotypes and rates}
 \usage{
-search.trend(RR,y,nsim=100,clus=.5,node=NULL,cov=NULL,foldername,ConfInt=FALSE)
+search.trend(RR,y,x1=NULL,nsim=100,clus=.5,node=NULL,cov=NULL,foldername,ConfInt=FALSE)
 }
 \arguments{
 \item{RR}{an object produced by \code{\link{RRphylo}}.}
 
 \item{y}{the named vector (or matrix if multivariate) of phenotypes.}
+
+\item{x1}{the additional predictor to be specified if the RR object has been created using an additional predictor (i.e. multiple version of \code{RRphylo}). \code{'x1'} vector must be as long as the number of nodes plus the number of tips of the tree, which can be obtained by running \code{RRphylo} on the predictor as well, and taking the vector of ancestral states and tip values to form the \code{x1}.}
 
 \item{nsim}{number of simulations to be performed. It is set at 100 by default.}
 
@@ -87,7 +89,27 @@ DataOrnithodirans$massdino->massdino
 
  # Case 2.2. "search.trend" indicating nodes to be specifically tested for trends
    search.trend(RR=RRpteroCov, y=log(massptero), nsim=100, node=143, clus=0.5,
-   foldername=tempdir(),ConfInt=FALSE,cov=cov.values)}
+   foldername=tempdir(),ConfInt=FALSE,cov=cov.values)
+
+
+# Case 3. "search.trend" on multiple "RRphylo"
+  data("DataCetaceans")
+  DataCetaceans$treecet->treecet
+  DataCetaceans$masscet->masscet
+  DataCetaceans$brainmasscet->brainmasscet
+  DataCetaceans$aceMyst->aceMyst
+
+  drop.tip(treecet,treecet$tip.label[-match(names(brainmasscet),treecet$tip.label)])->treecet.multi
+  masscet[match(treecet.multi$tip.label,names(masscet))]->masscet.multi
+
+  RRphylo(treecet.multi,masscet.multi)->RRmass.multi
+  RRmass.multi$aces[,1]->acemass.multi
+  c(acemass.multi,masscet.multi)->x1.mass
+
+  RRphylo(treecet.multi,y=brainmasscet,x1=x1.mass)->RRmulti
+
+  search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,clus=0.5,foldername=tempdir())
+   }
 }
 \references{
 Castiglione, S., Serio, C., Mondanaro, A., Di Febbraro, M., Profico, A., Girardi, G., & Raia, P. (2019) Simultaneous detection of macroevolutionary patterns in phenotypic means and rate of change with and within phylogenetic trees including extinct species. \emph{PLoS ONE}, 14: e0210101. https://doi.org/10.1371/journal.pone.0210101

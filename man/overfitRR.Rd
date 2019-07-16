@@ -5,7 +5,7 @@
 \title{Testing RRphylo methods overfit}
 \usage{
 overfitRR(RR,y,s=0.25,trend=FALSE,shift.node=NULL,shift.state=NULL,
-trend.node=NULL,aces=NULL,cov=NULL,rootV=NULL,nsim=100,clus=.5)
+trend.node=NULL,aces=NULL,x1=NULL,aces.x1=NULL,cov=NULL,rootV=NULL,nsim=100,clus=.5)
 }
 \arguments{
 \item{RR}{an object produced by \code{\link{RRphylo}}.}
@@ -23,6 +23,10 @@ trend.node=NULL,aces=NULL,cov=NULL,rootV=NULL,nsim=100,clus=.5)
 \item{trend.node}{the nodes to be tested by \code{search.trend} for trends in phenotypes or rates through time.}
 
 \item{aces}{if used to produce the \code{RR} object, the vector of those ancestral character values at nodes known in advance must be specified. Names correspond to the nodes in the tree.}
+
+\item{x1}{the additional predictor to be specified if the RR object has been created using an additional predictor (i.e. multiple version of \code{RRphylo}). \code{'x1'} vector must be as long as the number of nodes plus the number of tips of the tree, which can be obtained by running \code{RRphylo} on the predictor as well, and taking the vector of ancestral states and tip values to form the \code{x1}.}
+
+\item{aces.x1}{a named vector of ancestral character values at nodes for \code{x1}. It must be indicated if the RR object has been created using both \code{aces} and \code{x1}. Names correspond to the nodes in the tree.}
 
 \item{cov}{if used to produce the \code{RR} object, the covariate must be specified. As in \code{RRphylo}, the covariate vector must be as long as the number of nodes plus the number of tips of the tree, which can be obtained by running \code{RRphylo} on the covariate as well, and taking the vector of ancestral states and tip values to form the covariate.}
 
@@ -80,6 +84,24 @@ RRphylo(tree=treeptero,y=log(massptero))->RRptero
 # Case 4 search.trend at specified nodes
     search.trend(RR=RRptero, y=log(massptero),node=143,foldername=tempdir())->STnode
     overfitRR(RR=RRptero,y=log(massdino),trend.node=143)->overfit.STnode
+
+# Case 5 overfitRR on multiple RRphylo
+  data("DataCetaceans")
+  DataCetaceans$treecet->treecet
+  DataCetaceans$masscet->masscet
+  DataCetaceans$brainmasscet->brainmasscet
+  DataCetaceans$aceMyst->aceMyst
+
+  drop.tip(treecet,treecet$tip.label[-match(names(brainmasscet),treecet$tip.label)])->treecet.multi
+  masscet[match(treecet.multi$tip.label,names(masscet))]->masscet.multi
+
+  RRphylo(treecet.multi,masscet.multi)->RRmass.multi
+  RRmass.multi$aces[,1]->acemass.multi
+  c(acemass.multi,masscet.multi)->x1.mass
+
+  RRphylo(treecet.multi,y=brainmasscet,x1=x1.mass)->RRmulti
+  search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,clus=0.5,foldername=tempdir())->STcet
+  overfitRR(RR=RRmulti,y=brainmasscet,trend=TRUE,x1=x1.mass)->overfit.STcet
 
 }
 }

@@ -4,7 +4,7 @@
 \alias{RRphylo}
 \title{Evolutionary rates computation along phylogenies}
 \usage{
-RRphylo(tree,y,cov=NULL,rootV=NULL,aces=NULL,clus=0.5)
+RRphylo(tree,y,cov=NULL,rootV=NULL,aces=NULL,x1=NULL,aces.x1=NULL,clus=0.5)
 }
 \arguments{
 \item{tree}{a phylogenetic tree. The tree needs not to be ultrametric or fully dichotomous.}
@@ -16,6 +16,10 @@ RRphylo(tree,y,cov=NULL,rootV=NULL,aces=NULL,clus=0.5)
 \item{rootV}{phenotypic value (values if multivariate) at the tree root. If \code{rootV=NULL} the function 'learns' about the root value from the 10\% tips being closest in time to the tree root, weighted by their temporal distance from the root itself (close tips phenotypes weigh more than more distant tips).}
 
 \item{aces}{a named vector (or matrix if \code{y} is multivariate) of ancestral character values at nodes. Names correspond to the nodes in the tree.}
+
+\item{x1}{the additional predictor to be indicated to perform the multiple version of \code{RRphylo}. \code{'x1'} vector must be as long as the number of nodes plus the number of tips of the tree, which can be obtained by running \code{RRphylo} on the predictor as well, and taking the vector of ancestral states and tip values to form the \code{x1}.}
+
+\item{aces.x1}{a named vector of ancestral character values at nodes for \code{x1}. It must be indicated if both \code{aces} and \code{x1} are specified. Names correspond to the nodes in the tree.}
 
 \item{clus}{the proportion of clusters to be used in parallel computing (only if \code{y} is multivariate).}
 }
@@ -37,6 +41,8 @@ RRphylo(tree,y,cov=NULL,rootV=NULL,aces=NULL,clus=0.5)
 \strong{lambda} the regularization factor fitted within \code{RRphylo} by the inner function \code{optL}. With multivariate data, several \code{optL} runs are performed. Hence, the function provides a single lambda for each individual variable.
 
 \strong{ace values} if \code{aces} are specified, the function returns a dataframe containing the corresponding node number on the \code{RRphylo} tree  for each node , along with estimated values.
+
+\strong{x1 rate} if \code{x1} is specified, the function returns the partial regression coefficient for \code{x1}.
 }
 \description{
 The function \code{RRphylo} (\cite{Castiglione et al. 2018}) performs the phylogenetic ridge regression. It takes a tree and a vector of tip data (phenotypes) as entries, calculates the regularization factor, produces the matrices of tip to root (\code{\link{makeL}}), and node to root distances (\code{\link{makeL1}}), the vector of ancestral state estimates, the vector of predicted phenotypes, and the rates vector for all the branches of the tree. For multivariate data, rates are given as both one vector per variable, and as a multivariate vector obtained by computing the Euclidean Norm of individual rate vectors.
@@ -62,9 +68,20 @@ DataOrnithodirans$massdino->massdino
   data("DataCetaceans")
   DataCetaceans$treecet->treecet
   DataCetaceans$masscet->masscet
+  DataCetaceans$brainmasscet->brainmasscet
   DataCetaceans$aceMyst->aceMyst
 
-    RRphylo(tree=treecet,y=masscet,aces=aceMyst)
+  RRphylo(tree=treecet,y=masscet,aces=aceMyst)
+
+# Case 4. Multiple "RRphylo"
+  drop.tip(treecet,treecet$tip.label[-match(names(brainmasscet),treecet$tip.label)])->treecet.multi
+  masscet[match(treecet.multi$tip.label,names(masscet))]->masscet.multi
+
+  RRphylo(treecet.multi,masscet.multi)->RRmass.multi
+  RRmass.multi$aces[,1]->acemass.multi
+  c(acemass.multi,masscet.multi)->x1.mass
+  RRphylo(treecet.multi,y=brainmasscet,x1=x1.mass)
+
 
     }
 }
