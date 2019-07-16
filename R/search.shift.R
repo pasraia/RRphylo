@@ -84,8 +84,7 @@ search.shift<-function(RR,
 
 
   if(is.null(f)) f<-round(Ntip(tree)/10)
-  if(is.null(cov))
-  {
+  if(is.null(cov)){
     rates<-rates
   }else{
 
@@ -159,8 +158,7 @@ search.shift<-function(RR,
         Cbranch <- getDescendants(tree, node[j])
         Ctips <- tips(tree, node[j])
         Cleaf <- c(Cbranch, Ctips)
-        leaf.rates <- rates[match(Cleaf, rownames(rates)),
-                            ]
+        leaf.rates <- rates[match(Cleaf, rownames(rates)),]
         leaf.rates <- na.omit(leaf.rates)
         NCrates <- rates[-match(names(leaf.rates), rownames(rates))]
         leafR <- mean(abs(leaf.rates))
@@ -178,15 +176,38 @@ search.shift<-function(RR,
       }
       names(leaf2N.diff) <- node
       names(p.single) <- node
+
+
       if (length(p.single[p.single >= 0.975 | p.single <=
-                          0.025]) < 2) {
+                          0.025])==0){
         p.single <- p.single[c(which.max(p.single), which.min(p.single))]
         leaf2N.diff <- leaf2N.diff[match(names(p.single),
                                          names(leaf2N.diff))]
         p.init <- p.single
         l2N.init <- leaf2N.diff[match(names(p.init),
                                       names(leaf2N.diff))]
-      } else {
+      }
+
+
+      if (length(p.single[p.single >= 0.975 | p.single <=
+                          0.025]) < 2) {
+        p.init <- p.single
+        l2N.init <- leaf2N.diff[match(names(p.init),
+                                      names(leaf2N.diff))]
+
+        p.single <- p.single[p.single >= 0.975 | p.single <=
+                               0.025]
+        leaf2N.diff <- leaf2N.diff[match(names(p.single),
+                                         names(leaf2N.diff))]
+
+      }
+
+      if (length(p.single[p.single >= 0.975 | p.single <=
+                          0.025]) > 2)  {
+        p.init <- p.single
+        l2N.init <- leaf2N.diff[match(names(p.init),
+                                      names(leaf2N.diff))]
+
         p.single <- p.single[p.single >= 0.975 | p.single <= 0.025]
 
         leaf2N.diff <- leaf2N.diff[match(names(p.single), names(leaf2N.diff))]
@@ -200,8 +221,6 @@ search.shift<-function(RR,
         if (is.na(mean(dws))) {
           dws = Nnode(tree) * 2
         } else {
-
-
           s = 1
           repeat
           {
@@ -246,9 +265,9 @@ search.shift<-function(RR,
         }
 
 
-        p.init <- p.single
-        l2N.init <- leaf2N.diff[match(names(p.init),
-                                      names(leaf2N.diff))]
+        # p.init <- p.single
+        # l2N.init <- leaf2N.diff[match(names(p.init),
+        #                               names(leaf2N.diff))]
         p.single <- p.single[which(names(p.single) %in%
                                      names(c(ups, dws)))]
 
@@ -259,25 +278,29 @@ search.shift<-function(RR,
 
       p.single[order(p.single)]->p.single
       pdf(file=paste(foldername, "AR results for rate differences.pdf",sep="/"))
-      if(Ntip(tree)>100) plot(tree, show.tip.label = FALSE) else plot(tree, cex=.8)
-      xy <- list()
-      for (w in 1:length(p.single)) {
-        xy[[w]] <- unlist(sapply(get("last_plot.phylo",
-                                     envir =ape::.PlotPhyloEnv), function(x) x[as.numeric(names(p.single)[w])]))[c(21,
-                                                                                                                   22)]
+      if(length(which(p.single<=0.025|p.single>=0.975))>0){
+        if(Ntip(tree)>100) plot(tree, show.tip.label = FALSE) else plot(tree, cex=.8)
+        xy <- list()
+        for (w in 1:length(p.single)) {
+          xy[[w]] <- unlist(sapply(get("last_plot.phylo",
+                                       envir =ape::.PlotPhyloEnv), function(x) x[as.numeric(names(p.single)[w])]))[c(21,
+                                                                                                                     22)]
+        }
+
+
+        c(rep("red",length(which(p.single<=0.025))),rep("royalblue",length(which(p.single>=0.975))))->p.col
+        symbols(lapply(xy, "[[", 1), lapply(xy, "[[", 2),
+                circles = abs(leaf2N.diff[match(names(p.single),names(leaf2N.diff))])^0.5, inches = 0.25,
+                add = TRUE, bg = alpha(p.col, 0.5), fg = p.col)
+
+        nodelabels(node = as.numeric(names(p.single)), adj = c(1.5,
+                                                               1), text = names(p.single), frame = "none", bg = "white",
+                   col = "purple")
+
+      }else{
+        if(Ntip(tree)>100) plot(tree, show.tip.label = FALSE) else plot(tree, cex=.8)
       }
-
-
-      c(rep("red",length(which(p.single<=0.025))),rep("royalblue",length(which(p.single>=0.975))))->p.col
-      symbols(lapply(xy, "[[", 1), lapply(xy, "[[", 2),
-              circles = abs(leaf2N.diff[match(names(p.single),names(leaf2N.diff))])^0.5, inches = 0.25,
-              add = TRUE, bg = alpha(p.col, 0.5), fg = p.col)
-
-      nodelabels(node = as.numeric(names(p.single)), adj = c(1.5,
-                                                             1), text = names(p.single), frame = "none", bg = "white",
-                 col = "purple")
       dev.off()
-
       res<-list(data.frame("rate difference"=l2N.init[match(names(p.init),names(l2N.init))],"p-value"=p.init),
                 data.frame("rate difference"=leaf2N.diff[match(names(p.single),names(leaf2N.diff))],"p-value"=p.single),
                 rates)

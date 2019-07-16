@@ -1,7 +1,7 @@
 #' @title Testing RRphylo methods overfit
 #' @description Testing the robustness of \code{\link{search.trend}} (\cite{Castiglione et al. 2019}) and \code{\link{search.shift}} (\cite{Castiglione et al. 2018}) to sampling effects and phylogenetic uncertainty.
 #' @usage overfitRR(RR,y,s=0.25,trend=FALSE,shift.node=NULL,shift.state=NULL,
-#' trend.node=NULL,aces=NULL,cov=NULL,rootV=NULL,nsim=100,clus=.5)
+#' trend.node=NULL,aces=NULL,x1=NULL,aces.x1=NULL,cov=NULL,rootV=NULL,nsim=100,clus=.5)
 #' @param RR an object produced by \code{\link{RRphylo}}.
 #' @param y a named vector of phenotypes.
 #' @param s the percentage of tips to be cut off. It is set at 25\% by default.
@@ -10,6 +10,8 @@
 #' @param shift.state the named vector of states to be tested in \code{search.shift} under the "sparse" condition. Notice that the conditions on \code{search.shift} are exclusive, they cannot be tested together.
 #' @param trend.node the nodes to be tested by \code{search.trend} for trends in phenotypes or rates through time.
 #' @param aces if used to produce the \code{RR} object, the vector of those ancestral character values at nodes known in advance must be specified. Names correspond to the nodes in the tree.
+#' @param x1 the additional predictor to be specified if the RR object has been created using an additional predictor (i.e. multiple version of \code{RRphylo}). \code{'x1'} vector must be as long as the number of nodes plus the number of tips of the tree, which can be obtained by running \code{RRphylo} on the predictor as well, and taking the vector of ancestral states and tip values to form the \code{x1}.
+#' @param aces.x1 a named vector of ancestral character values at nodes for \code{x1}. It must be indicated if the RR object has been created using both \code{aces} and \code{x1}. Names correspond to the nodes in the tree.
 #' @param cov if used to produce the \code{RR} object, the covariate must be specified. As in \code{RRphylo}, the covariate vector must be as long as the number of nodes plus the number of tips of the tree, which can be obtained by running \code{RRphylo} on the covariate as well, and taking the vector of ancestral states and tip values to form the covariate.
 #' @param rootV if used to produce the \code{RR} object, the phenotypic value at the tree root must be specified.
 #' @param nsim number of simulations to be performed. It is set at 100 by default.
@@ -58,16 +60,33 @@
 #'     search.trend(RR=RRptero, y=log(massptero),node=143,foldername=tempdir())->STnode
 #'     overfitRR(RR=RRptero,y=log(massdino),trend.node=143)->overfit.STnode
 #'
+#' # Case 5 overfitRR on multiple RRphylo
+#'   data("DataCetaceans")
+#'   DataCetaceans$treecet->treecet
+#'   DataCetaceans$masscet->masscet
+#'   DataCetaceans$brainmasscet->brainmasscet
+#'   DataCetaceans$aceMyst->aceMyst
+#'
+#'   drop.tip(treecet,treecet$tip.label[-match(names(brainmasscet),treecet$tip.label)])->treecet.multi
+#'   masscet[match(treecet.multi$tip.label,names(masscet))]->masscet.multi
+#'
+#'   RRphylo(treecet.multi,masscet.multi)->RRmass.multi
+#'   RRmass.multi$aces[,1]->acemass.multi
+#'   c(acemass.multi,masscet.multi)->x1.mass
+#'
+#'   RRphylo(treecet.multi,y=brainmasscet,x1=x1.mass)->RRmulti
+#'   search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,clus=0.5,foldername=tempdir())->STcet
+#'   overfitRR(RR=RRmulti,y=brainmasscet,trend=TRUE,x1=x1.mass)->overfit.STcet
+#'
 #' }
 
 
 overfitRR<-function(RR,y,s=0.25,trend=FALSE,shift.node=NULL,shift.state=NULL,
-                    trend.node=NULL,aces=NULL,cov=NULL,rootV=NULL,nsim=100,
-                    clus=.5)
+                     trend.node=NULL,aces=NULL,x1=NULL,aces.x1=NULL,cov=NULL,rootV=NULL,nsim=100,
+                     clus=.5)
 {
   # require(phytools)
   # require(geiger)
-  # require(RRphylo)
   # require(ddpcr)
   # require(rlist)
 
@@ -97,7 +116,16 @@ overfitRR<-function(RR,y,s=0.25,trend=FALSE,shift.node=NULL,shift.state=NULL,
     y[-which(names(y)%in%names(offs))]->ycut
     drop.tip(tree,which(names(y)%ni%names(ycut)))->treecut
     y.ace[which(names(y.ace)%in%treecut$node.label)]->y.acecut
-    if(is.null(cov)==FALSE) cov[match(c(names(ycut),names(y.acecut)),names(cov))]->covcut else covcut<-NULL
+
+    if(is.null(cov)==FALSE) {
+      cov[match(c(names(y.acecut),names(ycut)),names(cov))]->covcut
+      names(cov)[1:Nnode(treecut)]<-seq(1:Nnode(treecut))
+    }else covcut<-NULL
+
+    if(is.null(x1)==FALSE) {
+      x1[match(c(names(y.acecut),names(ycut)),names(x1))]->x1cut
+      names(x1cut)[1:Nnode(treecut)]<-seq(1:Nnode(treecut))
+    }else x1cut<-NULL
 
     if(is.null(aces)==FALSE){
       aces->acescut
@@ -111,6 +139,20 @@ overfitRR<-function(RR,y,s=0.25,trend=FALSE,shift.node=NULL,shift.state=NULL,
 
     }else{
       acescut<-NULL
+    }
+
+    if(is.null(aces.x1)==FALSE){
+      aces.x1->aces.x1cut
+      drop<-c()
+      for(i in 1:length(aces.x1)) {
+        if(length(which(tips(tree,names(aces.x1[i]))%in%treecut$tip.label))>1)
+          getMRCA(treecut,tips(tree,names(aces.x1[i]))[which(tips(tree,names(aces.x1[i]))%in%treecut$tip.label)])->names(aces.x1cut)[i] else
+            c(drop,i)->drop
+      }
+      if(length(drop>0)) aces.x1cut[-drop]->aces.x1cut
+
+    }else{
+      aces.x1cut<-NULL
     }
 
     if(is.null(trend.node)==FALSE){
@@ -127,9 +169,8 @@ overfitRR<-function(RR,y,s=0.25,trend=FALSE,shift.node=NULL,shift.state=NULL,
 
     if(is.null(rootV)==FALSE) rootV->rootVcut else rootVcut<-NULL
 
-
-    RRphylo(treecut,ycut,aces=acescut,cov=covcut,rootV = rootVcut,clus=clus)->RRcut
-    if(trend|is.null(trend.node)==F) quiet(search.trend(RRcut,ycut,node=trend.node.cut,foldername=tempdir(),cov=covcut,clus=clus)->stcut->STcut[[k]],all=TRUE)
+    RRphylo(treecut,ycut,aces=acescut,x1=x1cut,aces.x1=aces.x1cut,cov=covcut,rootV = rootVcut,clus=clus)->RRcut
+    if(trend|is.null(trend.node)==FALSE) quiet(search.trend(RRcut,ycut,x1=x1cut,node=trend.node.cut,foldername=tempdir(),cov=covcut,clus=clus)->stcut->STcut[[k]],all=TRUE)
     if(is.null(shift.node)==FALSE) quiet(search.shift(RRcut,status.type="clade",node=shift.node.cut,foldername=tempdir())->sscut->SScut[[k]],all=TRUE)
     if(is.null(shift.state)==FALSE) quiet(search.shift(RRcut,status.type="sparse",state=shift.state.cut,foldername=tempdir())->sscut->SScut[[k]],all=TRUE)
 
@@ -157,7 +198,8 @@ overfitRR<-function(RR,y,s=0.25,trend=FALSE,shift.node=NULL,shift.state=NULL,
                           "all.clades.together","p.all.clades.together")
 
     }else{
-      do.call(rbind,lapply(lapply(SScut,"[[",2),function(x) x[2]))-> p.ran
+      #do.call(rbind,lapply(lapply(SScut,"[[",2),function(x) x[2]))-> p.ran
+      do.call(rbind,lapply(lapply(SScut,"[[",1),function(x) x[2]))-> p.ran
       apply(p.ran,2,function(x) length(which(x<=0.025|x>=0.975)))/nsim->p.shift
       names(p.shift)<-colnames(p.ran)<-shift.node
       rownames(p.ran)<-seq(1:nsim)
