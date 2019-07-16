@@ -1,3 +1,7 @@
+# RRphylo 2.2.0
+What's new in version 2.2.0
+The multiple version of RRphylo has been implemented!
+
 # RRphylo 2.1.0
 What's new in version 2.1.0
 New functions added!
