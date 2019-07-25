@@ -20,7 +20,7 @@
 #' @return \strong{$rootCI} the 95\% confidence interval around the root value.
 #' @return \strong{$ace.regressions} the results of linear regression between ancestral state estimates before and after the subsampling.
 #' @return \strong{$shift.results} if \code{shift.state} is specified, a list including for each state the p-values at each simulation ($states) and the percentage of simulations producing significant p-value ($p.states). If the argument \code{shift.node} is specified, the list contains for each node the p-values at each simulation ($single clades) and the percentage of simulations producing significant p-value ($p.single.clades), and the same figures by considering all the specified nodes as evolving under a single rate ($all.caldes.togheter and $p.all.clades.together).
-#' @return \strong{$trend.results} if \code{trend = TRUE}, a list including slopes and p-values of phenotypes versus age and absolute rates versus age regressions for the entire tree at each simulation ($tree.phenotype and $tree.rates) and the percentage of simulations showing significant p-values for both variables ($tree.p). If \code{trend.node} is specified, the list also includes the same results at nodes ($node.phenotype, $node.rates and $node.p) and the results for comparison between nodes ($comparison.phenotype, $comparison.rates and $comparison.p).
+#' @return \strong{$trend.results} if \code{trend = TRUE}, a list including slopes and p-values of phenotypes versus age and absolute rates versus age regressions for the entire tree at each simulation ($tree.phenotype and $tree.rates) and the percentage of simulations showing significant p-values for both variables separated by slope sign ($tree.p). If \code{trend.node} is specified, the list also includes the same results at nodes ($node.phenotype, $node.rates and $node.p) and the results for comparison between nodes ($comparison.phenotype, $comparison.rates and $comparison.p).
 #' @author Silvia Castiglione, Carmela Serio, Pasquale Raia
 #' @details Methods using a large number of parameters risk being overfit. This usually translates in poor fitting with data and trees other than the those originally used. With \code{RRphylo} methods this risk is usually very low. However, the user can assess how robust the results got by applying \code{search.shift} or \code{search.trend} are by running \code{overfitRR}. With the latter, the original tree and data are subsampled by specifying a \code{s} parameter, that is the proportion of tips to be removed from the tree. Internally, \code{overfitRR} further shuffles the tree by using the function \code{\link{swapONE}}. Thereby, both the potential for overfit and phylogenetic uncertainty are accounted for straight away.
 #' @export
@@ -80,10 +80,9 @@
 #'
 #' }
 
-
 overfitRR<-function(RR,y,s=0.25,trend=FALSE,shift.node=NULL,shift.state=NULL,
-                     trend.node=NULL,aces=NULL,x1=NULL,aces.x1=NULL,cov=NULL,rootV=NULL,nsim=100,
-                     clus=.5)
+                    trend.node=NULL,aces=NULL,x1=NULL,aces.x1=NULL,cov=NULL,rootV=NULL,nsim=100,
+                    clus=.5)
 {
   # require(phytools)
   # require(geiger)
@@ -102,20 +101,28 @@ overfitRR<-function(RR,y,s=0.25,trend=FALSE,shift.node=NULL,shift.state=NULL,
 
 
     repeat({
-      swapONE(tree,0.1,0.1)->tree.swap
+      suppressWarnings(swapONE(tree,0.1,0.1)[[1]])->tree.swap
       sample(y,round((Ntip(tree)*s),0))->offs
       sapply(trend.node,function(x) length(tips(tree,x))-length(which(names(offs)%in%tips(tree,x))))->lt
       sapply(shift.node,function(x) length(tips(tree,x))-length(which(names(offs)%in%tips(tree,x))))->lss
       if(length(which(lt<5))==0&length(which(lss<5))==0) break
     })
 
-    tree$edge[tree$edge[,1]==(Ntip(tree)+1),2]->rootdesc
-    if(length(which(rootdesc<(Ntip(tree)+1)))>0) tree$tip.label[rootdesc[which(rootdesc<Ntip(tree)+1)]]->saver else saver="xx"
-    if(saver%in%names(offs)) offs[-which(names(offs)==saver)]->offs
+    y[match(tree.swap$tip.label,names(y))]->y
 
-    y[-which(names(y)%in%names(offs))]->ycut
-    drop.tip(tree,which(names(y)%ni%names(ycut)))->treecut
-    y.ace[which(names(y.ace)%in%treecut$node.label)]->y.acecut
+    if(s>0){
+      tree.swap$edge[tree.swap$edge[,1]==(Ntip(tree.swap)+1),2]->rootdesc
+      if(length(which(rootdesc<(Ntip(tree.swap)+1)))>0) tree.swap$tip.label[rootdesc[which(rootdesc<Ntip(tree.swap)+1)]]->saver else saver="xx"
+      if(saver%in%names(offs)) offs[-which(names(offs)==saver)]->offs
+
+      y[-which(names(y)%in%names(offs))]->ycut
+      drop.tip(tree.swap,which(names(y)%ni%names(ycut)))->treecut
+      y.ace[which(names(y.ace)%in%treecut$node.label)]->y.acecut
+    }else{
+      y->ycut
+      tree.swap->treecut
+      y.ace->y.acecut
+    }
 
     if(is.null(cov)==FALSE) {
       cov[match(c(names(y.acecut),names(ycut)),names(cov))]->covcut
@@ -225,8 +232,18 @@ overfitRR<-function(RR,y,s=0.25,trend=FALSE,shift.node=NULL,shift.state=NULL,
   if(trend|is.null(trend.node)==FALSE){
     do.call(rbind,lapply(STcut,"[[",3))[,c(1,3)]->phen.ran
     do.call(rbind,lapply(STcut,"[[",4))[,c(1,3)]->rat.ran
-    c(length(which(phen.ran[,2]<=0.05))/nsim,length(which(rat.ran[,2]<=0.05))/nsim)->p.trend
-    names(p.trend)<-c("phenotype","rates")
+
+
+    rbind(c(length(which(phen.ran$slope>0&phen.ran$p.random<=0.05))/nsim,
+      length(which(phen.ran$slope<0&phen.ran$p.random<=0.05))/nsim),
+      c(length(which(rat.ran$slope>0&rat.ran$p.random<=0.05))/nsim,
+        length(which(rat.ran$slope<0&rat.ran$p.random<=0.05))/nsim))->p.trend
+
+    colnames(p.trend)<-c("p.slope+","p.slope-")
+    rownames(p.trend)<-c("phenotype","rates")
+
+    # c(length(which(phen.ran[,2]<=0.05))/nsim,length(which(rat.ran[,2]<=0.05))/nsim)->p.trend
+    # names(p.trend)<-c("phenotype","rates")
     rownames(phen.ran)<-rownames(rat.ran)<-seq(1:nsim)
     list(phen.ran,rat.ran,p.trend)->whole.tree.res
     names(whole.tree.res)<-c("tree.phenotype","tree.rates","tree.p")
@@ -263,17 +280,35 @@ overfitRR<-function(RR,y,s=0.25,trend=FALSE,shift.node=NULL,shift.state=NULL,
       }
 
       phen.node.ran<-rat.node.ran<-list()
-      p.trend.node<-matrix(ncol=2,nrow=length(trend.node))
+      #p.trend.node<-matrix(ncol=2,nrow=length(trend.node))
+      p.phen.node<-matrix(ncol=4,nrow=length(trend.node))
+      p.rate.node<-matrix(ncol=4,nrow=length(trend.node))
       for(i in 1:length(trend.node)){
         do.call(rbind,lapply(phen.node,"[[",i))->pnod
         rownames(pnod)<-seq(1:nsim)
         pnod->phen.node.ran[[i]]
         do.call(rbind,lapply(rat.node,"[[",i))->rnod
         rnod->rat.node.ran[[i]]
-        c(length(which(pnod[,2]<=0.05))/nsim,length(which(rnod[,2]<=0.05))/nsim)->p.trend.node[i,]
+
+
+        c(length(which(pnod$slope>0&pnod$p.slope<=0.05))/nsim,
+          length(which(pnod$slope<0&pnod$p.slope<=0.05))/nsim,
+          length(which(pnod$emm.difference>0&pnod$p.emm<=0.05))/nsim,
+          length(which(pnod$emm.difference<0&pnod$p.emm<=0.05))/nsim)->p.phen.node[i,]
+
+        c(length(which(rnod$emm.difference>0&rnod$p.emm<=0.05))/nsim,
+          length(which(rnod$emm.difference<0&rnod$p.emm<=0.05))/nsim,
+          length(which(rnod$slope.difference>0&rnod$p.slope<=0.05))/nsim,
+          length(which(rnod$slope.difference<0&rnod$p.slope<=0.05))/nsim)->p.rate.node[i,]
+
       }
-      colnames(p.trend.node)<-c("phenotype","rates")
-      rownames(p.trend.node)<-names(phen.node.ran)<-names(rat.node.ran)<-trend.node
+      colnames(p.phen.node)<-c("p.slope+","p.slope-","p.emm+","p.emm-")
+      colnames(p.rate.node)<-c("p.emm+","p.emm-","p.slope+","p.slope-")
+      rownames(p.phen.node)<-rownames(p.rate.node)<-names(phen.node.ran)<-names(rat.node.ran)<-trend.node
+      list(p.phen.node,p.rate.node)->p.trend.node
+      names(p.trend.node)<-c("phenotype","rates")
+      #colnames(p.trend.node)<-c("phenotype","rates")
+      #rownames(p.trend.node)<-names(phen.node.ran)<-names(rat.node.ran)<-trend.node
       node.res<-list("node.phenotype"=phen.node.ran,"node.rates"=rat.node.ran,"node.p"=p.trend.node)
       if(length(trend.node)>1) node.res<-list.append(node.res,"comparison.phenotype"=phen.comp,"comparison.rates"=rat.comp,"comparison.p"=p.comp)
       trend.res<-do.call(c,list(whole.tree.res,node.res))
@@ -286,4 +321,3 @@ overfitRR<-function(RR,y,s=0.25,trend=FALSE,shift.node=NULL,shift.state=NULL,
 
   return(res)
 }
-
