@@ -67,7 +67,8 @@
 #'   DataCetaceans$brainmasscet->brainmasscet
 #'   DataCetaceans$aceMyst->aceMyst
 #'
-#'   ape::drop.tip(treecet,treecet$tip.label[-match(names(brainmasscet),treecet$tip.label)])->treecet.multi
+#'   ape::drop.tip(treecet,treecet$tip.label[-match(names(brainmasscet),
+#'   treecet$tip.label)])->treecet.multi
 #'   masscet[match(treecet.multi$tip.label,names(masscet))]->masscet.multi
 #'
 #'   RRphylo(treecet.multi,masscet.multi)->RRmass.multi
@@ -177,7 +178,7 @@ overfitRR<-function(RR,y,s=0.25,trend=FALSE,shift.node=NULL,shift.state=NULL,
     if(is.null(shift.state)==FALSE) {
       shift.state[match(c(tree.swap$node.label,tree.swap$tip.label), names(shift.state))]->shift.state
       shift.state[match(names(ycut),names(shift.state))]->shift.state.cut
-      }
+    }
 
     if(is.null(rootV)==FALSE) rootV->rootVcut else rootVcut<-NULL
 
@@ -235,20 +236,17 @@ overfitRR<-function(RR,y,s=0.25,trend=FALSE,shift.node=NULL,shift.state=NULL,
   }
 
   if(trend|is.null(trend.node)==FALSE){
-    do.call(rbind,lapply(STcut,"[[",3))[,c(1,3)]->phen.ran
-    do.call(rbind,lapply(STcut,"[[",4))[,c(1,3)]->rat.ran
+    as.data.frame(do.call(rbind,lapply(STcut,"[[",3))[,c(1,3)])->phen.ran
+    as.data.frame(do.call(rbind,lapply(STcut,"[[",4))[,c(1,3)])->rat.ran
 
 
     rbind(c(length(which(phen.ran$slope>0&phen.ran$p.random<=0.05))/nsim,
-      length(which(phen.ran$slope<0&phen.ran$p.random<=0.05))/nsim),
-      c(length(which(rat.ran$slope>0&rat.ran$p.random<=0.05))/nsim,
-        length(which(rat.ran$slope<0&rat.ran$p.random<=0.05))/nsim))->p.trend
+            length(which(phen.ran$slope<0&phen.ran$p.random<=0.05))/nsim),
+          c(length(which(rat.ran$slope>0&rat.ran$p.random<=0.05))/nsim,
+            length(which(rat.ran$slope<0&rat.ran$p.random<=0.05))/nsim))->p.trend
 
     colnames(p.trend)<-c("p.slope+","p.slope-")
     rownames(p.trend)<-c("phenotype","rates")
-
-    # c(length(which(phen.ran[,2]<=0.05))/nsim,length(which(rat.ran[,2]<=0.05))/nsim)->p.trend
-    # names(p.trend)<-c("phenotype","rates")
     rownames(phen.ran)<-rownames(rat.ran)<-seq(1:nsim)
     list(phen.ran,rat.ran,p.trend)->whole.tree.res
     names(whole.tree.res)<-c("tree.phenotype","tree.rates","tree.p")
@@ -260,24 +258,52 @@ overfitRR<-function(RR,y,s=0.25,trend=FALSE,shift.node=NULL,shift.state=NULL,
       if(length(STcut[[1]])==7){
         if(length(trend.node)>2) {
           phen.comp<-rat.comp<-nod.nam<-list()
-          p.comp<-matrix(ncol=2,nrow=nrow(STcut[[1]][[7]][[1]]))
+          p.comp.phen<-p.comp.rat<-matrix(ncol=4,nrow=nrow(STcut[[1]][[7]][[1]]))
           for(k in 1:nrow(STcut[[1]][[7]][[1]])){
             do.call(rbind,lapply(lapply(lapply(STcut,"[[",7),"[[",1),function(w) w[k,]))->pcomp
             pcomp[nsim,1:2]->nod.nam[[k]]
-            pcomp[,3:6]->pcomp->phen.comp[[k]]
-            do.call(rbind,lapply(lapply(lapply(STcut,"[[",7),"[[",2),function(w) w[k,]))[,3:6]->rcomp
+            as.data.frame(pcomp[,3:6])->pcomp->phen.comp[[k]]
+            as.data.frame(do.call(rbind,lapply(lapply(lapply(STcut,"[[",7),"[[",2),function(w) w[k,]))[,3:6])->rcomp
             rcomp->rat.comp[[k]]
-            c(length(which(pcomp[,2]<=0.05))/nsim,length(which(rcomp[,2]<=0.05))/nsim)->p.comp[k,]
+
+            c(length(which(pcomp$slope.difference>0&pcomp$p.slope<=0.05))/nsim,
+              length(which(pcomp$slope.difference<0&pcomp$p.slope<=0.05))/nsim,
+              length(which(pcomp$emm.difference>0&pcomp$p.emm<=0.05))/nsim,
+              length(which(pcomp$emm.difference<0&pcomp$p.emm<=0.05))/nsim)->p.comp.phen[k,]
+
+            c(length(which(rcomp$emm.difference>0&rcomp$p.emm<=0.05))/nsim,
+              length(which(rcomp$emm.difference<0&rcomp$p.emm<=0.05))/nsim,
+              length(which(rcomp$slope.difference>0&rcomp$p.slope<=0.05))/nsim,
+              length(which(rcomp$slope.difference<0&rcomp$p.slope<=0.05))/nsim)->p.comp.rat[k,]
+
+            #c(length(which(pcomp[,2]<=0.05))/nsim,length(which(rcomp[,2]<=0.05))/nsim)->p.comp[k,]
           }
-          colnames(p.comp)<-c("phenotype","rates")
+          colnames(p.comp.phen)<-c("p.slope+","p.slope-","p.emm+","p.emm-")
+          colnames(p.comp.rat)<-c("p.emm+","p.emm-","p.slope+","p.slope-")
           do.call(rbind, nod.nam)->nod.nam
           t(apply(nod.nam, 1, function(x) unlist(lapply(strsplit(x, "g"), "[[", 2))))->nam.pair
           t(apply(nam.pair,1,function(x) trend.node[match(x,trend.node.cut)]))->nam.pair
-          names(phen.comp)<-names(rat.comp)<-rownames(p.comp)<-apply(nam.pair,1, function(x) paste(x[1], x[2], sep="-"))
+          rownames(p.comp.phen)<-rownames(p.comp.rat)<-apply(nam.pair,1, function(x) paste(x[1], x[2], sep="-"))
+          list(p.comp.phen,p.comp.rat)->p.comp
+          names(p.comp)<-c("phenotype","rates")
+          #names(phen.comp)<-names(rat.comp)<-rownames(p.comp)<-apply(nam.pair,1, function(x) paste(x[1], x[2], sep="-"))
         }else{
-          do.call(rbind,lapply(lapply(STcut,"[[",7),"[[",1))[,3:6]->phen.comp
-          do.call(rbind,lapply(lapply(STcut,"[[",7),"[[",2))[,3:6]->rat.comp
-          c(length(which(phen.comp[,2]<=0.05))/nsim,length(which(rat.comp[,2]<=0.05))/nsim)->p.comp
+          as.data.frame(do.call(rbind,lapply(lapply(STcut,"[[",7),"[[",1))[,3:6])->phen.comp
+          as.data.frame(do.call(rbind,lapply(lapply(STcut,"[[",7),"[[",2))[,3:6])->rat.comp
+
+          c(length(which(phen.comp$slope.difference>0&phen.comp$p.slope<=0.05))/nsim,
+            length(which(phen.comp$slope.difference<0&phen.comp$p.slope<=0.05))/nsim,
+            length(which(phen.comp$emm.difference>0&phen.comp$p.emm<=0.05))/nsim,
+            length(which(phen.comp$emm.difference<0&phen.comp$p.emm<=0.05))/nsim)->p.comp.phen
+
+          c(length(which(rat.comp$emm.difference>0&rat.comp$p.emm<=0.05))/nsim,
+            length(which(rat.comp$emm.difference<0&rat.comp$p.emm<=0.05))/nsim,
+            length(which(rat.comp$slope.difference>0&rat.comp$p.slope<=0.05))/nsim,
+            length(which(rat.comp$slope.difference<0&rat.comp$p.slope<=0.05))/nsim)->p.comp.rat
+
+          names(p.comp.phen)<-c("p.slope+","p.slope-","p.emm+","p.emm-")
+          names(p.comp.rat)<-c("p.emm+","p.emm-","p.slope+","p.slope-")
+          list(p.comp.phen,p.comp.rat)->p.comp
           names(p.comp)<-c("phenotype","rates")
         }
       }else{
@@ -289,10 +315,10 @@ overfitRR<-function(RR,y,s=0.25,trend=FALSE,shift.node=NULL,shift.state=NULL,
       p.phen.node<-matrix(ncol=4,nrow=length(trend.node))
       p.rate.node<-matrix(ncol=4,nrow=length(trend.node))
       for(i in 1:length(trend.node)){
-        do.call(rbind,lapply(phen.node,"[[",i))->pnod
+        as.data.frame(do.call(rbind,lapply(phen.node,"[[",i)))->pnod
         rownames(pnod)<-seq(1:nsim)
         pnod->phen.node.ran[[i]]
-        do.call(rbind,lapply(rat.node,"[[",i))->rnod
+        as.data.frame(do.call(rbind,lapply(rat.node,"[[",i)))->rnod
         rnod->rat.node.ran[[i]]
 
 
