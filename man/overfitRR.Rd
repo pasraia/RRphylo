@@ -92,7 +92,7 @@ RRphylo(tree=treeptero,y=log(massptero))->RRptero
   DataCetaceans$brainmasscet->brainmasscet
   DataCetaceans$aceMyst->aceMyst
 
-  drop.tip(treecet,treecet$tip.label[-match(names(brainmasscet),treecet$tip.label)])->treecet.multi
+  ape::drop.tip(treecet,treecet$tip.label[-match(names(brainmasscet),treecet$tip.label)])->treecet.multi
   masscet[match(treecet.multi$tip.label,names(masscet))]->masscet.multi
 
   RRphylo(treecet.multi,masscet.multi)->RRmass.multi
