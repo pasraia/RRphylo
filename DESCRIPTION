@@ -15,3 +15,7 @@ Imports:
   parallel, phangorn, rlist, scales, R.utils, binr, RColorBrewer, nlme, penalized, smatr,
   data.tree, car, outliers, emmeans, picante, vegan, plotrix, cluster, tseries, ddpcr
 RoxygenNote: 6.1.1
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
