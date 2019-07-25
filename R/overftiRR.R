@@ -67,7 +67,7 @@
 #'   DataCetaceans$brainmasscet->brainmasscet
 #'   DataCetaceans$aceMyst->aceMyst
 #'
-#'   drop.tip(treecet,treecet$tip.label[-match(names(brainmasscet),treecet$tip.label)])->treecet.multi
+#'   ape::drop.tip(treecet,treecet$tip.label[-match(names(brainmasscet),treecet$tip.label)])->treecet.multi
 #'   masscet[match(treecet.multi$tip.label,names(masscet))]->masscet.multi
 #'
 #'   RRphylo(treecet.multi,masscet.multi)->RRmass.multi
@@ -125,11 +125,13 @@ overfitRR<-function(RR,y,s=0.25,trend=FALSE,shift.node=NULL,shift.state=NULL,
     }
 
     if(is.null(cov)==FALSE) {
+      cov[match(c(tree.swap$node.label,tree.swap$tip.label), names(cov))]->cov
       cov[match(c(names(y.acecut),names(ycut)),names(cov))]->covcut
       names(cov)[1:Nnode(treecut)]<-seq(1:Nnode(treecut))
     }else covcut<-NULL
 
     if(is.null(x1)==FALSE) {
+      x1[match(c(tree.swap$node.label,tree.swap$tip.label), names(x1))]->x1
       x1[match(c(names(y.acecut),names(ycut)),names(x1))]->x1cut
       names(x1cut)[1:Nnode(treecut)]<-seq(1:Nnode(treecut))
     }else x1cut<-NULL
@@ -172,7 +174,10 @@ overfitRR<-function(RR,y,s=0.25,trend=FALSE,shift.node=NULL,shift.state=NULL,
       for(i in 1:length(shift.node)) getMRCA(treecut,tips(tree,shift.node[i])[which(tips(tree,shift.node[i])%in%treecut$tip.label)])->shift.node.cut[i]
     }
 
-    if(is.null(shift.state)==FALSE) shift.state[match(names(ycut),names(shift.state))]->shift.state.cut
+    if(is.null(shift.state)==FALSE) {
+      shift.state[match(c(tree.swap$node.label,tree.swap$tip.label), names(shift.state))]->shift.state
+      shift.state[match(names(ycut),names(shift.state))]->shift.state.cut
+      }
 
     if(is.null(rootV)==FALSE) rootV->rootVcut else rootVcut<-NULL
 
