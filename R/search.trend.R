@@ -92,7 +92,7 @@
 #'    }
 
 search.trend<-function (RR, y,x1=NULL, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
-                          foldername, ConfInt = FALSE)
+                        foldername, ConfInt = FALSE)
 {
   # require(ape)
   # require(phytools)
@@ -409,7 +409,7 @@ search.trend<-function (RR, y,x1=NULL, nsim = 100, clus = 0.5, node = NULL, cov 
         PPn.ot<-list()
         for (w in 1:(length(node))){
           data.frame(rate=bets,age=rbi.sma$age,group=rbi.sma[,(w+ncol(y)+3)])->emdat
-          suppressMessages(mmeans<-as.data.frame(pairs(emmeans(lm(abs(rate)~age*group,data=emdat),specs="group"))))
+          suppressMessages(mmeans<-as.data.frame(pairs(emmeans(lm(abs(rate)~age+group,data=emdat),specs="group"))))
           mtrends<-as.data.frame(pairs(emtrends(lm(abs(rate)~age*group,data=emdat),specs="group",var="age")))
           mtrends[match(mmeans[,1],mtrends[,1]),]->mtrends
           data.frame(do.call(rbind,strsplit(as.character(mmeans[,1])," - ")),mmeans[,-c(1,3,4,5)],mtrends[,c(2,6)])->nn.ot[[w]]
@@ -417,9 +417,9 @@ search.trend<-function (RR, y,x1=NULL, nsim = 100, clus = 0.5, node = NULL, cov 
           data.frame(yPP,age=PP.sma$age,group=PP.sma[,(w+ncol(y)+3)])->PPemdat
           if(is.null(x1)==FALSE){ #### emmeans multiple ####
             data.frame(PPemdat,x1=x1[match(rownames(PPemdat),names(x1))])->PPemdat
-            suppressMessages(PPmeans<-as.data.frame(pairs(emmeans(lm(range01(yPP)~age+x1*group,data=PPemdat),specs="group"))))
+            suppressMessages(PPmeans<-as.data.frame(pairs(emmeans(lm(range01(yPP)~age+x1+group,data=PPemdat),specs="group"))))
           }else{
-            suppressMessages(PPmeans<-as.data.frame(pairs(emmeans(lm(range01(yPP)~age*group,data=PPemdat),specs="group"))))
+            suppressMessages(PPmeans<-as.data.frame(pairs(emmeans(lm(range01(yPP)~age+group,data=PPemdat),specs="group"))))
           }
           data.frame(do.call(rbind,strsplit(as.character(PPmeans[,1])," - ")),PPmeans[,-c(1,3,4,5)])->PPn.ot[[w]]
 
@@ -430,7 +430,7 @@ search.trend<-function (RR, y,x1=NULL, nsim = 100, clus = 0.5, node = NULL, cov 
         colnames(PPmeans)<-c("group_1","group_2","mean","p.mean")
 
         dat <- data.frame(bets, age=rbi.sma$age, group=rbi.sma$group)
-        suppressMessages(mmeans<-as.data.frame(pairs(emmeans(lm(abs(bets)~age*group,data=dat),specs="group"))))
+        suppressMessages(mmeans<-as.data.frame(pairs(emmeans(lm(abs(bets)~age+group,data=dat),specs="group"))))
         mtrends<-as.data.frame(pairs(emtrends(lm(abs(bets)~age*group,data=dat),specs="group",var="age")))
         mtrends[match(mmeans[,1],mtrends[,1]),]->mtrends
         data.frame(do.call(rbind,strsplit(as.character(mmeans[,1])," - ")),mmeans[,-c(1,3,4,5)],mtrends[,c(2,6)])->sma.resA[[i]]
@@ -441,9 +441,9 @@ search.trend<-function (RR, y,x1=NULL, nsim = 100, clus = 0.5, node = NULL, cov 
         dat <- data.frame(yPP, age=PP.sma$age, group=PP.sma$group)
         if(is.null(x1)==FALSE){ #### emmeans multiple ####
           data.frame(dat,x1=x1[match(rownames(dat),names(x1))])->dat
-          suppressMessages(PPpairs<-as.data.frame(pairs(emmeans(lm(range01(yPP)~age+x1*group,data=dat),specs="group"))))
+          suppressMessages(PPpairs<-as.data.frame(pairs(emmeans(lm(range01(yPP)~age+x1+group,data=dat),specs="group"))))
         }else{
-          suppressMessages(PPpairs<-as.data.frame(pairs(emmeans(lm(range01(yPP)~age*group,data=dat),specs="group"))))
+          suppressMessages(PPpairs<-as.data.frame(pairs(emmeans(lm(range01(yPP)~age+group,data=dat),specs="group"))))
         }
 
         data.frame(do.call(rbind,strsplit(as.character(PPpairs[,1])," - ")),PPpairs[,-c(1,3,4,5)])->sma.resPPemt
@@ -499,7 +499,7 @@ search.trend<-function (RR, y,x1=NULL, nsim = 100, clus = 0.5, node = NULL, cov 
       PPn.ot<-list()
       for (w in 1:(length(node))){
         data.frame(rate=rbi.sma$rate,age=rbi.sma$age,group=rbi.sma[,(w+3)])->emdat
-        suppressMessages(mmeans<-as.data.frame(pairs(emmeans(lm(abs(rate)~age*group,data=emdat),specs="group"))))
+        suppressMessages(mmeans<-as.data.frame(pairs(emmeans(lm(abs(rate)~age+group,data=emdat),specs="group"))))
         mtrends<-as.data.frame(pairs(emtrends(lm(abs(rate)~age*group,data=emdat),specs="group",var="age")))
         mtrends[match(mmeans[,1],mtrends[,1]),]->mtrends
         data.frame(do.call(rbind,strsplit(as.character(mmeans[,1])," - ")),mmeans[,-c(1,3,4,5)],mtrends[,c(2,6)])->n.ot[[w]]
@@ -508,9 +508,9 @@ search.trend<-function (RR, y,x1=NULL, nsim = 100, clus = 0.5, node = NULL, cov 
 
         if(is.null(x1)==FALSE){ #### emmeans multiple ####
           data.frame(PPemdat,x1=x1[match(rownames(PP.sma),names(x1))])->PPemdat
-          suppressMessages(PPmeans<-as.data.frame(pairs(emmeans(lm(range01(y)~age+x1*group,data=PPemdat),specs="group"))))
+          suppressMessages(PPmeans<-as.data.frame(pairs(emmeans(lm(range01(y)~age+x1+group,data=PPemdat),specs="group"))))
         }else{
-          suppressMessages(PPmeans<-as.data.frame(pairs(emmeans(lm(range01(y)~age*group,data=PPemdat),specs="group"))))
+          suppressMessages(PPmeans<-as.data.frame(pairs(emmeans(lm(range01(y)~age+group,data=PPemdat),specs="group"))))
         }
         data.frame(do.call(rbind,strsplit(as.character(PPmeans[,1])," - ")),PPmeans[,-c(1,3,4,5)])->PPn.ot[[w]]
       }
@@ -520,7 +520,7 @@ search.trend<-function (RR, y,x1=NULL, nsim = 100, clus = 0.5, node = NULL, cov 
       colnames(n.ot)<-c("group_1","group_2","emm.difference","p.emm","slope.difference","p.slope")
       colnames(PPn.ot)<-c("group_1","group_2","mean","p.mean")
 
-      suppressMessages(mmeans<-as.data.frame(pairs(emmeans(lm(abs(rate)~age*group,data=rbi.sma),specs="group"))))
+      suppressMessages(mmeans<-as.data.frame(pairs(emmeans(lm(abs(rate)~age+group,data=rbi.sma),specs="group"))))
       mtrends<-as.data.frame(pairs(emtrends(lm(abs(rate)~age*group,data=rbi.sma),specs="group",var="age")))
       mtrends[match(mmeans[,1],mtrends[,1]),]->mtrends
       data.frame(do.call(rbind,strsplit(as.character(mmeans[,1])," - ")),mmeans[,-c(1,3,4,5)],mtrends[,c(2,6)])->sma.resA
@@ -544,9 +544,9 @@ search.trend<-function (RR, y,x1=NULL, nsim = 100, clus = 0.5, node = NULL, cov 
 
       if(is.null(x1)==FALSE){ #### emmeans multiple ####
         data.frame(PP.sma,x1=x1[match(rownames(PP.sma),names(x1))])->PP.sma
-        suppressMessages(PPmeans<-as.data.frame(pairs(emmeans(lm(range01(y)~age+x1*group,data=PP.sma),specs="group"))))
+        suppressMessages(PPmeans<-as.data.frame(pairs(emmeans(lm(range01(y)~age+x1+group,data=PP.sma),specs="group"))))
       }else{
-        suppressMessages(PPmeans<-as.data.frame(pairs(emmeans(lm(range01(y)~age*group,data=PP.sma),specs="group"))))
+        suppressMessages(PPmeans<-as.data.frame(pairs(emmeans(lm(range01(y)~age+group,data=PP.sma),specs="group"))))
       }
 
       data.frame(do.call(rbind,strsplit(as.character(PPmeans[,1])," - ")),PPmeans[,-c(1,3,4,5)])->sma.resPPemm
