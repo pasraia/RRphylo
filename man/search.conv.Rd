@@ -17,17 +17,17 @@ clus=.5,foldername=NULL)
 
 \item{nodes}{node pair to be tested. If unspecified, the function automatically searches for convergence among clades. Notice the node number must refer to the dichotomic version of the original tree, as produced by \code{RRphylo}.}
 
-\item{state}{the state of the tips. If a single convergent state is indicated species within the state are tested. Otherwise, species belonging to different parts of the tree could be tested for convergence on each other by indicating different states. This latter case is especially meant to test for iterative evolution (i.e. the appearance of repeated morphotypes into different clades). The state for non-focal species (i.e. not belonging to any convergent group) must be indicated as "nostate".}
+\item{state}{the named vector of tip states. The function tests for convergence within a single state or among different states (this latter case is especially meant to test for iterative evolution as for example the appearance of repeated morphotypes into different clades). In both cases, the state for non-focal species (i.e. not belonging to any convergent group) must be indicated as "nostate".}
 
 \item{aceV}{phenotypic values at internal nodes. The object \code{aceV} should be either a matrix or dataframe with nodes (referred to the dichotomic version of the original tree, as produced by \code{RRphylo}) as rownames. If \code{aceV} are not indicated, ancestral phenotypes are estimated via \code{RRphylo}.}
 
-\item{min.dim}{the minimum size of the clades to be compared. When \code{nodes} is indicated, it indicates the minimum size of the smallest clades in \code{nodes}, otherwise it is set at one tenth of the tree size.}
+\item{min.dim}{the minimum size of the clades to be compared. When \code{nodes} is indicated, it is the minimum size of the smallest clades in \code{nodes}, otherwise it is set at one tenth of the tree size.}
 
 \item{max.dim}{the maximum size of the clades to be compared. When \code{nodes} is indicated, it is \code{min.dim}*2 if the largest clade in \code{nodes} is smaller than this value, otherwise it corresponds to the size of the largest clade. Whitout \code{nodes} it is set at one third of the tree size.}
 
-\item{min.dist}{the minimum distance, in terms of number of nodes, between the clades to be compared. When \code{nodes} is indicated, it indicates the minimum distance between the pair, otherwise it is set at one tenth of the tree size.}
+\item{min.dist}{the minimum distance between the clades to be compared. When \code{nodes} is indicated, it is the distance between the pair. Under the automatic mode, the user can choose whether time distance or node distance (i.e. the number of nodes intervening between the pair) should be used. If time distance has to be considered, \code{min.dist} should be a character argument containing the word "time" and then the actual time distance to be used. The same is true for node distance, but the word "node" must preceed the node distance to be used. For example, if the user want to test only clades more distant than 10 time units, the argument should be "time10". If clades separated by more than 8 nodes has to be tested, the argument \code{min.dist} should be "node8". If left unspecified, it automatically searches for convergence between clades separated by a number of nodes bigger than one tenth of the tree size.}
 
-\item{PGLSf}{if the argument is set to \code{TRUE} (default), the function tests whether states have phylogenetic structure, by running a runs test. If the states are phylogenetically structured, a \code{\link{PGLS_fossil}} is performed using states as the predictor variables. PGLS residuals will be used to test for convergence.}
+\item{PGLSf}{if the argument is set to \code{TRUE} (default), the function tests whether states have phylogenetic structure, by running a runs test. If the states are phylogenetically structured, a \code{\link{PGLS_fossil}} is performed using states as the predictor variables. PGLS residuals will be used to test for convergence. Please notice, this is not suited for ultrametric trees.}
 
 \item{nsim}{number of simulations to perform sampling within the theta random distribution. It is set at 1000 by default.}
 
@@ -67,23 +67,35 @@ If convergence between (or within a single state) states is tested, the function
 The function scans a phylogenetic tree looking for morphological convergence between entire clades or species evolving under specific states.
 }
 \details{
-Regardless the case (either ‘state’ or ‘clade’), the function stores a plot into the folder specified by \code{foldername}. If convergence among clades is tested, the clade pair plotted corresponds to those clades with the smallest \code{$average distance from group centroid}. The figure shows the Euclidean distances computed between the MRCAs of the clades and the mean Euclidean distance computed between all the tips belonging to the converging clades, as compared to the distribution of these same figures across the rest of the tree. Furthermore, the function stores the PC1/PC2 plot obtained by PCA of the species phenotypes. Convergent clades are indicated by colored convex hulls. Large colored dots represent the mean phenotypes per clade (i.e. their group centroids). Eventually, a modified traitgram plot is produced, highlighting the branches of the clades found to converge. In both PCA and traitgram, asterisks represent the ancestral phenotypes of the individual clades. If convergence among states is tested, the function produces a PC plot with colored convex hulls enclosing species belonging to different states. Furthermore, it generates circular plots of the mean angle between states (blue lines) and the range of random angles (gray shaded area). The p- value for the convergence test is printed within the circular plots.
+Regardless the case (either 'state' or 'clade'), the function stores a plot into the folder specified by \code{foldername}. If convergence among clades is tested, the clade pair plotted corresponds to those clades with the smallest \code{$average distance from group centroid}. The figure shows the Euclidean distances computed between the MRCAs of the clades and the mean Euclidean distance computed between all the tips belonging to the converging clades, as compared to the distribution of these same figures across the rest of the tree. Furthermore, the function stores the PC1/PC2 plot obtained by PCA of the species phenotypes. Convergent clades are indicated by colored convex hulls. Large colored dots represent the mean phenotypes per clade (i.e. their group centroids). Eventually, a modified traitgram plot is produced, highlighting the branches of the clades found to converge. In both PCA and traitgram, asterisks represent the ancestral phenotypes of the individual clades. If convergence among states is tested, the function produces a PC plot with colored convex hulls enclosing species belonging to different states. Furthermore, it generates circular plots of the mean angle between states (blue lines) and the range of random angles (gray shaded area). The p-value for the convergence test is printed within the circular plots.
 }
 \examples{
-  data("DataUng")
-  DataUng$PCscoresung->PCscoresung
-  DataUng$treeung->treeung
-  DataUng$stateung->stateung
+\donttest{
+   data("DataUng")
+   DataUng$PCscoresung->PCscoresung
+   DataUng$treeung->treeung
+   DataUng$stateung->stateung->stateung1
+   stateung1[which(stateung1=="Br")]<-"nostate"
 
-  data("DataFelids")
-  DataFelids$PCscoresfel->PCscoresfel
-  DataFelids$treefel->treefel
+   data("DataFelids")
+   DataFelids$PCscoresfel->PCscoresfel
+   DataFelids$treefel->treefel
 
-  \donttest{
-  search.conv(tree=treeung, y=PCscoresung, state=stateung, foldername = tempdir())
+   ### searching convergence within a single state ###
+   search.conv(tree=treeung, y=PCscoresung, state=stateung1, foldername = tempdir())
 
-  RRphylo(treefel,PCscoresfel)->RRfel
-  search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, foldername = tempdir())
+   ### searching convergence between two states ###
+   search.conv(tree=treeung, y=PCscoresung, state=stateung, foldername = tempdir())
+
+
+   RRphylo(treefel,PCscoresfel)->RRfel
+
+   ### searching convergence between clades by setting min.dist as node distance  ###
+   search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="node9", foldername = tempdir())
+
+   ### searching convergence between clades by setting min.dist as time distance ###
+   search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="time38", foldername = tempdir())
+
   }
 }
 \author{
