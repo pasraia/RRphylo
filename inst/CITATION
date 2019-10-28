@@ -17,7 +17,7 @@ citEntry(entry        = "Manual",
          url          = "https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.12954",
          textVersion  = paste("Raia, P., Castiglione, S., Serio, C., Mondanaro, A., Melchionna, M., Di Febbraro, M., Profico, A., &                                Carotenuto,F. (2019)",
                         "RRphylo: Phylogenetic Ridge Regression Methods for Comparative Studies.",
-                        "R package version 2.1.0."
+                        "R package version 2.2.1."
                         )
 )
 
