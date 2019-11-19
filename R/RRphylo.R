@@ -23,11 +23,10 @@
 #' @return \strong{predicted.phenotypes} the vector of estimated tip values. It is a matrix in the case of multivariate data.
 #' @return \strong{multiple.rates} a \eqn{n * m} matrix, where n= number of branches (i.e. n*2-1) and m = number of variables. For each branch, the column entries represent the evolutionary rate.
 #' @return \strong{lambda} the regularization factor fitted within \code{RRphylo} by the inner function \code{optL}. With multivariate data, several \code{optL} runs are performed. Hence, the function provides a single lambda for each individual variable.
-#' @return \strong{ace values} if \code{aces} are specified, the function returns a dataframe containing the corresponding node number on the \code{RRphylo} tree  for each node , along with estimated values.
-#' @return \strong{x1 rate} if \code{x1} is specified, the function returns the partial regression coefficient for \code{x1}.
+#' @return \strong{ace.alues} if \code{aces} are specified, the function returns a dataframe containing the corresponding node number on the \code{RRphylo} tree  for each node , along with estimated values.
+#' @return \strong{x1.rate} if \code{x1} is specified, the function returns the partial regression coefficient for \code{x1}.
 #' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
-#' @references
-#' Castiglione, S., Tesone, G., Piccolo, M., Melchionna, M., Mondanaro, A., Serio, C., Di Febbraro, M., & Raia, P.(2018). A new method for testing evolutionary rate variation and shifts in phenotypic evolution. \emph{Methods in Ecology and Evolution}, 9: 974-983.doi:10.1111/2041-210X.12954
+#' @references Castiglione, S., Tesone, G., Piccolo, M., Melchionna, M., Mondanaro, A., Serio, C., Di Febbraro, M., & Raia, P.(2018). A new method for testing evolutionary rate variation and shifts in phenotypic evolution. \emph{Methods in Ecology and Evolution}, 9: 974-983.doi:10.1111/2041-210X.12954
 #' @examples
 #'  \donttest{
 #' data("DataOrnithodirans")
@@ -297,7 +296,6 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
           np<-which(treeN$tip.label ==
                       paste("nod",Ns[h], sep = ""))
           (getMommy(treeN,np)[1]-(Ntip(treeN)))->npos
-          #match(getMommy(treeN,np)[1],names(ace1new))->npos
           if(npos== Nnode(treeN)) c(ace1new,Px1[h])->ace1new else
             insert.at(ace1new,(npos-1),Px1[h])->ace1new
           h=h+1
@@ -419,8 +417,6 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
     y.hat <- as.matrix(y.hat[-match(tip.rem, rownames(y.hat)),
                              ])
     t <- drop.tip(t, tip.rem)
-    # L <- makeL(t)
-    # L1 <- makeL1(t)
     rownames(betas)[1:Nnode(t)] <- rownames(aceRR) <- seq((Ntip(t) +
                                                              1), (Ntip(t) + Nnode(t)), 1)
     if (length(y.hat) > Ntip(t)) {
@@ -507,12 +503,12 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
                 lambda, ace.estimates)
     names(res) <- c("tree", "tip.path", "node.path", "rates",
                     "aces", "predicted.phenotype", "multiple.rates",
-                    "lambda", "ace values")
+                    "lambda", "ace.values")
   }
 
   if(is.null(x1)==FALSE) {
     res[[(length(res)+1)]]<-x1.rate
-    names(res)[length(res)]<-"x1 rate"
+    names(res)[length(res)]<-"x1.rate"
   }
 
   return(res)

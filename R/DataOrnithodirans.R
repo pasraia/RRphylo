@@ -1,5 +1,5 @@
 #' @title Example dataset
-#' @description Ornithodirans' body mass, phylogenetic tree and locomotory type  (\cite{Castiglione et al 2017}).
+#' @description Ornithodirans' body mass, phylogenetic tree and locomotory type  (\cite{Castiglione et al 2018}).
 #' @name DataOrnithodirans
 #' @format A list containing:
 #' \describe{

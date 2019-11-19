@@ -44,7 +44,7 @@
 #'   # with auto-recognize
 #'     search.shift(dinoRates, status.type= "clade",foldername=tempdir())
 #'   # testing two hypothetical clades
-#'     search.shift(dinoRates, status.type= "clade", node=c(697,746),
+#'     search.shift(dinoRates, status.type= "clade", node=c(697,748),
 #'     foldername=tempdir())
 #'
 #'  # Case 1.2 "sparse" condition

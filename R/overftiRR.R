@@ -128,7 +128,7 @@ overfitRR<-function(RR,y,s=0.25,trend=FALSE,shift.node=NULL,shift.state=NULL,
     if(is.null(cov)==FALSE) {
       cov[match(c(tree.swap$node.label,tree.swap$tip.label), names(cov))]->cov
       cov[match(c(names(y.acecut),names(ycut)),names(cov))]->covcut
-      names(cov)[1:Nnode(treecut)]<-seq(1:Nnode(treecut))
+      names(covcut)[1:Nnode(treecut)]<-seq((Ntip(treecut)+1),(Ntip(treecut)+Nnode(treecut)))
     }else covcut<-NULL
 
     if(is.null(x1)==FALSE) {
@@ -147,9 +147,7 @@ overfitRR<-function(RR,y,s=0.25,trend=FALSE,shift.node=NULL,shift.state=NULL,
       }
       if(length(drop>0)) acescut[-drop]->acescut
 
-    }else{
-      acescut<-NULL
-    }
+    }else acescut<-NULL
 
     if(is.null(aces.x1)==FALSE){
       aces.x1->aces.x1cut
@@ -161,9 +159,7 @@ overfitRR<-function(RR,y,s=0.25,trend=FALSE,shift.node=NULL,shift.state=NULL,
       }
       if(length(drop>0)) aces.x1cut[-drop]->aces.x1cut
 
-    }else{
-      aces.x1cut<-NULL
-    }
+    }else aces.x1cut<-NULL
 
     if(is.null(trend.node)==FALSE){
       trend.node.cut<-array()
@@ -189,7 +185,6 @@ overfitRR<-function(RR,y,s=0.25,trend=FALSE,shift.node=NULL,shift.state=NULL,
 
 
     RRcut$aces[1,]->rootlist[k]
-    # ycut->ylist[[k]]
     summary(lm(y.acecut~RRcut$aces))->acefit[[k]]
   }
 
@@ -211,7 +206,6 @@ overfitRR<-function(RR,y,s=0.25,trend=FALSE,shift.node=NULL,shift.state=NULL,
                           "all.clades.together","p.all.clades.together")
 
     }else{
-      #do.call(rbind,lapply(lapply(SScut,"[[",2),function(x) x[2]))-> p.ran
       do.call(rbind,lapply(lapply(SScut,"[[",1),function(x) x[2]))-> p.ran
       apply(p.ran,2,function(x) length(which(x<=0.025|x>=0.975)))/nsim->p.shift
       names(p.shift)<-colnames(p.ran)<-shift.node
@@ -276,7 +270,6 @@ overfitRR<-function(RR,y,s=0.25,trend=FALSE,shift.node=NULL,shift.state=NULL,
               length(which(rcomp$slope.difference>0&rcomp$p.slope<=0.05))/nsim,
               length(which(rcomp$slope.difference<0&rcomp$p.slope<=0.05))/nsim)->p.comp.rat[k,]
 
-            #c(length(which(pcomp[,2]<=0.05))/nsim,length(which(rcomp[,2]<=0.05))/nsim)->p.comp[k,]
           }
           colnames(p.comp.phen)<-c("p.slope+","p.slope-","p.emm+","p.emm-")
           colnames(p.comp.rat)<-c("p.emm+","p.emm-","p.slope+","p.slope-")
@@ -286,7 +279,6 @@ overfitRR<-function(RR,y,s=0.25,trend=FALSE,shift.node=NULL,shift.state=NULL,
           rownames(p.comp.phen)<-rownames(p.comp.rat)<-apply(nam.pair,1, function(x) paste(x[1], x[2], sep="-"))
           list(p.comp.phen,p.comp.rat)->p.comp
           names(p.comp)<-c("phenotype","rates")
-          #names(phen.comp)<-names(rat.comp)<-rownames(p.comp)<-apply(nam.pair,1, function(x) paste(x[1], x[2], sep="-"))
         }else{
           as.data.frame(do.call(rbind,lapply(lapply(STcut,"[[",7),"[[",1))[,3:6])->phen.comp
           as.data.frame(do.call(rbind,lapply(lapply(STcut,"[[",7),"[[",2))[,3:6])->rat.comp
@@ -311,7 +303,6 @@ overfitRR<-function(RR,y,s=0.25,trend=FALSE,shift.node=NULL,shift.state=NULL,
       }
 
       phen.node.ran<-rat.node.ran<-list()
-      #p.trend.node<-matrix(ncol=2,nrow=length(trend.node))
       p.phen.node<-matrix(ncol=4,nrow=length(trend.node))
       p.rate.node<-matrix(ncol=4,nrow=length(trend.node))
       for(i in 1:length(trend.node)){
@@ -338,8 +329,6 @@ overfitRR<-function(RR,y,s=0.25,trend=FALSE,shift.node=NULL,shift.state=NULL,
       rownames(p.phen.node)<-rownames(p.rate.node)<-names(phen.node.ran)<-names(rat.node.ran)<-trend.node
       list(p.phen.node,p.rate.node)->p.trend.node
       names(p.trend.node)<-c("phenotype","rates")
-      #colnames(p.trend.node)<-c("phenotype","rates")
-      #rownames(p.trend.node)<-names(phen.node.ran)<-names(rat.node.ran)<-trend.node
       node.res<-list("node.phenotype"=phen.node.ran,"node.rates"=rat.node.ran,"node.p"=p.trend.node)
       if(length(trend.node)>1) node.res<-list.append(node.res,"comparison.phenotype"=phen.comp,"comparison.rates"=rat.comp,"comparison.p"=p.comp)
       trend.res<-do.call(c,list(whole.tree.res,node.res))
