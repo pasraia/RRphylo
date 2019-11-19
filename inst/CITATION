@@ -15,7 +15,7 @@ citEntry(entry        = "Manual",
          volume       = "9",
          pages        = "974-983",
          url          = "https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.12954",
-         textVersion  = paste("Raia, P., Castiglione, S., Serio, C., Mondanaro, A., Melchionna, M., Di Febbraro, M., Profico, A., &                                Carotenuto,F. (2019)",
+         textVersion  = paste("Raia, P., Castiglione, S., Serio, C., Mondanaro, A., Melchionna, M., Di Febbraro, M., Profico, A., &                                Carotenuto,F. (2019).",
                         "RRphylo: Phylogenetic Ridge Regression Methods for Comparative Studies.",
                         "R package version 2.2.1."
                         )
@@ -37,7 +37,7 @@ citEntry(entry        = "Article",
          volume       = "9",
          pages        = "974-983",
          url          = "https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.12954",
-         textVersion  = paste("Castiglione, S., Tesone, G., Piccolo, M., Melchionna, M., Mondanaro, A., Serio, C., Di                            Febbraro, M., & Raia, P.(2018)",
+         textVersion  = paste("Castiglione, S., Tesone, G., Piccolo, M., Melchionna, M., Mondanaro, A., Serio, C., Di                            Febbraro, M., & Raia, P.(2018).",
                         "A new method for testing evolutionary rate variation and shifts in phenotypic evolution.",
                         "Methods in Ecology and Evolution, 9: 974-983.",
                         "doi:10.1111/2041-210X.12954")
@@ -60,9 +60,59 @@ citEntry(entry = "Article",
          volume       = "14",
          pages        = "e0210101",
          url          = "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0210101",
-         textVersion  = paste("Castiglione, S., Serio, C., Mondanaro, A., Di Febbraro, M., Profico, A., Girardi, G.,                         & Raia, P.(2019)",
+         textVersion  = paste("Castiglione, S., Serio, C., Mondanaro, A., Di Febbraro, M., Profico, A., Girardi, G.,                         & Raia, P.(2019).",
                         "Simultaneous detection of macroevolutionary patterns in phenotypic means and rate of change                          with and within phylogenetic trees including extinct species.",
                         "PLoS ONE, 14: e0210101.",
                         "doi.org/10.1371/journal.pone.0210101")
 
+)
+
+
+
+citEntry(entry        = "Article",
+         header       = "multiple regression version of RRphylo",
+         title        = "Macroevolution of toothed whales exceptional relative brain size.",
+         author       = personList(as.person("Carmela Serio"),
+                                   as.person("Silvia Castiglione"),
+                                   as.person("Gianmarco Tesone"),
+                                   as.person("Martina Piccolo"),
+                                   as.person("Marina Melchionna"),
+                                   as.person("Alessandro Mondanaro"),
+                                   as.person("Mirko Di Febbraro"),
+                                   as.person("Pasquale Raia")),
+         journal      = "Evolutionary Biology",
+         year         = "2019",
+         volume       = "46",
+         pages        = "332-342",
+         url          = "https://link.springer.com/article/10.1007/s11692-019-09485-7",
+         textVersion  = paste("Serio, C., Castiglione, S., Tesone, G., Piccolo, M., Melchionna, M., Mondanaro, A., Di                            Febbraro, M., & Raia, P.(2019).",
+                        "Macroevolution of toothed whales exceptional relative brain size.",
+                        "Evolutionary Biology, 46: 332-342.",
+                        "doi:10.1007/s11692-019-09485-7")
+)
+
+
+
+citEntry(entry        = "Article",
+         title        = "Macroevolutionary trends of brain mass in Primates.",
+         author       = personList(as.person("Marina Melchionna"),
+                                   as.person("Alessandro Mondanaro"),
+                                   as.person("Carmela Serio"),
+                                   as.person("Silvia Castiglione"),
+                                   as.person("Mirko Di Febbraro"),
+                                   as.person("Lorenzo Rook"),
+                                   as.person("José Alexandre Diniz-Filho"),
+                                   as.person("Giorgio Manzi"),
+                                   as.person("Antonio Profico"),
+                                   as.person("Gabriele Sansalone"),
+                                   as.person("Pasquale Raia")),
+         journal      = "Biological Journal of the Linnean Society",
+         year         = "2019",
+         volume       = "",
+         pages        = "",
+         url          = "https://academic.oup.com/biolinnean/advance-article/doi/10.1093/biolinnean/blz161/5614248",
+         textVersion  = paste("Melchionna, M., Mondanaro, A., Serio, C., Castiglione, S., Di Febbraro, M., Rook, L.,                            Febbraro, M., Diniz-Filho,J.A.F., Manzi, G., Profico, A., Sansalone, G., & Raia, P.(2019).",
+                        "Macroevolutionary trends of brain mass in Primates.",
+                        "Biological Journal of the Linnean Society, in press",
+                        "doi:10.1093/biolinnean/blz161")
 )
