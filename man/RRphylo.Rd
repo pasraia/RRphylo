@@ -40,9 +40,9 @@ RRphylo(tree,y,cov=NULL,rootV=NULL,aces=NULL,x1=NULL,aces.x1=NULL,clus=0.5)
 
 \strong{lambda} the regularization factor fitted within \code{RRphylo} by the inner function \code{optL}. With multivariate data, several \code{optL} runs are performed. Hence, the function provides a single lambda for each individual variable.
 
-\strong{ace values} if \code{aces} are specified, the function returns a dataframe containing the corresponding node number on the \code{RRphylo} tree  for each node , along with estimated values.
+\strong{ace.alues} if \code{aces} are specified, the function returns a dataframe containing the corresponding node number on the \code{RRphylo} tree  for each node , along with estimated values.
 
-\strong{x1 rate} if \code{x1} is specified, the function returns the partial regression coefficient for \code{x1}.
+\strong{x1.rate} if \code{x1} is specified, the function returns the partial regression coefficient for \code{x1}.
 }
 \description{
 The function \code{RRphylo} (\cite{Castiglione et al. 2018}) performs the phylogenetic ridge regression. It takes a tree and a vector of tip data (phenotypes) as entries, calculates the regularization factor, produces the matrices of tip to root (\code{\link{makeL}}), and node to root distances (\code{\link{makeL1}}), the vector of ancestral state estimates, the vector of predicted phenotypes, and the rates vector for all the branches of the tree. For multivariate data, rates are given as both one vector per variable, and as a multivariate vector obtained by computing the Euclidean Norm of individual rate vectors.

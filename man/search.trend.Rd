@@ -28,11 +28,11 @@ search.trend(RR,y,x1=NULL,nsim=100,clus=.5,node=NULL,cov=NULL,foldername,ConfInt
 \value{
 The function returns a ‘list’ object including:
 
-\strong{$rbt} for each branch of the tree, there are the age of the daughter node/tip (D.age), the age of the parental node (P.age), the \code{RRphylo} rates, and the distance from the tree root (age). If y is multivariate, it also includes the multiple rates for each y vector.
+\strong{$rbt} for each branch of the tree, there are the \code{RRphylo} rates and the distance from the tree root (age). If y is multivariate, it also includes the multiple rates for each y vector. If \code{'node'} is specified, each branch is classified as belonging or not to the indicated clades.
 
 \strong{$pbt} a data frame of phenotypic values and their distance from the tree root for each node (i.e. ancestral states) and tip of the tree.
 
-\strong{$phenotypic.regression} results of phenotype versus age regression. It reports a p-value for the regression slope between the variables (p.real), a p-value computed contrasting the real slope to Brownian motion simulations (p.random), and a parameter indicating the deviation of the phenotypic mean from the root value in terms of the number of standard deviations of the trait distribution (dev). dev is 1 under Brownian Motion. Only p.random should be inspected to assess significance.
+\strong{$phenotypic.regression} results of phenotype versus age regression. It reports a p-value for the regression slope between the variables (p.real), a p-value computed contrasting the real slope to Brownian motion simulations (p.random), and a parameter indicating the deviation of the phenotypic mean from the root value in terms of the number of standard deviations of the trait distribution (dev). dev is 0 under Brownian Motion. Only p.random should be inspected to assess significance.
 
 \strong{$rate.regression} results of the rates (absolute values) versus age regression. It reports a p-value for the regression between the variables (p.real), a p-value computed contrasting the real slope to Brownian motion simulations (p.random), and a parameter indicating the ratio between the range of phenotypic values and the range of such values halfway along the tree height, divided to the same figure under Brownian motion (spread). spread is 1 under Brownian Motion. Only p.random should be inspected to assess significance.
 
