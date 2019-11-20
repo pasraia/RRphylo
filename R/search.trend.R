@@ -410,7 +410,9 @@ search.trend<-function (RR, y,x1=NULL, nsim = 100, clus = 0.5, node = NULL, cov 
         for (w in 1:(length(node))){
           data.frame(rate=bets,age=rbi.sma$age,group=rbi.sma[,(w+ncol(y)+3)])->emdat
           suppressMessages(mmeans<-as.data.frame(pairs(emmeans(lm(abs(rate)~age+group,data=emdat),specs="group"))))
+          assign("emdat", emdat, envir=globalenv())
           mtrends<-as.data.frame(pairs(emtrends(lm(abs(rate)~age*group,data=emdat),specs="group",var="age")))
+          rm(list=ls()[which(ls()=="emdat")], envir = .GlobalEnv )
           mtrends[match(mmeans[,1],mtrends[,1]),]->mtrends
           data.frame(do.call(rbind,strsplit(as.character(mmeans[,1])," - ")),mmeans[,-c(1,3,4,5)],mtrends[,c(2,6)])->nn.ot[[w]]
 
@@ -431,7 +433,9 @@ search.trend<-function (RR, y,x1=NULL, nsim = 100, clus = 0.5, node = NULL, cov 
 
         dat <- data.frame(bets, age=rbi.sma$age, group=rbi.sma$group)
         suppressMessages(mmeans<-as.data.frame(pairs(emmeans(lm(abs(bets)~age+group,data=dat),specs="group"))))
-        mtrends<-as.data.frame(pairs(emtrends(lm(abs(bets)~age*group,data=dat),specs="group",var="age")))
+        assign("dat", emdat, envir=globalenv())
+        mtrends<-as.data.frame(pairs(emtrends(model=lm(abs(bets)~age*group,data=dat),specs="group",var="age")))
+        rm(list=ls()[which(ls()=="dat")], envir = .GlobalEnv )
         mtrends[match(mmeans[,1],mtrends[,1]),]->mtrends
         data.frame(do.call(rbind,strsplit(as.character(mmeans[,1])," - ")),mmeans[,-c(1,3,4,5)],mtrends[,c(2,6)])->sma.resA[[i]]
         colnames(sma.resA[[i]])<-c("group_1","group_2","emm.difference","p.emm","slope.difference","p.slope")
@@ -500,7 +504,9 @@ search.trend<-function (RR, y,x1=NULL, nsim = 100, clus = 0.5, node = NULL, cov 
       for (w in 1:(length(node))){
         data.frame(rate=rbi.sma$rate,age=rbi.sma$age,group=rbi.sma[,(w+3)])->emdat
         suppressMessages(mmeans<-as.data.frame(pairs(emmeans(lm(abs(rate)~age+group,data=emdat),specs="group"))))
+        assign("emdat", emdat, envir=globalenv())
         mtrends<-as.data.frame(pairs(emtrends(lm(abs(rate)~age*group,data=emdat),specs="group",var="age")))
+        rm(list=ls()[which(ls()=="emdat")], envir = .GlobalEnv )
         mtrends[match(mmeans[,1],mtrends[,1]),]->mtrends
         data.frame(do.call(rbind,strsplit(as.character(mmeans[,1])," - ")),mmeans[,-c(1,3,4,5)],mtrends[,c(2,6)])->n.ot[[w]]
 
@@ -521,7 +527,9 @@ search.trend<-function (RR, y,x1=NULL, nsim = 100, clus = 0.5, node = NULL, cov 
       colnames(PPn.ot)<-c("group_1","group_2","mean","p.mean")
 
       suppressMessages(mmeans<-as.data.frame(pairs(emmeans(lm(abs(rate)~age+group,data=rbi.sma),specs="group"))))
+      assign("rbi.sma", emdat, envir=globalenv())
       mtrends<-as.data.frame(pairs(emtrends(lm(abs(rate)~age*group,data=rbi.sma),specs="group",var="age")))
+      rm(list=ls()[which(ls()=="rbi.sma")], envir = .GlobalEnv )
       mtrends[match(mmeans[,1],mtrends[,1]),]->mtrends
       data.frame(do.call(rbind,strsplit(as.character(mmeans[,1])," - ")),mmeans[,-c(1,3,4,5)],mtrends[,c(2,6)])->sma.resA
 
