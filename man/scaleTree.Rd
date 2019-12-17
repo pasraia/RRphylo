@@ -22,9 +22,10 @@ Rescaled phylogentic tree.
 The function is a wrapper around the functions "scalePhylo", "assign.ages", and "assign.brlen" written by Gene Hunt (http://paleobiology.si.edu/staff/individuals/hunt.cfm) . It rescales tree branch lengths according to given calibration dates.
 }
 \examples{
-\dontrun{
+\donttest{
 library(ape)
 library(phytools)
+library(geiger)
 set.seed(76)
 rtree(100)->tree
 
