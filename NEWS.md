@@ -1,3 +1,9 @@
+# RRphylo 2.3.0
+What's new in version 2.3.0
+New function added!
+The function scaleTree rescales a phylogenetic tree according to nodes and tips calibration ages.
+The function PGLS_fossil has been implemented to work with multivariate data and to use different types of correlation structure.
+
 # RRphylo 2.2.0
 What's new in version 2.2.0
 The multiple version of RRphylo has been implemented!
