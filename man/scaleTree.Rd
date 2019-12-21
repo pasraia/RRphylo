@@ -26,36 +26,35 @@ The function is a wrapper around the functions "scalePhylo", "assign.ages", and 
 library(ape)
 library(phytools)
 library(geiger)
-set.seed(76)
-rtree(100)->tree
+
+data("DataFelids")
+DataFelids$treefel->tree
 
 max(nodeHeights(tree))->H
 
 #### Example 1 ####
 H-diag(vcv(tree))->tipAges
-tipAges[tips(tree,160)]<-min(tipAges)
+tipAges[tips(tree,146)]<-min(tipAges)
 H->nodeAges
 names(nodeAges)<-Ntip(tree)+1
-
 scaleTree(tree,tipAges,nodeAges)->treeS1
 
 edge.col<-rep("black",nrow(tree$edge))
-edge.col[which(treeS1$edge[,2]\%in\%getDescendants(treeS1,160))]<-"red"
+edge.col[which(treeS1$edge[,2]\%in\%getDescendants(treeS1,146))]<-"red"
 
 layout(2:1)
 plot(tree,edge.color = edge.col,show.tip.label=F)
 plot(treeS1,edge.color = edge.col,show.tip.label=F)
 
 #### Example 2 ####
-nodeAges<-c(H,4.5,6,6)
-names(nodeAges)<-c(101,143,171,121)
+nodeAges<-c(H,23.5,15.6)
+names(nodeAges)<-c(84,85,139)
 tipAges<-H-diag(vcv(tree))
 scaleTree(tree,tipAges,nodeAges)->treeS2
 
 edge.col<-rep("black",nrow(tree$edge))
-edge.col[which(treeS1$edge[,2]\%in\%c(getDescendants(treeS1,143),
-                                    getDescendants(treeS1,171),
-                                    getDescendants(treeS1,121)))]<-"red"
+edge.col[which(treeS1$edge[,2]\%in\%c(getDescendants(treeS1,85),
+                                    getDescendants(treeS1,139)))]<-"red"
 
 layout(2:1)
 plot(tree,edge.color = edge.col,show.tip.label=F)
