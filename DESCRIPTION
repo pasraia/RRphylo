@@ -1,7 +1,7 @@
 Package: RRphylo
 Type: Package
 Title: Phylogenetic Ridge Regression Methods for Comparative Studies
-Date: 2019-12-17
+Date: 2019-12-21
 Version: 2.3.0
 Author: Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
 Maintainer: Pasquale Raia <pasquale.raia@unina.it>
