@@ -4,14 +4,16 @@
 \alias{PGLS_fossil}
 \title{Phylogenetic Generalized Least Square with fossil phylogenies}
 \usage{
-PGLS_fossil(modform,RR,type=c("Pagel","RRphylo"))
+PGLS_fossil(modform,data,tree,RR=NULL)
 }
 \arguments{
-\item{modform}{the formula for the regression model}
+\item{modform}{the formula for the regression model.}
 
-\item{RR}{the result of \code{RRphylo} performed on the response variable}
+\item{data}{a list of named vectors including response and predictor variables as named in \code{modform}.}
 
-\item{type}{the correlation structure to be used. If \code{"Pagel"} the function fits Pagel's lambda in the regression for univariate data or uses the tree variance covariance matrix in the multivariate case. If \code{"RRphylo"}, tree branches are rescaled to the absolute branch-wise rate values calculated by \code{RRphylo} to transform the variance-covariance matrix.}
+\item{tree}{a phylogenetic tree. The tree needs not to be ultrametric and fully dichotomous.}
+
+\item{RR}{the result of \code{RRphylo} performed on the response variable. If \code{NULL} the function fits Pagel's lambda in the regression for univariate data or uses the tree variance covariance matrix in the multivariate case. If \code{RR} is specified, tree branches are rescaled to the absolute branch-wise rate values calculated by \code{RRphylo} to transform the variance-covariance matrix.}
 }
 \value{
 Fitted pgls parameters and significance.
@@ -20,18 +22,28 @@ Fitted pgls parameters and significance.
 The function performs pgls for non-ultrametric trees using either Pagel's lambda transform, Brownian Motion or \code{\link{RRphylo}} rates to change the correlation structure.
 }
 \details{
-With univariate data, the user may want to use either Pagel's lambda or \code{RRphylo} rates to transform the correlation structure. In the former case, the lambda transform is fitted to the data (Revell, 2010). In the latter case, branch lengths are multiplied by absolute rates as computed by \code{RRphylo} to accomodate rate variation across the tree. In the multivariate case, the variance-covariance structure is either left unaltered by specifying \code{"Pagel"} (Adams and Collyer, 2015) or changed according to the norm-2 vector of rates computed for each phenotype by \code{RRphylo}.
+With univariate data, the user may want to use either Pagel's lambda or \code{RRphylo} rates to transform the correlation structure. In the former case, the lambda transform is fitted to the data (Revell, 2010). In the latter case, branch lengths are multiplied by absolute rates as computed by \code{RRphylo} to accomodate rate variation across the tree. In the multivariate case, the variance-covariance structure is either left unaltered by keeping \code{RR = NULL} (Adams and Collyer, 2015) or changed according to the norm-2 vector of rates computed for each phenotype by specifying the \code{RR} object.
 }
 \examples{
+\donttest{
 library(ape)
 library(phytools)
-rtree(100)->tree
-fastBM(tree)->y
-fastBM(tree)->x
-RRphylo(tree,y)->RR
 
-PGLS_fossil(y~x,RR=RR,type="Pagel")
-PGLS_fossil(y~x,RR=RR,type="RRphylo")
+rtree(100)->tree
+fastBM(tree)->resp
+fastBM(tree,nsim=3)->resp.multi
+fastBM(tree)->pred1
+fastBM(tree)->pred2
+
+PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp,x2=pred1,x1=pred2),tree=tree)
+RRphylo::RRphylo(tree,resp)->RR
+PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp,x2=pred1,x1=pred2),tree=tree,RR=RR)
+
+
+PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp.multi,x2=pred1,x1=pred2),tree=tree)
+RRphylo::RRphylo(tree,resp.multi)->RR
+PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp.multi,x2=pred1,x1=pred2),tree=tree,RR=RR)
+}
 }
 \references{
 Revell, L.J. (2010). Phylogenetic signal and linear regression on species data. \emph{Methods in Ecology and Evolution}, 1, 319-329. https://doi.org/10.1111/j.2041-210X.2010.00044.x

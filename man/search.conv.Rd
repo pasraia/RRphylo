@@ -5,7 +5,7 @@
 \title{Searching for morphological convergence among species and clades}
 \usage{
 search.conv(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
-min.dim=NULL,max.dim=NULL,min.dist=NULL,PGLSf=TRUE,nsim=1000,rsim=1000,
+min.dim=NULL,max.dim=NULL,min.dist=NULL,PGLS=FALSE,nsim=1000,rsim=1000,
 clus=.5,foldername=NULL)
 }
 \arguments{
@@ -27,7 +27,7 @@ clus=.5,foldername=NULL)
 
 \item{min.dist}{the minimum distance between the clades to be compared. When \code{nodes} is indicated, it is the distance between the pair. Under the automatic mode, the user can choose whether time distance or node distance (i.e. the number of nodes intervening between the pair) should be used. If time distance has to be considered, \code{min.dist} should be a character argument containing the word "time" and then the actual time distance to be used. The same is true for node distance, but the word "node" must preceed the node distance to be used. For example, if the user want to test only clades more distant than 10 time units, the argument should be "time10". If clades separated by more than 8 nodes has to be tested, the argument \code{min.dist} should be "node8". If left unspecified, it automatically searches for convergence between clades separated by a number of nodes bigger than one tenth of the tree size.}
 
-\item{PGLSf}{if the argument is set to \code{TRUE} (default), the function tests whether states have phylogenetic structure, by running a runs test. If the states are phylogenetically structured, a \code{\link{PGLS_fossil}} is performed using states as the predictor variables. PGLS residuals will be used to test for convergence. Please notice, this is not suited for ultrametric trees.}
+\item{PGLS}{if the argument is set to \code{TRUE}, the function tests whether states have phylogenetic structure, by running a runs test. If the states are phylogenetically structured, a \code{procD.pgls} (package \code{geomorph}) is performed using states as the predictor variables. Pgls residuals will be used to test for convergence. Please notice, this is not suited for ultrametric trees or for variables which are not ordinal (i.e. the categories possess a natural ordering).}
 
 \item{nsim}{number of simulations to perform sampling within the theta random distribution. It is set at 1000 by default.}
 
@@ -71,24 +71,15 @@ Regardless the case (either 'state' or 'clade'), the function stores a plot into
 }
 \examples{
 \donttest{
-   data("DataUng")
-   DataUng$PCscoresung->PCscoresung
-   DataUng$treeung->treeung
-   DataUng$stateung->stateung->stateung1
-   stateung1[which(stateung1=="Br")]<-"nostate"
-
    data("DataFelids")
    DataFelids$PCscoresfel->PCscoresfel
    DataFelids$treefel->treefel
-
-   ### searching convergence within a single state ###
-   search.conv(tree=treeung, y=PCscoresung, state=stateung1, foldername = tempdir())
-
-   ### searching convergence between two states ###
-   search.conv(tree=treeung, y=PCscoresung, state=stateung, foldername = tempdir())
-
+   DataFelids$statefel->statefel
 
    RRphylo(treefel,PCscoresfel)->RRfel
+
+   ### searching convergence within a single state ###
+   search.conv(tree=treefel, y=PCscoresfel, state=statefel, foldername = tempdir())
 
    ### searching convergence between clades by setting min.dist as node distance  ###
    search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="node9", foldername = tempdir())
