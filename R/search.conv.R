@@ -88,6 +88,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
   # require(plotrix)
   # require(RColorBrewer)
   # require(tseries)
+  # require(geomorph)
 
 
   traitgram = function(
@@ -1021,13 +1022,11 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
 
 
       ape::cophenetic.phylo(tree1)->cop
-      #if(ranp<=0.05) suppressWarnings(residuals(PGLS_fossil(y=y,x=state,tree=tree1))->y)
-      cova = vcv(tree1)
-      geomorph.data.frame(y.gdf=y,state.gdf=state)->gdf
-      #if(ranp<=0.05){
-      if(ranp<=0.05) residuals(procD.pgls(y.gdf~state.gdf,data=gdf, Cov = cova))->y
-      #   princomp(resi)$scores->y
-      # }
+      if(ranp<=0.05) {
+        cova = vcv(tree1)
+        geomorph.data.frame(y.gdf=y,state.gdf=state)->gdf
+        quiet(residuals(procD.pgls(y.gdf~state.gdf,data=gdf, Cov = cova))->y)
+        }
       mean(apply(y[which(state==onestate),],1,unitV))->vs1->vs2
       t(combn(names(state[which(state==onestate)]),2))->ctt
       aa<-array()
@@ -1152,13 +1151,12 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       ape::cophenetic.phylo(tree1)->cop
       ang.by.state<-matrix(ncol=4,nrow=ncol(stcomb1))
       for(i in 1:ncol(stcomb1)){
-        #if(ranp[i]<=0.05) suppressWarnings(residuals(PGLS_fossil(y=y,x=state,tree=tree1))->y)
-        cova = vcv(tree1)
-        geomorph.data.frame(y.gdf=y,state.gdf=state)->gdf
-        #if(ranp[i]<=0.05) {
-          if(ranp[i]<=0.05) residuals(procD.pgls(y.gdf~state.gdf,data=gdf, Cov = cova))->y
-        #   princomp(resi)$scores->y
-        # }
+          if(ranp[i]<=0.05){
+            cova = vcv(tree1)
+            geomorph.data.frame(y.gdf=y,state.gdf=state)->gdf
+            quiet(residuals(procD.pgls(y.gdf~state.gdf,data=gdf, Cov = cova))->y)
+          }
+
         y[which(state==stcomb1[1,i]),]->tt1
         mean(apply(tt1,1,unitV))->vs1
         y[which(state==stcomb1[2,i]),]->TT
