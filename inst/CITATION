@@ -111,8 +111,35 @@ citEntry(entry        = "Article",
          volume       = "",
          pages        = "",
          url          = "https://academic.oup.com/biolinnean/advance-article/doi/10.1093/biolinnean/blz161/5614248",
-         textVersion  = paste("Melchionna, M., Mondanaro, A., Serio, C., Castiglione, S., Di Febbraro, M., Rook, L.,                            Febbraro, M., Diniz-Filho,J.A.F., Manzi, G., Profico, A., Sansalone, G., & Raia, P.(2019).",
+         textVersion  = paste("Melchionna, M., Mondanaro, A., Serio, C., Castiglione, S., Di Febbraro, M., Rook, L.,Diniz-Filho,J.A.F., Manzi, G., Profico, A., Sansalone, G., & Raia, P.(2020).",
                         "Macroevolutionary trends of brain mass in Primates.",
-                        "Biological Journal of the Linnean Society, in press",
+                        "Biological Journal of the Linnean Society, 129: 14-25",
                         "doi:10.1093/biolinnean/blz161")
 )
+
+
+
+citEntry(entry        = "Article",
+         header       = "search.conv",
+         title        = "A new, fast method to search for morphological convergence with shape data.",
+         author       = personList(as.person("Silvia Castiglione"),
+                                   as.person("Carmela Serio"),
+                                   as.person("Davide Tamagnini"),
+                                   as.person("Marina Melchionna"),
+                                   as.person("Alessandro Mondanaro"),
+                                   as.person("Mirko Di Febbraro"),
+                                   as.person("Antonio Profico"),
+                                   as.person("Paolo Piras"),
+                                   as.person("Filippo Barattolo"),
+                                   as.person("Pasquale Raia")),
+         journal      = "PLoS ONE",
+         year         = "2019",
+         volume       = "14",
+         pages        = "e0226949",
+         url          = "https://doi.org/10.1371/journal.pone.0226949",
+         textVersion  = paste("Castiglione, S., Serio, C., Tamagnini, D., Melchionna, M., Mondanaro, A., Di Febbraro, M., Profico, A., Piras, P.,Barattolo, F., & Raia, P. (2019).",
+                        "A new, fast method to search for morphological convergence with shape data.",
+                        "PLoS ONE, 14, e0226949.",
+                        "doi:10.1371/journal.pone.0226949")
+)
+
