@@ -1,4 +1,4 @@
-#' @title Find a node subtending to a clade of desidered size
+#' @title Find a node subtending to a clade of desired size
 #'
 #' @description The function \code{sizedsubtree} scans a phylogentic tree to randomly find nodes subtending to a subtree of desired minimum size, up to one half of the tree size (number of tips).
 #' @usage sizedsubtree(tree,Size=NULL,time.limit=10)

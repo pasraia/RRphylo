@@ -10,10 +10,10 @@
 #' @param aces.x1 a named vector of ancestral character values at nodes for \code{x1}. It must be indicated if both \code{aces} and \code{x1} are specified. Names correspond to the nodes in the tree.
 #' @param clus the proportion of clusters to be used in parallel computing (only if \code{y} is multivariate).
 #' @export
-#' @importFrom ape multi2di Ntip is.binary.tree Nnode
+#' @importFrom ape multi2di Ntip is.binary.tree Nnode dist.nodes drop.tip subtrees nodelabels
 #' @importFrom stats dist lm residuals weighted.mean
 #' @importFrom stats4 mle
-#' @importFrom geiger treedata tips
+#' @importFrom geiger treedata tips ratematrix
 #' @importFrom phytools bind.tip
 #' @return \strong{tree} the tree used by \code{RRphylo}. The fully dichotomous version of the tree argument. For trees with polytomies, the tree is resolved by using \code{multi2di} function in the package \pkg{ape}. If the latter is a dichotomous tree, the two trees will be identical.
 #' @return \strong{tip.path} a \eqn{n * m} matrix, where n=number of tips and m=number of branches (i.e. 2*n-1). Each row represents the branch lengths along a root-to-tip path.
@@ -23,10 +23,12 @@
 #' @return \strong{predicted.phenotypes} the vector of estimated tip values. It is a matrix in the case of multivariate data.
 #' @return \strong{multiple.rates} a \eqn{n * m} matrix, where n= number of branches (i.e. n*2-1) and m = number of variables. For each branch, the column entries represent the evolutionary rate.
 #' @return \strong{lambda} the regularization factor fitted within \code{RRphylo} by the inner function \code{optL}. With multivariate data, several \code{optL} runs are performed. Hence, the function provides a single lambda for each individual variable.
-#' @return \strong{ace.alues} if \code{aces} are specified, the function returns a dataframe containing the corresponding node number on the \code{RRphylo} tree  for each node , along with estimated values.
+#' @return \strong{ace.values} if \code{aces} are specified, the function returns a dataframe containing the corresponding node number on the \code{RRphylo} tree  for each node , along with estimated values.
 #' @return \strong{x1.rate} if \code{x1} is specified, the function returns the partial regression coefficient for \code{x1}.
 #' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
 #' @references Castiglione, S., Tesone, G., Piccolo, M., Melchionna, M., Mondanaro, A., Serio, C., Di Febbraro, M., & Raia, P.(2018). A new method for testing evolutionary rate variation and shifts in phenotypic evolution. \emph{Methods in Ecology and Evolution}, 9: 974-983.doi:10.1111/2041-210X.12954
+#' @references Serio, C., Castiglione, S., Tesone, G., Piccolo, M., Melchionna, M., Mondanaro, A., Di Febbraro, M., & Raia, P.(2019). Macroevolution of toothed whales exceptional relative brain size. \emph{Evolutionary Biology}, 46: 332-342. doi:10.1007/s11692-019-09485-7
+#' @references  Melchionna, M., Mondanaro, A., Serio, C., Castiglione, S., Di Febbraro, M., Rook, L.,Diniz-Filho,J.A.F., Manzi, G., Profico, A., Sansalone, G., & Raia, P.(2020).Macroevolutionary trends of brain mass in Primates. \emph{Biological Journal of the Linnean Society}, 129: 14-25. doi:10.1093/biolinnean/blz161
 #' @examples
 #'  \donttest{
 #' data("DataOrnithodirans")
@@ -34,35 +36,34 @@
 #' DataOrnithodirans$massdino->massdino
 #'
 #' # Case 1. "RRphylo" without accounting for the effect of a covariate
-#'     RRphylo(tree=treedino,y=massdino)
+#' RRphylo(tree=treedino,y=massdino)
 #'
 #' # Case 2. "RRphylo" accounting for the effect of a covariate
-#'   # "RRphylo" on the covariate in order to retrieve ancestral state values
-#'     RRphylo(tree=treedino,y=massdino)->RRcova
-#'     c(RRcova$aces,massdino)->cov.values
-#'     c(rownames(RRcova$aces),names(massdino))->names(cov.values)
+#' # "RRphylo" on the covariate in order to retrieve ancestral state values
+#' RRphylo(tree=treedino,y=massdino)->RRcova
+#' c(RRcova$aces,massdino)->cov.values
+#' c(rownames(RRcova$aces),names(massdino))->names(cov.values)
 #'
-#'     RRphylo(tree=treedino,y=massdino,cov=cov.values)
+#' RRphylo(tree=treedino,y=massdino,cov=cov.values)
 #'
 #' # Case 3. "RRphylo" specifying the ancestral states
-#'   data("DataCetaceans")
-#'   DataCetaceans$treecet->treecet
-#'   DataCetaceans$masscet->masscet
-#'   DataCetaceans$brainmasscet->brainmasscet
-#'   DataCetaceans$aceMyst->aceMyst
+#' data("DataCetaceans")
+#' DataCetaceans$treecet->treecet
+#' DataCetaceans$masscet->masscet
+#' DataCetaceans$brainmasscet->brainmasscet
+#' DataCetaceans$aceMyst->aceMyst
 #'
-#'   RRphylo(tree=treecet,y=masscet,aces=aceMyst)
+#' RRphylo(tree=treecet,y=masscet,aces=aceMyst)
 #'
 #' # Case 4. Multiple "RRphylo"
-#'   drop.tip(treecet,treecet$tip.label[-match(names(brainmasscet),treecet$tip.label)])->treecet.multi
-#'   masscet[match(treecet.multi$tip.label,names(masscet))]->masscet.multi
+#' drop.tip(treecet,treecet$tip.label[-match(names(brainmasscet),treecet$tip.label)])->treecet.multi
+#' masscet[match(treecet.multi$tip.label,names(masscet))]->masscet.multi
 #'
-#'   RRphylo(treecet.multi,masscet.multi)->RRmass.multi
-#'   RRmass.multi$aces[,1]->acemass.multi
-#'   c(acemass.multi,masscet.multi)->x1.mass
-#'   RRphylo(treecet.multi,y=brainmasscet,x1=x1.mass)
+#' RRphylo(tree=treecet.multi, y=masscet.multi)->RRmass.multi
+#' RRmass.multi$aces[,1]->acemass.multi
+#' c(acemass.multi,masscet.multi)->x1.mass
 #'
-#'
+#' RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass)
 #'     }
 
 

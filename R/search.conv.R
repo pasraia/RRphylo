@@ -1,7 +1,7 @@
 #' @title Searching for morphological convergence among species and clades
 #' @description The function scans a phylogenetic tree looking for morphological convergence between entire clades or species evolving under specific states.
 #' @usage search.conv(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
-#' min.dim=NULL,max.dim=NULL,min.dist=NULL,PGLS=FALSE,nsim=1000,rsim=1000,
+#' min.dim=NULL,max.dim=NULL,min.dist=NULL,PGLSf=FALSE,declust=FALSE,nsim=1000,rsim=1000,
 #' clus=.5,foldername=NULL)
 #' @param RR an object produced by \code{\link{RRphylo}}. This is not indicated if convergence among states is tested.
 #' @param tree a phylogenetic tree. The tree needs not to be ultrametric or fully dichotomous. This is not indicated if convergence among clades is tested.
@@ -12,7 +12,8 @@
 #' @param min.dim the minimum size of the clades to be compared. When \code{nodes} is indicated, it is the minimum size of the smallest clades in \code{nodes}, otherwise it is set at one tenth of the tree size.
 #' @param max.dim the maximum size of the clades to be compared. When \code{nodes} is indicated, it is \code{min.dim}*2 if the largest clade in \code{nodes} is smaller than this value, otherwise it corresponds to the size of the largest clade. Whitout \code{nodes} it is set at one third of the tree size.
 #' @param min.dist the minimum distance between the clades to be compared. When \code{nodes} is indicated, it is the distance between the pair. Under the automatic mode, the user can choose whether time distance or node distance (i.e. the number of nodes intervening between the pair) should be used. If time distance has to be considered, \code{min.dist} should be a character argument containing the word "time" and then the actual time distance to be used. The same is true for node distance, but the word "node" must preceed the node distance to be used. For example, if the user want to test only clades more distant than 10 time units, the argument should be "time10". If clades separated by more than 8 nodes has to be tested, the argument \code{min.dist} should be "node8". If left unspecified, it automatically searches for convergence between clades separated by a number of nodes bigger than one tenth of the tree size.
-#' @param PGLS if the argument is set to \code{TRUE}, the function tests whether states have phylogenetic structure, by running a runs test. If the states are phylogenetically structured, a \code{procD.pgls} (package \code{geomorph}) is performed using states as the predictor variables. Pgls residuals will be used to test for convergence. Please notice, this is not suited for ultrametric trees or for variables which are not ordinal (i.e. the categories possess a natural ordering).
+#' @param PGLSf has been deprecated; please see the argument \code{declust} instead.
+#' @param declust if species under a given state (or a pair of states) to be tested for convergence are phylogenetically closer than expected by chance, trait similarity might depend on proximity rather than true convergence. In this case, by setting \code{declust = TRUE}, tips under the focal state (or states) are removed randomly until clustering disappears. A minimum of 3 species per state is enforced to remain anyway.
 #' @param nsim number of simulations to perform sampling within the theta random distribution. It is set at 1000 by default.
 #' @param rsim number of simulations to be performed to produce the random distribution of theta values. It is set at 1000 by default.
 #' @param clus the proportion of clusters to be used in parallel computing.
@@ -26,7 +27,7 @@
 #' @importFrom stats TukeyHSD aov princomp
 #' @importFrom plotrix polar.plot
 #' @importFrom geomorph procD.pgls geomorph.data.frame
-#' @importFrom ape vcv
+#' @importFrom ape vcv cophenetic.phylo
 #' @return If convergence between clades is tested, the function returns a list including:
 #' @return \itemize{\item\strong{$node pairs}: a dataframe containing for each pair of nodes:
 #' \itemize{\item ang.bydist.tip: the mean theta angle between clades divided by the time distance.
@@ -50,30 +51,33 @@
 #' \item p.ang.state.time: the p-value computed for ang.state.time.
 #' }
 #' @details Regardless the case (either 'state' or 'clade'), the function stores a plot into the folder specified by \code{foldername}. If convergence among clades is tested, the clade pair plotted corresponds to those clades with the smallest \code{$average distance from group centroid}. The figure shows the Euclidean distances computed between the MRCAs of the clades and the mean Euclidean distance computed between all the tips belonging to the converging clades, as compared to the distribution of these same figures across the rest of the tree. Furthermore, the function stores the PC1/PC2 plot obtained by PCA of the species phenotypes. Convergent clades are indicated by colored convex hulls. Large colored dots represent the mean phenotypes per clade (i.e. their group centroids). Eventually, a modified traitgram plot is produced, highlighting the branches of the clades found to converge. In both PCA and traitgram, asterisks represent the ancestral phenotypes of the individual clades. If convergence among states is tested, the function produces a PC plot with colored convex hulls enclosing species belonging to different states. Furthermore, it generates circular plots of the mean angle between states (blue lines) and the range of random angles (gray shaded area). The p-value for the convergence test is printed within the circular plots.
-#' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto, Paolo Piras, Davide Tamagnini
+#' @author Silvia Castiglione, Carmela Serio, Pasquale Raia, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto, Paolo Piras, Davide Tamagnini
+#' @references Castiglione, S., Serio, C., Tamagnini, D., Melchionna, M., Mondanaro, A., Di Febbraro, M., Profico, A., Piras, P.,Barattolo, F., & Raia, P. (2019). A new, fast method to search for morphological convergence with shape data. \emph{PLoS ONE}, 14, e0226949. https://doi.org/10.1371/journal.pone.0226949
 #' @examples
 #' \donttest{
-#'    data("DataFelids")
-#'    DataFelids$PCscoresfel->PCscoresfel
-#'    DataFelids$treefel->treefel
-#'    DataFelids$statefel->statefel
+#' data("DataFelids")
+#' DataFelids$PCscoresfel->PCscoresfel
+#' DataFelids$treefel->treefel
+#' DataFelids$statefel->statefel
 #'
-#'    RRphylo(treefel,PCscoresfel)->RRfel
+#' RRphylo(treefel,PCscoresfel)->RRfel
 #'
-#'    ### searching convergence within a single state ###
-#'    search.conv(tree=treefel, y=PCscoresfel, state=statefel, foldername = tempdir())
 #'
-#'    ### searching convergence between clades by setting min.dist as node distance  ###
-#'    search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="node9", foldername = tempdir())
+#' ## Case 1. searching convergence between clades
+#' # by setting min.dist as node distance
+#' search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="node9", foldername = tempdir())
 #'
-#'    ### searching convergence between clades by setting min.dist as time distance ###
-#'    search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="time38", foldername = tempdir())
+#' # by setting min.dist as time distance
+#' search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="time38", foldername = tempdir())
+#'
+#' ## Case 2. searching convergence within a single state
+#' search.conv(tree=treefel, y=PCscoresfel, state=statefel,declust=TRUE, foldername = tempdir())
 #'
 #'   }
 
 search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
-                      min.dim=NULL,max.dim=NULL,min.dist=NULL,PGLS=FALSE,
-                      nsim=1000,rsim=1000,clus=.5,foldername=NULL)
+                      min.dim=NULL,max.dim=NULL,min.dist=NULL,PGLSf=FALSE,
+                      declust=FALSE,nsim=1000,rsim=1000,clus=.5,foldername=NULL)
 {
 
   # require(ape)
@@ -90,6 +94,11 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
   # require(tseries)
   # require(geomorph)
 
+  if(!missing(PGLSf)){
+    warning("argument PGLSf is deprecated; please use declust instead.",
+            call. = FALSE)
+    PGLSf->declust
+  }
 
   traitgram = function(
     x, phy,
@@ -184,14 +193,12 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
     return(data.frame(a1,x1))
   }
 
-
   Plot_ConvexHull<-function(xcoord, ycoord, lcolor,lwd=NULL, lty=NULL,col.p=NULL){
     hpts <- chull(x = xcoord, y = ycoord)
     hpts <- c(hpts, hpts[1])
     lines(xcoord[hpts], ycoord[hpts], col = lcolor,lwd=lwd, lty=lty)
     polygon(xcoord[hpts], ycoord[hpts], col=col.p, border=NA)
   }
-
 
   unitV <- function(x) {
     sum(x^2)^0.5
@@ -202,7 +209,47 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
   rad2deg <- function(rad) {
     (rad * 180)/(pi)
   }
+  phylo.run.test<-function(tree,state,st,nsim=100){
+    cophenetic.phylo(tree)->cop
+    cop[which(state==st),which(state==st)]->subcop
+    mean(subcop[upper.tri(subcop)])->mds
+    dim(subcop)[1]->sl
 
+    r.mds<-array()
+    for(e in 1:nsim){
+      sample(tree$tip.label,sl)->test.tip
+      cop[test.tip,test.tip]->r.cop
+      mean(r.cop[upper.tri(r.cop)])->r.mds[e]
+    }
+    return(list(p=length(which(r.mds<mds))/nsim))
+  }
+  declusterize<-function(tree,state,st){
+    remT<-c()
+    length(which(state==st))->lenst
+    while(phylo.run.test(tree=tree,state=state,st=st)$p<0.05){
+
+      names(state)->nam
+      as.numeric(as.factor(state))->rt
+      #as.numeric(rt)->rt
+      #names(rt)<-nam
+      data.frame(state,rt)->def
+      unique(def[which(def[,1]==st),2])->stN
+      data.frame(V=rle(rt)$values,L=rle(rt)$lengths)->VL
+      data.frame(VL,pos=cumsum(VL[,2]))->VL
+      #subset(VL,V==stN)->vel
+      VL[which(VL$V==stN),]->vel
+      vel[which.max(vel$L),]->hit
+      tree$tip.label[(hit[,3]-hit[,2]+1):hit[,3]]->hitips
+      sample(hitips,0.5*length(hitips))
+      sample(hitips,ceiling(.5*length(hitips)))->remtips
+      drop.tip(tree,remtips)->tree
+      state[-which(names(state)%in%remtips)]->state
+      if(length(c(remtips,remT))>(lenst-3)) break else c(remtips,remT)->remT
+    }
+    if(length(remT)==0) remT<-NA
+    #return(list(tree=tree,state=state))
+    return(remT=remT)
+  }
 
 
   if(is.null(state)){
@@ -256,8 +303,6 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
     if(is.null(nodes)){
 
       subtrees(tree1)->subT->subTN
-      # unlist(lapply(subT,function(x) getMRCA(tree1,x$tip.label)))->names(subT)
-      # as.numeric(names(subT))->nodo
       if(length(unlist(lapply(subT,Ntip))>max.dim)>0){
         subT[-c(which(unlist(lapply(subT,Ntip))<min.dim),which(unlist(lapply(subT,Ntip))>max.dim))]->subT
 
@@ -1009,24 +1054,39 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
     if(sort(table(state.real),decreasing = TRUE)[1]>Ntip(tree1)*0.5) warning("one or more states apply to a large portion of the tree, this might be inappropriate for testing convergence")
 
     if(("nostate"%in%state)&length(unique(state.real))<2){
+      y->yOri
+      state->stateOri
 
       unique(state.real)->onestate
 
-      if(PGLS){
-        rep("B",length(state))->f
-        f[which(state==onestate)]<-"A"
-        runs.test(as.factor(f))$p->ranp
-      }else{
-        ranp<-1
+      if(isFALSE(declust)&(length(which(state==onestate))>3))
+        if(phylo.run.test(tree1,state,onestate)$p<=0.05) print(paste("species within state",onestate,"are phylogenetically clustered; consider running search.conv with declust=TRUE"))
+
+      if(declust&(length(which(state==onestate))>3)){
+        declusterize(tree1,state,onestate)->decl
+        decl->remtips
+        if(!any(is.na(remtips)>0)){
+          y[-match(remtips,rownames(y)),]->y
+          state[-match(remtips,names(state))]->state
+          #drop.tip(tree1,remtips)->tree1
+        }
       }
 
+      # if(PGLS){
+      #   rep("B",length(state))->f
+      #   f[which(state==onestate)]<-"A"
+      #   runs.test(as.factor(f))$p->ranp
+      # }else{
+      #   ranp<-1
+      # }
 
-      ape::cophenetic.phylo(tree1)->cop
-      if(ranp<=0.05) {
-        cova = vcv(tree1)
-        geomorph.data.frame(y.gdf=y,state.gdf=state)->gdf
-        quiet(residuals(procD.pgls(y.gdf~state.gdf,data=gdf, Cov = cova))->y)
-        }
+
+      cophenetic.phylo(tree1)->cop
+      # if(ranp<=0.05) {
+      #   cova = vcv(tree1)
+      #   geomorph.data.frame(y.gdf=y,state.gdf=state)->gdf
+      #   quiet(residuals(procD.pgls(y.gdf~state.gdf,data=gdf, Cov = cova))->y)
+      # }
       mean(apply(y[which(state==onestate),],1,unitV))->vs1->vs2
       t(combn(names(state[which(state==onestate)]),2))->ctt
       aa<-array()
@@ -1068,6 +1128,8 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       if(res.tot[6]<=0.05) print(paste("species within group", onestate, "converge"))
 
       #### Plot preparation ####
+      yOri->y
+      stateOri->state
       c(res.tot[1],rlim=rlim[1],res.tot[3:4])->bbb
       c(bbb,l1=bbb[1]/2,l2=360-(bbb[1]/2),rlim1=bbb[2]/2,
         rlim2=360-bbb[2]/2,p=res.tot[6])->ccc
@@ -1085,7 +1147,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       c("nostate",names(sort(table(state.real), decreasing = TRUE)))->statetoplot
       princomp(y)->compy
       compy$scores[,1:2]->sco
-      y[,1:2]->sco
+      #y[,1:2]->sco
       sco[match(names(state),rownames(sco)),]->sco
       brewer.pal(3,"Set2")[1]->cols
       par(mar=c(2.5,2.5,1,1))
@@ -1127,35 +1189,89 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       combn(unique(state.real),2)->stcomb1
       if("nostate"%in%state) combn(unique(state),2)->stcomb else stcomb1->stcomb
 
-      if(PGLS){
-        ranp<-array()
-        if(ncol(stcomb1)==1&("nostate"%in%state)==FALSE){
-          rep("B",length(state))->f
-          f[which(state==stcomb1[1,1])]<-"A"
-          runs.test(as.factor(f))$p->ranp
-
-        }else{
-          for(k in 1:ncol(stcomb1)){
-            f<-array()
-            for(i in 1:length(state)) {
-              if(state[i]%in%stcomb1[,k]) f[i]<-"A" else f[i]<-"B"
-            }
-            runs.test(as.factor(f))$p->ranp[k]
-          }
+      state2decl<-list()
+      for(k in 1:ncol(stcomb1)){
+        if(any(table(state[which(state%in%stcomb1[,k])])<4)) state2decl[[k]]<-NA else{
+          replace(state,which(state%in%stcomb1[,k]),"A")->f
+          replace(f,which(!state%in%stcomb1[,k]),"B")->f
+          #         f<-array()
+          # for(i in 1:length(state)) {
+          #   if(state[i]%in%stcomb1[,k]) f[i]<-"A" else f[i]<-"B"
+          # }
+          # names(f)<-names(state)
+          state2decl[[k]]<-f
         }
-      }else{
-        ranp<-rep(1,ncol(stcomb1))
       }
 
+      # if(declust){
+      #   decl<-list()
+      #   for(j in unique(state.real)){
+      #     if(length(which(state==j))<4) next else declusterize(tree1,state,j)->decl[[j]]
+      #   }
+      # unlist(decl)->remtips
+      # if(length(remtips)>0){
+      #   y[-match(remtips,rownames(y)),]->y
+      #   state[-match(remtips,names(state))]->state
+      #   drop.tip(tree1,remtips)->tree1
+      # }
+      # }
 
-      ape::cophenetic.phylo(tree1)->cop
-      ang.by.state<-matrix(ncol=4,nrow=ncol(stcomb1))
-      for(i in 1:ncol(stcomb1)){
-          if(ranp[i]<=0.05){
-            cova = vcv(tree1)
-            geomorph.data.frame(y.gdf=y,state.gdf=state)->gdf
-            quiet(residuals(procD.pgls(y.gdf~state.gdf,data=gdf, Cov = cova))->y)
+
+      if(declust){
+        if(ncol(stcomb1)==1&("nostate"%in%state)==FALSE)
+          decl<-as.list(rep(NA,ncol(stcomb1))) else {
+            decl<-list()
+            for(k in 1:ncol(stcomb1)){
+              if(any(!is.na(state2decl[[k]]))){
+                # f<-array()
+                # for(i in 1:length(state)) {
+                #   if(state[i]%in%stcomb1[,k]) f[i]<-"A" else f[i]<-"B"
+                # }
+                # names(f)<-names(state)
+                #runs.test(as.factor(f))$p->ranp[k]
+                setTimeLimit(elapsed=60,transient=TRUE)
+                try(repeat({
+                  declusterize(tree1,state2decl[[k]],"A")->dec
+                  if(!any(is.na(dec))){
+                    if(all(table(state[-which(names(state)%in%dec)])>3)&
+                       length(table(state))==length(table(state[-which(names(state)%in%dec)]))) break
+                  }else break
+                }),silent=TRUE)->rep.try
+                if(class(rep.try)=="try-error") decl[[k]]<-NA else decl[[k]]<-dec
+                setTimeLimit(elapsed=Inf)
+              }else decl[[k]]<-NA
+            }
+            #declusterize(tree1,f,"A")->decl[[k]]
+
           }
+      }else{
+        #ranp<-rep(1,ncol(stcomb1))
+        sapply(state2decl,function(x){
+          if(!any(is.na(x))) phylo.run.test(tree1,x,"A")$p->ret else 1->ret
+          return(ret)
+        })->prt
+        if(any(prt<=0.05))
+          for(q in which(prt<=0.05) ) print(paste("species in state",
+                                                  stcomb1[1,q],"and",
+                                                  stcomb1[2,q],
+                                                  "are phylogenetically clustered; consider running search.conv with declust=TRUE"))
+        decl<-as.list(rep(NA,ncol(stcomb1)))
+      }
+
+      y->yOri
+      state->stateOri
+
+      cophenetic.phylo(tree1)->cop
+      ang.by.state<-matrix(ncol=4,nrow=ncol(stcomb1))
+      y.stcomb<-state.stcomb<-list()
+      for(i in 1:ncol(stcomb1)){
+        if(!any(is.na(decl[[i]]))){
+          yOri[-match(decl[[i]],rownames(yOri)),]->y->y.stcomb[[i]]
+          stateOri[-match(decl[[i]],names(stateOri))]->state->state.stcomb[[i]]
+        }else{
+          yOri->y->y.stcomb[[i]]
+          stateOri->state->state.stcomb[[i]]
+        }
 
         y[which(state==stcomb1[1,i]),]->tt1
         mean(apply(tt1,1,unitV))->vs1
@@ -1180,11 +1296,13 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       ang2stateR <- foreach(j = 1:nsim) %dopar%
         {
           gc()
-          ang.by.stateR<-matrix(ncol=2,nrow=ncol(stcomb))
-          for(i in 1:ncol(stcomb)){
+          ang.by.stateR<-matrix(ncol=2,nrow=ncol(stcomb1))
+          for(i in 1:ncol(stcomb1)){
+            y.stcomb[[i]]->y
+            state.stcomb[[i]]->state
             sample(state)->state
-            y[which(state==stcomb[1,i]),]->tt1
-            y[which(state==stcomb[2,i]),]->TT
+            y[which(state==stcomb1[1,i]),]->tt1
+            y[which(state==stcomb1[2,i]),]->TT
             expand.grid(rownames(tt1),rownames(TT))->ctt
             aa<-array()
             dt<-array()
@@ -1196,7 +1314,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
             }
             c(mean(aa),mean(aa/dt))->ang.by.stateR[i,]
           }
-          data.frame(state1=t(stcomb)[,1],state2=t(stcomb)[,2],ang.state=ang.by.stateR[,1],ang.state.time=ang.by.stateR[,2])->ang2stateR[[j]]
+          data.frame(state1=t(stcomb1)[,1],state2=t(stcomb1)[,2],ang.state=ang.by.stateR[,1],ang.state.time=ang.by.stateR[,2])->ang2stateR[[j]]
         }
       stopCluster(cl)
       pval<-matrix(ncol=2,nrow=nrow(ang2state))
@@ -1212,6 +1330,8 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       }
 
       #### Plot preparation ####
+      yOri->y
+      stateOri->state
       data.frame(res.tot[,3],rlim=rlim[,1]*res.tot[,4]/res.tot[1,4],res.tot[,5:6])->bbb
       data.frame(bbb,l1=bbb[,1]/2,l2=360-(bbb[,1]/2),rlim1=bbb[,2]/2,
                  rlim2=360-bbb[,2]/2,p=res.tot[,8])->ccc
@@ -1236,7 +1356,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
 
       princomp(y)->compy
       compy$scores[,1:2]->sco
-      y[,1:2]->sco
+      #y[,1:2]->sco
       sco[match(names(state),rownames(sco)),]->sco
       brewer.pal(length(unique(state)),"Set2")->cols
       par(mar=c(2.5,2.5,1,1))

@@ -7,8 +7,8 @@
 #' @param wishlist specifies whether to extract angles and sizes (\code{"anglesMRCA"}) of resultant vectors between individual species and the MRCA, angles and sizes (\code{"angleDir"}) of vectors between individual species and a fixed reference vector (the same for all species), or angles between species resultant vectors (\code{"angles.between.species"}).
 #' @param random it needs to be \code{"yes"} if \code{'angles.res'} object contains randomization results.
 #' @param focus it can be \code{"node"}, \code{"species"}, \code{"both"}, or \code{"none"}, whether the user wants the results for a focal node, or for a given species, for both, or just wants to visualize everything.
-#' @param node must be indicated if \code{focus= "node"} or \code{"both"}. As for \code{evo.dir}, the node number must refer to the dichotomic version of the original tree, as produced by \code{\link{RRphylo}}.
-#' @param species must be indicated if \code{focus= "species"} or \code{"both"}.
+#' @param node must be indicated if \code{focus = "node"} or \code{"both"}. As for \code{evo.dir}, the node number must refer to the dichotomic version of the original tree, as produced by \code{\link{RRphylo}}.
+#' @param species must be indicated if \code{focus = "species"} or \code{"both"}.
 #' @param write2csv if \code{"yes"} results are saved to a .csv file in your working directory.
 #' @importFrom utils write.csv
 #' @export

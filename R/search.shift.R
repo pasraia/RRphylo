@@ -11,7 +11,7 @@
 #' @param nrep the number of simulations to be performed for the rate shift test, by default \code{nrep} is set at 1000.
 #' @param f the size of the smallest clade to be tested. By default, nodes subtending to one tenth of the tree tips are tested.
 #' @param foldername the path of the folder where plots are to be found.
-#' @importFrom graphics symbols
+#' @importFrom graphics symbols mtext
 #' @importFrom stats sd
 #' @importFrom scales alpha
 #' @importFrom utils globalVariables
@@ -36,32 +36,35 @@
 #' DataOrnithodirans$statedino->statedino
 #'
 #' \donttest{
-#'     RRphylo(tree=treedino,y=massdino)->dinoRates
+#' data("DataOrnithodirans")
+#' DataOrnithodirans$treedino->treedino
+#' DataOrnithodirans$massdino->massdino
+#' DataOrnithodirans$statedino->statedino
+#'
+#'
+#' RRphylo(tree=treedino,y=massdino)->dinoRates
 #'
 #' # Case 1. Without accounting for the effect of a covariate
 #'
-#'  # Case 1.1 "clade" condition
-#'   # with auto-recognize
-#'     search.shift(dinoRates, status.type= "clade",foldername=tempdir())
-#'   # testing two hypothetical clades
-#'     search.shift(dinoRates, status.type= "clade", node=c(697,748),
-#'     foldername=tempdir())
+#' # Case 1.1 "clade" condition
+#' # with auto-recognize
+#' search.shift(RR=dinoRates,status.type="clade",foldername=tempdir())
+#' # testing two hypothetical clades
+#' search.shift(RR=dinoRates,status.type="clade",node=c(697,748),foldername=tempdir())
 #'
-#'  # Case 1.2 "sparse" condition
-#'   # testing the sparse condition.
-#'     search.shift(dinoRates, status.type= "sparse", state=statedino,
-#'     foldername=tempdir())
+#' # Case 1.2 "sparse" condition
+#' # testing the sparse condition.
+#' search.shift(RR=dinoRates,status.type= "sparse",state=statedino,foldername=tempdir())
 #'
 #'
 #' # Case 2. Accounting for the effect of a covariate
 #'
-#'  # Case 2.1 "clade" condition
-#'     search.shift(dinoRates, status.type= "clade", cov=massdino,
-#'     foldername=tempdir())
+#' # Case 2.1 "clade" condition
+#' search.shift(RR=dinoRates,status.type= "clade",cov=massdino,foldername=tempdir())
 #'
-#'  # Case 2.2 "sparse" condition
-#'     search.shift(dinoRates,status.type="sparse",state=statedino,
-#'     cov=massdino,foldername=tempdir())
+#' # Case 2.2 "sparse" condition
+#' search.shift(RR=dinoRates,status.type="sparse",state=statedino,cov=massdino,
+#'              foldername=tempdir())
 #'     }
 
 
@@ -138,9 +141,6 @@ search.shift<-function(RR,
     }
 
   }
-
-
-
 
   if (status.type == "clade") {
     if (is.null(node)) {
@@ -339,22 +339,52 @@ search.shift<-function(RR,
       p.shift <- rank(c(leaf2NC.diff, ran.diffR[1:(nrep -
                                                      1)]))[1]/nrep
       if(length(node)==1){
-        par(mar = c(1, 1, 1, 1))
-        hist(ran.diffR, xlab = "random differences",
-             main = "selected clade", xlim = c(2.5 * range(ran.diffR)[1],
-                                               2.5 * range(ran.diffR)[2]))
+        pdf(file=paste(foldername, "AR results for rate differences.pdf",sep="/"),width=8.3,height=8.3)
+        par(mar = c(3, 2, 2, 1))
+        hist(ran.diffR, main="",cex.lab=1.5,
+             yaxt="n",xaxt="n",ylab=paste("node", node, sep = " "),xlab="",mgp=c(0.2,0,0),
+             xlim = c(1.1 * min(c(leaf2NC.diff,ran.diffR)),1.1 * max(c(leaf2NC.diff,ran.diffR))))
+        hist(c(leaf2NC.diff,ran.diffR),plot=F)->hi
+        if(length(hi$breaks)%%2==1) (hi$breaks[seq(1,length(hi$breaks),2)])->athi else
+          c(hi$breaks[seq(1,length(hi$breaks),2)],
+            (hi$breaks[length(hi$breaks)]+abs(diff(hi$breaks[seq(1,length(hi$breaks),2)][1:2]))))->athi
+        axis(1,at=athi)
+        mtext(text="random differences",1,line=1.8)
+        title(main="Absolute rate difference",cex.main=2)
         abline(v = leaf2NC.diff, col = "green", lwd = 3)
+        dev.off()
+        # par(mar = c(1, 1, 1, 1))
+        # hist(ran.diffR, xlab = "random differences",
+        #      main = "selected clade", xlim = c(2.5 * range(ran.diffR)[1],
+        #                                        2.5 * range(ran.diffR)[2]))
+        # abline(v = leaf2NC.diff, col = "green", lwd = 3)
         names(leaf2NC.diff)<-names(p.shift)<-node
         res<-list(data.frame("rate difference"=leaf2NC.diff,"p-value"=p.shift),
                   rates)
         names(res)<-c("single.clade","rates")
       }else{
-        par(mar = c(1, 1, 1, 1))
+        pdf(file=paste(foldername, "AR results for rate differences.pdf",sep="/"),width=8.3,height=11.7)
         par(mfrow = c(length(node) + 1, 1))
-        hist(ran.diffR, xlab = "random differences",
-             main = "all clades", xlim = c(2.5 * range(ran.diffR)[1],
-                                           2.5 * range(ran.diffR)[2]))
+        par(mar = c(3, 2, 2, 1))
+        hist(ran.diffR, main="",cex.lab=1.5,
+             yaxt="n",ylab="All clades together",xlab="",mgp=c(0.2,0.5,0),xaxt="n",
+             xlim = c(1.1 * min(c(leaf2NC.diff,ran.diffR)),1.1 * max(c(leaf2NC.diff,ran.diffR))))
+        hist(c(leaf2NC.diff,ran.diffR),plot=F)->hi
+        if(length(hi$breaks)%%2==1) (hi$breaks[seq(1,length(hi$breaks),2)])->athi else
+          c(hi$breaks[seq(1,length(hi$breaks),2)],
+            (hi$breaks[length(hi$breaks)]+abs(diff(hi$breaks[seq(1,length(hi$breaks),2)][1:2]))))->athi
+        axis(1,at=athi)
+        mtext(text="random differences",1,line=1.8)
+        title(main="Absolute rate difference",cex.main=2)
         abline(v = leaf2NC.diff, col = "green", lwd = 3)
+
+
+        # par(mar = c(1, 1, 1, 1))
+        # par(mfrow = c(length(node) + 1, 1))
+        # hist(ran.diffR, xlab = "random differences",
+        #      main = "all clades", xlim = c(2.5 * range(ran.diffR)[1],
+        #                                    2.5 * range(ran.diffR)[2]))
+        # abline(v = leaf2NC.diff, col = "green", lwd = 3)
         leaf2N.diff <- array()
         p.single <- array()
         ran.diff <- list()
@@ -398,12 +428,25 @@ search.shift<-function(RR,
         names(p.single) <- node
         names(leaf2N.diff) <- names(p.single)
         for (m in 1:length(node)) {
-          hist(ran.diff[[m]], xlab = "random differences",
-               main = print(paste("Node", node[m], sep = " ")),
-               xlim = c(2.5 * range(ran.diff[[m]])[1], 2.5 *
-                          range(ran.diff[[m]])[2]))
+          par(mar = c(3, 2, 2, 1))
+          hist(ran.diff[[m]], main="",cex.lab=1.5,
+               yaxt="n",ylab=paste("node", node[m], sep = " "),xlab="",mgp=c(0.2,0.5,0),xaxt="n",
+               xlim = c(1.1 * min(c(leaf2N.diff[m],ran.diff[[m]])),1.1 * max(c(leaf2N.diff[m],ran.diff[[m]]))))
+          hist(c(leaf2N.diff[m],ran.diff[[m]]),plot=F)->hi
+          if(length(hi$breaks)%%2==1) (hi$breaks[seq(1,length(hi$breaks),2)])->athi else
+            c(hi$breaks[seq(1,length(hi$breaks),2)],
+              (hi$breaks[length(hi$breaks)]+abs(diff(hi$breaks[seq(1,length(hi$breaks),2)][1:2]))))->athi
+          axis(1,at=athi)
+          mtext(text="random differences",1,line=1.8)
           abline(v = leaf2N.diff[m], col = "blue", lwd = 3)
+
+          # hist(ran.diff[[m]], xlab = "random differences",
+          #      main = print(paste("Node", node[m], sep = " ")),
+          #      xlim = c(2.5 * range(ran.diff[[m]])[1], 2.5 *
+          #                 range(ran.diff[[m]])[2]))
+          # abline(v = leaf2N.diff[m], col = "blue", lwd = 3)
         }
+        dev.off()
         res<-list(data.frame("rate.difference"=leaf2NC.diff,"p.value"=p.shift),
                   data.frame("rate difference"=leaf2N.diff[match(names(p.single),names(leaf2N.diff))],"p-value"=p.single),
                   rates)
@@ -447,18 +490,32 @@ search.shift<-function(RR,
         status.diffS[i, ] <- c(SD, w)
       }
       colnames(status.diffS) <- names(status.diff)
-      par(mar = c(1, 1, 1, 1))
+      pdf(file=paste(foldername, "AR results for rate differences.pdf",sep="/"),width=8.3,height=11.7)
       par(mfrow = c(length(unique(state)), 1))
       idx <- match(unique(state), colnames(status.diffS))
       for (i in 1:length(idx)) {
-        hist(status.diffS[, idx[i]], xlab = "random differences",
-             main = print(paste("rate difference per status",
-                                colnames(status.diffS)[idx[i]], sep = " ")),
-             xlim = c(min(status.diffS[, idx[i]]) - sd(status.diffS[,
-                                                                    idx[i]]), max(status.diffS[, idx[i]]) + sd(status.diffS[,
-                                                                                                                            idx[i]])))
+        par(mar = c(3, 2, 2, 1))
+        hist(status.diffS[, idx[i]], main="",xaxt="n",cex.lab=1.5,
+             yaxt="n",ylab=paste("state", colnames(status.diffS)[idx[i]], sep = " "),xlab="",mgp=c(0.2,0.5,0),
+             xlim = c(1.1*min(c(status.diff[idx[i]],status.diffS[, idx[i]])),1.1*max(c(status.diff[idx[i]],status.diffS[, idx[i]]))))
+        hist(c(status.diff[idx[i]],status.diffS[, idx[i]]),plot=F)->hi
+        if(length(hi$breaks)%%2==1) (hi$breaks[seq(1,length(hi$breaks),2)])->athi else
+          c(hi$breaks[seq(1,length(hi$breaks),2)],
+            (hi$breaks[length(hi$breaks)]+abs(diff(hi$breaks[seq(1,length(hi$breaks),2)][1:2]))))->athi
+        axis(1,at=athi)
+        mtext(text="random differences",1,line=1.8)
+        if(i==1) title(main="Absolute rate difference between states",cex.main=2)
         abline(v = status.diff[idx[i]], lwd = 3, col = "green")
+
+        #   hist(status.diffS[, idx[i]], xlab = "random differences",
+        #        main = print(paste("rate difference per status",
+        #                           colnames(status.diffS)[idx[i]], sep = " ")),
+        #        xlim = c(min(status.diffS[, idx[i]]) - sd(status.diffS[,
+        #                                                               idx[i]]), max(status.diffS[, idx[i]]) + sd(status.diffS[,
+        #                                                                                                                       idx[i]])))
+        #   abline(v = status.diff[idx[i]], lwd = 3, col = "green")
       }
+      dev.off()
       for (i in 1:length(status.diff)) p.status.diff[i] <- rank(c(status.diff[i],
                                                                   status.diffS[1:(nrep - 1), i]))[1]/nrep
       names(p.status.diff) <- names(status.diff)
@@ -480,13 +537,29 @@ search.shift<-function(RR,
         status.diffS[i] <- diff(tapply(abs(s.frame$frame.rate),
                                        s.frame$s.ran, mean))
       }
-      hist(status.diffS, xlab = "random differences", main = "rate difference per status",
-           xlim = c(min(status.diffS) * 2.5, max(status.diffS) *
-                      2.5))
+      # hist(status.diffS, xlab = "random differences", main = "rate difference per status",
+      #      xlim = c(min(status.diffS) * 2.5, max(status.diffS) *
+      #                 2.5))
+      # abline(v = status.diff, lwd = 3, col = "green")
+      pdf(file=paste(foldername, "AR results for rate differences.pdf",sep="/"),width=8.3,height=8.3)
+      par(mar = c(3, 2, 2, 1))
+      hist(status.diffS, main="",xaxt="n",
+           yaxt="n",ylab="",xlab="random differences",
+           cex.lab=1,mgp=c(1.5,0.8,0),
+           xlim = c(1.1*min(c(status.diff,status.diffS)), 1.1*max(c(status.diff,status.diffS))))
+      hist(c(status.diff,status.diffS),plot=F)->hi
+      if(length(hi$breaks)%%2==1) (hi$breaks[seq(1,length(hi$breaks),2)])->athi else
+        c(hi$breaks[seq(1,length(hi$breaks),2)],
+          (hi$breaks[length(hi$breaks)]+abs(diff(hi$breaks[seq(1,length(hi$breaks),2)][1:2]))))->athi
+      axis(1,at=athi,mgp=c(0.2,0.5,0))
+      title(main="Absolute rate difference between states",cex.main=2)
       abline(v = status.diff, lwd = 3, col = "green")
+      dev.off()
       p.status.diff <- rank(c(status.diff, status.diffS[1:(nrep -
                                                              1)]))[1]/nrep
-      res<-list(data.frame("rate difference"=status.diff[match(names(p.status.diff),names(status.diff))],"p.value"=p.status.diff),rates)
+      state.results<-data.frame("rate difference"=status.diff[match(names(p.status.diff),names(status.diff))],"p.value"=p.status.diff)
+      rownames(state.results)<-paste(names(p.status.diff),unique(state)[which(unique(state)!=names(p.status.diff))],sep="-")
+      res<-list(state.results,rates)
       names(res)<-c("state.results","rates")
       return(res)
     }

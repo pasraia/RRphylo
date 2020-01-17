@@ -1,26 +1,38 @@
 #' @title Create alternative phylogenies from a given tree
-#' @usage swapONE(tree,si=0.5,si2=0.5)
+#' @usage swapONE(tree,node=NULL,si=0.5,si2=0.5,plot.swap=FALSE)
 #' @description The function produces an alternative phylogeny with altered topology and branch length, and computes the Kuhner-Felsenstein (Kuhner & Felsenstein 1994) distance between original and 'swapped' tree.
 #' @param tree a phylogenetic tree. The tree needs not to be ultrametric or fully dichotomous.
+#' @param node if specified, the clades subtended by such \code{node(s)} are imposed to be monophyletic. In this case, the function can still swap tips \emph{within} the clade.
 #' @param si the proportion of tips whose topologic arrangement will be swapped.
 #' @param si2 the proportion of nodes whose age will be changed.
-#' @details \code{swap.one} changes the tree topology and branch lengths. Up to half of the tips, and half of the branch lengths can be changed randomly. Each randomly selected node is allowed to move up to 2 nodes apart from its original position.
+#' @param plot.swap if \code{TRUE}, the function plots the swapped tree. Swapped positions appear in red. Nodes with altered ages appear in green.
+#' @details \code{swapONE} changes the tree topology and branch lengths. Up to half of the tips, and half of the branch lengths can be changed randomly. Each randomly selected node is allowed to move up to 2 nodes apart from its original position.
 #' @export
 #' @importFrom stats runif
 #' @importFrom phangorn KF.dist
+#' @importFrom ape cophenetic.phylo
 #' @return The function returns a list containing the 'swapped' version of the original tree, and the Kuhner-Felsenstein distance between the trees.
-#' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
+#' @author Silvia Castiglione, Pasquale Raia, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
 #' @references Kuhner, M. K. & Felsenstein, J. (1994). A simulation comparison of phylogeny algorithms under equal and unequal evolutionary rates, \emph{Molecular Biology and Evolution}, 11: 459–468.
 #' @examples
 #' data("DataOrnithodirans")
 #' DataOrnithodirans$treedino->treedino
 #'
-#' swapONE(tree=treedino)
+#' ## Case 1. change the topology and the branch lengths for the entire tree
+#' swapONE(tree=treedino,si=0.5,si2=0.5,plot.swap=FALSE)
+#'
+#' ## Case 2. change the topology and the branch lengths of the
+#' ##         tree by keeping the monophyly of a specific clade
+#' swapONE(tree=treedino,node=423,si=0.5,si2=0.5,plot.swap=FALSE)
 
 
 swapONE<-function(tree,
+                  node=NULL,
                   si=0.5,
-                  si2=0.5){
+                  si2=0.5,
+                  plot.swap=FALSE){
+
+  #require(phangorn)
 
   tree->tree1
 
@@ -36,7 +48,72 @@ swapONE<-function(tree,
 
   ### swap tips ####
   apply(vcv(tree),1,function(x) which(x==maxN(x,N=3)))->shifts
-  sample(shifts,length(shifts)*si)->t.shifts
+
+
+  if(!is.null(node)){
+    for(i in 1:length(node)){
+      tips(tree,node[i])->nod.tip
+      lapply(shifts[which(names(shifts)%in%nod.tip)],function(x) which(!names(x)%in%nod.tip))->rem.tip
+      which(sapply(rem.tip,length)>0)->rr
+      if(any(rr)) for(j in 1:length(rr)){
+        shifts[which(names(shifts)%in%nod.tip)][[rr[j]]][-rem.tip[[rr[j]]]]->shifts[which(names(shifts)%in%nod.tip)][[rr[j]]]
+      }
+      lapply(shifts[which(!names(shifts)%in%nod.tip)],function(x) which(names(x)%in%nod.tip))->rem.tip1
+      which(sapply(rem.tip1,length)>0)->rr1
+      if(any(rr1)) for(k in 1:length(rr1)){
+        shifts[which(!names(shifts)%in%nod.tip)][[rr1[k]]][-rem.tip1[[rr1[k]]]]->shifts[which(!names(shifts)%in%nod.tip)][[rr1[k]]]
+      }
+    }
+  }
+
+  cophenetic.phylo(tree)->cop
+  if(any(sapply(shifts,length)==0)) {
+    cop[-which(sapply(shifts,length)==0),]->cop
+    shifts[-which(sapply(shifts,length)==0)]->shifts
+  }
+
+  lapply(1:length(shifts),function(x) {
+    cop[x,which(names(cop[x,])%in%names(shifts[[x]]))]->shift.dist
+    names(shift.dist)<-colnames(cop)[which(names(cop[x,])%in%names(shifts[[x]]))]
+    return(shift.dist)
+  })->patr.dist
+  names(patr.dist)<-names(shifts)
+  sd(sapply(patr.dist,mean))*2->lim
+
+  for(x in 1:length(patr.dist)){
+    dN<-c()
+    getSis(tree,names(shifts)[x],printZoom = F)->sis
+    suppressWarnings(as.numeric(sis)->nsis)
+    if(any(is.na(nsis))) which(tree$tip.label%in%sis[which(is.na(nsis))])->sis[which(is.na(nsis))]
+    as.numeric(sis)->sis
+    if(length(sis)<2){
+      if(sis<=(Ntip(tree))) c(sis,dN)->dN else {
+        tree$edge[tree$edge[,1]==sis,2]->sis2
+        if(any(sis2<=Ntip(tree))) c(dN,sis2[which(sis2<=Ntip(tree))])->dN
+      }
+
+    }else{
+      for(y in sis){
+        if(y<=(Ntip(tree))) c(y,dN)->dN else {
+          tree$edge[tree$edge[,1]==y,2]->sis2
+          if(any(sis2<=Ntip(tree))) c(dN,sis2[which(sis2<=Ntip(tree))])->dN
+        }
+      }
+    }
+
+    getMommy(tree,which(tree$tip.label==names(shifts)[x]))[1]->mom
+    getSis(tree,mom,printZoom = F)->sismom
+    suppressWarnings(as.numeric(sismom)->nsismom)
+    if(any(is.na(nsismom))) c(dN,which(tree$tip.label%in%sismom[which(is.na(nsismom))]))->dN
+    tree$tip.label[dN]->dN
+
+    shifts[[x]][unique(c(match(dN,names(shifts[[x]]),nomatch=0),which(patr.dist[[x]]<lim)))]->shifts[[x]]
+  }
+  names(shifts)<-names(patr.dist)
+
+  if(any(sapply(shifts,length)==0)) shifts[-which(sapply(shifts,length)==0)]->shifts
+
+  if((Ntip(tree)*si)>length(shifts)) shifts->t.shifts else sample(shifts,Ntip(tree)*si)->t.shifts
   sapply(t.shifts,function(x) if(length(x)==1) x<-x else sample(x,1))->t.change
 
   diag(vcv(tree))->ages
@@ -50,15 +127,16 @@ swapONE<-function(tree,
   for(i in 1:length(t.change)){
     if(DF[DF[,1]==strsplit(names(t.change),"\\.")[[i]][1],5]<DF[DF[,1]==strsplit(names(t.change),"\\.")[[i]][2],4] | DF[DF[,1]==strsplit(names(t.change),"\\.")[[i]][2],5]<DF[DF[,1]==strsplit(names(t.change),"\\.")[[i]][1],4]) check[i]<-"bar" else check[i]<-"good"
   }
-  t.change[which(check=="bar")]<-"NULL"
 
-  if(length(which(check=="bar"))>0) t.change[-which(t.change=="NULL")]->t.change else t.change->t.change
+  if(length(which(check=="bar"))>0) t.change[-which(check=="bar")]->t.change
   if(length(t.change)<1)
   {
     warning("no swap implemented, fuzzy node aging only will be performed")
     tree1->tree1
   } else {
+    sw.tips<-c()
     for(i in 1:length(t.change)){
+      c(sw.tips,c(which(tree1$tip.label==strsplit(names(t.change),split="\\.")[[i]][1]),which(tree1$tip.label==strsplit(names(t.change),split="\\.")[[i]][2])))->sw.tips
       tree1$tip.label[replace(seq(1:Ntip(tree1)),c(which(tree1$tip.label==strsplit(names(t.change),split="\\.")[[i]][1]),which(tree1$tip.label==strsplit(names(t.change),split="\\.")[[i]][2])),c(which(tree1$tip.label==strsplit(names(t.change),split="\\.")[[i]][2]),which(tree1$tip.label==strsplit(names(t.change),split="\\.")[[i]][1])))]->tree1$tip.label
     }
 
@@ -84,5 +162,15 @@ swapONE<-function(tree,
   }
   nodedge[,5]->tree1$edge.length
   KF.dist(tree,tree1)->KF
+
+
+
+  if(isTRUE(plot.swap)){
+    colo<-rep("black",nrow(tree$edge))
+    if(length(sw.tips)>0) colo[which(tree$edge[,2]%in%unique(sw.tips))]<-"red"
+    plot(tree1,edge.color = colo,cex=.5)
+    nodelabels(bg="w",frame="n",col="green",node=N)
+  }
+
   return(list("modified tree"=tree1,"Kuhner-Felsenstein distance"=KF))
 }
