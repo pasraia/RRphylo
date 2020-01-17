@@ -1,6 +1,6 @@
 ## Test environments
-* local OS X install, R 3.5.1
-* Windows NT Win10, R 3.5.1
+* local OS X install, R 3.6.2
+* Windows NT Win10, R 3.6.2
 * win-builder (devel and release)
 
 ## R CMD check results

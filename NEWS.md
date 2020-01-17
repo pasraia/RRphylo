@@ -1,3 +1,9 @@
+# RRphylo 2.4.0
+What's new in version 2.4.0
+New function added!
+The function phyloclust tests for phylogenetic clustering for the distribution of discrete "states" among tips and resolves clustering by removing tips randomly.
+New versions of the functions search.conv, overfitRR and swapONE. search.conv now accounts for phylogenetic clustering; overfitRR now works with multivariate data and tests the robustness of search.conv results; swapONE allows the user to keep specific clades monophyletic upon indication.
+
 # RRphylo 2.3.0
 What's new in version 2.3.0
 New function added!
