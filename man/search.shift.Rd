@@ -56,32 +56,35 @@ DataOrnithodirans$massdino->massdino
 DataOrnithodirans$statedino->statedino
 
 \donttest{
-    RRphylo(tree=treedino,y=massdino)->dinoRates
+data("DataOrnithodirans")
+DataOrnithodirans$treedino->treedino
+DataOrnithodirans$massdino->massdino
+DataOrnithodirans$statedino->statedino
+
+
+RRphylo(tree=treedino,y=massdino)->dinoRates
 
 # Case 1. Without accounting for the effect of a covariate
 
- # Case 1.1 "clade" condition
-  # with auto-recognize
-    search.shift(dinoRates, status.type= "clade",foldername=tempdir())
-  # testing two hypothetical clades
-    search.shift(dinoRates, status.type= "clade", node=c(697,748),
-    foldername=tempdir())
+# Case 1.1 "clade" condition
+# with auto-recognize
+search.shift(RR=dinoRates,status.type="clade",foldername=tempdir())
+# testing two hypothetical clades
+search.shift(RR=dinoRates,status.type="clade",node=c(697,748),foldername=tempdir())
 
- # Case 1.2 "sparse" condition
-  # testing the sparse condition.
-    search.shift(dinoRates, status.type= "sparse", state=statedino,
-    foldername=tempdir())
+# Case 1.2 "sparse" condition
+# testing the sparse condition.
+search.shift(RR=dinoRates,status.type= "sparse",state=statedino,foldername=tempdir())
 
 
 # Case 2. Accounting for the effect of a covariate
 
- # Case 2.1 "clade" condition
-    search.shift(dinoRates, status.type= "clade", cov=massdino,
-    foldername=tempdir())
+# Case 2.1 "clade" condition
+search.shift(RR=dinoRates,status.type= "clade",cov=massdino,foldername=tempdir())
 
- # Case 2.2 "sparse" condition
-    search.shift(dinoRates,status.type="sparse",state=statedino,
-    cov=massdino,foldername=tempdir())
+# Case 2.2 "sparse" condition
+search.shift(RR=dinoRates,status.type="sparse",state=statedino,cov=massdino,
+             foldername=tempdir())
     }
 }
 \references{

@@ -4,7 +4,7 @@
 \alias{search.trend}
 \title{Searching for evolutionary trends in phenotypes and rates}
 \usage{
-search.trend(RR,y,x1=NULL,nsim=100,clus=.5,node=NULL,cov=NULL,foldername,ConfInt=FALSE)
+search.trend(RR,y,x1=NULL,nsim=100,clus=0.5,node=NULL,cov=NULL,foldername,ConfInt=FALSE)
 }
 \arguments{
 \item{RR}{an object produced by \code{\link{RRphylo}}.}
@@ -28,7 +28,7 @@ search.trend(RR,y,x1=NULL,nsim=100,clus=.5,node=NULL,cov=NULL,foldername,ConfInt
 \value{
 The function returns a ‘list’ object including:
 
-\strong{$rbt} for each branch of the tree, there are the \code{RRphylo} rates and the distance from the tree root (age). If y is multivariate, it also includes the multiple rates for each y vector. If \code{'node'} is specified, each branch is classified as belonging or not to the indicated clades.
+\strong{$rbt} for each branch of the tree, there are the \code{RRphylo} rates and the distance from the tree root (age). If y is multivariate, it also includes the multiple rates for each y vector. If \code{node} is specified, each branch is classified as belonging or not to the indicated clades.
 
 \strong{$pbt} a data frame of phenotypic values and their distance from the tree root for each node (i.e. ancestral states) and tip of the tree.
 
@@ -59,61 +59,61 @@ DataOrnithodirans$treedino->treedino
 DataOrnithodirans$massdino->massdino
 
 # Extract Pterosaurs tree and data
-  library(ape)
-  extract.clade(treedino,748)->treeptero
-  massdino[match(treeptero$tip.label,names(massdino))]->massptero
-  massptero[match(treeptero$tip.label,names(massptero))]->massptero
+library(ape)
+extract.clade(treedino,748)->treeptero
+massdino[match(treeptero$tip.label,names(massdino))]->massptero
+massptero[match(treeptero$tip.label,names(massptero))]->massptero
 
 # Case 1. "RRphylo" whitout accounting for the effect of a covariate
-  RRphylo(tree=treeptero,y=log(massptero))->RRptero
+RRphylo(tree=treeptero,y=log(massptero))->RRptero
 
- # Case 1.1. "search.trend" whitout indicating nodes to be tested for trends
-   search.trend(RR=RRptero, y=log(massptero), nsim=100, clus=0.5,
-   foldername=tempdir(),cov=NULL,ConfInt=FALSE,node=NULL)
+# Case 1.1. "search.trend" whitout indicating nodes to be tested for trends
+search.trend(RR=RRptero, y=log(massptero), nsim=100, clus=0.5,
+             foldername=tempdir(),cov=NULL,ConfInt=FALSE,node=NULL)
 
- # Case 1.2. "search.trend" indicating nodes to be specifically tested for trends
-    search.trend(RR=RRptero, y=log(massptero), nsim=100, node=143, clus=0.5,
-    foldername=tempdir(),cov=NULL,ConfInt=FALSE)
+# Case 1.2. "search.trend" indicating nodes to be specifically tested for trends
+search.trend(RR=RRptero, y=log(massptero), nsim=100, node=143, clus=0.5,
+             foldername=tempdir(),cov=NULL,ConfInt=FALSE)
 
 
 # Case 2. "RRphylo" accounting for the effect of a covariate
- # "RRphylo" on the covariate in order to retrieve ancestral state values
-   RRphylo(tree=treeptero,y=log(massptero))->RRptero
-   c(RRptero$aces,log(massptero))->cov.values
-   names(cov.values)<-c(rownames(RRptero$aces),names(massptero))
-   RRphylo(tree=treeptero,y=log(massptero),cov=cov.values)->RRpteroCov
+# "RRphylo" on the covariate in order to retrieve ancestral state values
+RRphylo(tree=treeptero,y=log(massptero))->RRptero
+c(RRptero$aces,log(massptero))->cov.values
+names(cov.values)<-c(rownames(RRptero$aces),names(massptero))
+RRphylo(tree=treeptero,y=log(massptero),cov=cov.values)->RRpteroCov
 
- # Case 2.1. "search.trend" whitout indicating nodes to be tested for trends
-   search.trend(RR=RRpteroCov, y=log(massptero), nsim=100, clus=0.5,
-   foldername=tempdir(),ConfInt=FALSE,cov=cov.values)
+# Case 2.1. "search.trend" whitout indicating nodes to be tested for trends
+search.trend(RR=RRpteroCov, y=log(massptero), nsim=100, clus=0.5,
+             foldername=tempdir(),ConfInt=FALSE,cov=cov.values)
 
- # Case 2.2. "search.trend" indicating nodes to be specifically tested for trends
-   search.trend(RR=RRpteroCov, y=log(massptero), nsim=100, node=143, clus=0.5,
-   foldername=tempdir(),ConfInt=FALSE,cov=cov.values)
+# Case 2.2. "search.trend" indicating nodes to be specifically tested for trends
+search.trend(RR=RRpteroCov, y=log(massptero), nsim=100, node=143, clus=0.5,
+             foldername=tempdir(),ConfInt=FALSE,cov=cov.values)
 
 
 # Case 3. "search.trend" on multiple "RRphylo"
-  data("DataCetaceans")
-  DataCetaceans$treecet->treecet
-  DataCetaceans$masscet->masscet
-  DataCetaceans$brainmasscet->brainmasscet
-  DataCetaceans$aceMyst->aceMyst
+data("DataCetaceans")
+DataCetaceans$treecet->treecet
+DataCetaceans$masscet->masscet
+DataCetaceans$brainmasscet->brainmasscet
+DataCetaceans$aceMyst->aceMyst
 
-  drop.tip(treecet,treecet$tip.label[-match(names(brainmasscet),treecet$tip.label)])->treecet.multi
-  masscet[match(treecet.multi$tip.label,names(masscet))]->masscet.multi
+drop.tip(treecet,treecet$tip.label[-match(names(brainmasscet),treecet$tip.label)])->treecet.multi
+masscet[match(treecet.multi$tip.label,names(masscet))]->masscet.multi
 
-  RRphylo(treecet.multi,masscet.multi)->RRmass.multi
-  RRmass.multi$aces[,1]->acemass.multi
-  c(acemass.multi,masscet.multi)->x1.mass
+RRphylo(tree=treecet.multi,y=masscet.multi)->RRmass.multi
+RRmass.multi$aces[,1]->acemass.multi
+c(acemass.multi,masscet.multi)->x1.mass
 
-  RRphylo(treecet.multi,y=brainmasscet,x1=x1.mass)->RRmulti
+RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass)->RRmulti
 
-  search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,clus=0.5,foldername=tempdir())
+search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,clus=0.5,foldername=tempdir())
    }
 }
 \references{
 Castiglione, S., Serio, C., Mondanaro, A., Di Febbraro, M., Profico, A., Girardi, G., & Raia, P. (2019) Simultaneous detection of macroevolutionary patterns in phenotypic means and rate of change with and within phylogenetic trees including extinct species. \emph{PLoS ONE}, 14: e0210101. https://doi.org/10.1371/journal.pone.0210101
 }
 \author{
-Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
+Silvia Castiglione, Carmela Serio, Pasquale Raia, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
 }

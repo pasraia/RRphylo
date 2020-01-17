@@ -21,17 +21,17 @@ swap.phylo(tree,si=0.5,si2=0.5,node,y,rts,nrep=100,cov=NULL)
 
 \item{nrep}{the number of simulated trees to be produced.}
 
-\item{cov}{the covariate to be indicated if its effect on rate values must be accounted for. Contrary to \code{RRphylo}, \code{'cov'} needs to be as long as the number of tips of the tree.}
+\item{cov}{the covariate to be indicated if its effect on rate values must be accounted for. Contrary to \code{RRphylo}, \code{cov} needs to be as long as the number of tips of the tree.}
 }
 \value{
 The function returns a 'list' object containing:
 
-\strong{$p.swap} the probability that the rates at \code{'node'} are different from rates at the rest of the tree.
+\strong{$p.swap} the probability that the rates at \code{node} are different from rates at the rest of the tree.
 
 \strong{$rates} the distribution of rates per branch as calculated by \code{RRphylo} on 'swapped' phylogenies.
 }
 \description{
-The function uses a number of alternative phylogenies with altered (as compared to the reference tree) topology and branch lengths tests whether the tips descending from the specified node (\code{'node'}) have statistically different rates from the rest of the tree. A phenotypic vector \code{'y'} must be supplied. Eventually, the effect of a covariate could be included.
+The function uses a number of alternative phylogenies with altered (as compared to the reference tree) topology and branch lengths tests whether the tips descending from the specified node (\code{node}) have statistically different rates from the rest of the tree. A phenotypic vector \code{y} must be supplied. Eventually, the effect of a covariate could be included.
 }
 \details{
 \code{swap.phylo} changes the tree topology and branch lengths to a level specified by the user. Up to half of the tips, and half of the branch lengths can be changed randomly. The function provides a 'swapped' tree, yet, importantly, once a shift in the rate of evolution has been found by \code{\link{RRphylo}}, this function can be used to test whether the shift depends on the tree topology and branch lengths. It runs \code{RRphylo} on swapped trees (default is 100) and then calculates the absolute rate difference between all the branches of the shifted node and the rest of the tree. A t-test is eventually performed to assess significance.

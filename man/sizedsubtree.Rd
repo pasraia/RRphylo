@@ -2,7 +2,7 @@
 % Please edit documentation in R/sizedsubtree.R
 \name{sizedsubtree}
 \alias{sizedsubtree}
-\title{Find a node subtending to a clade of desidered size}
+\title{Find a node subtending to a clade of desired size}
 \usage{
 sizedsubtree(tree,Size=NULL,time.limit=10)
 }

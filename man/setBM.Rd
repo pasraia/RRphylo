@@ -20,7 +20,7 @@ trend.type = c("linear", "stepwise"),tr = 10, t.shift = 0.5, es=2, ds=1)
 
 \item{trend.type}{two kinds of heteroscedastic residuals are generated under the \code{"trend"} type. The option \code{"linear"} produces an exponential linear increase (or decrease) in heteroscedasticity, whereas the \code{"stepwise"} option produces an increase (or decrease) after a specified point in time.}
 
-\item{tr}{the intensity of the trend with the \code{"stepwise"} option is controlled by the \code{'tr'} argument. The scalar \code{'tr'} is the multiplier of the branches extending after the shift point as indicated by \code{'t.shift'}.}
+\item{tr}{the intensity of the trend with the \code{"stepwise"} option is controlled by the \code{tr} argument. The scalar \code{tr} is the multiplier of the branches extending after the shift point as indicated by \code{t.shift}.}
 
 \item{t.shift}{the relative time distance from the tree root where the stepwise change in the rate of evolution is indicated to apply.}
 

@@ -17,9 +17,9 @@ node=NULL,species=NULL,write2csv=c("no","yes"))
 
 \item{focus}{it can be \code{"node"}, \code{"species"}, \code{"both"}, or \code{"none"}, whether the user wants the results for a focal node, or for a given species, for both, or just wants to visualize everything.}
 
-\item{node}{must be indicated if \code{focus= "node"} or \code{"both"}. As for \code{evo.dir}, the node number must refer to the dichotomic version of the original tree, as produced by \code{\link{RRphylo}}.}
+\item{node}{must be indicated if \code{focus = "node"} or \code{"both"}. As for \code{evo.dir}, the node number must refer to the dichotomic version of the original tree, as produced by \code{\link{RRphylo}}.}
 
-\item{species}{must be indicated if \code{focus= "species"} or \code{"both"}.}
+\item{species}{must be indicated if \code{focus = "species"} or \code{"both"}.}
 
 \item{write2csv}{if \code{"yes"} results are saved to a .csv file in your working directory.}
 }

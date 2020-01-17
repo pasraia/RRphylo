@@ -40,7 +40,7 @@ RRphylo(tree,y,cov=NULL,rootV=NULL,aces=NULL,x1=NULL,aces.x1=NULL,clus=0.5)
 
 \strong{lambda} the regularization factor fitted within \code{RRphylo} by the inner function \code{optL}. With multivariate data, several \code{optL} runs are performed. Hence, the function provides a single lambda for each individual variable.
 
-\strong{ace.alues} if \code{aces} are specified, the function returns a dataframe containing the corresponding node number on the \code{RRphylo} tree  for each node , along with estimated values.
+\strong{ace.values} if \code{aces} are specified, the function returns a dataframe containing the corresponding node number on the \code{RRphylo} tree  for each node , along with estimated values.
 
 \strong{x1.rate} if \code{x1} is specified, the function returns the partial regression coefficient for \code{x1}.
 }
@@ -54,39 +54,42 @@ DataOrnithodirans$treedino->treedino
 DataOrnithodirans$massdino->massdino
 
 # Case 1. "RRphylo" without accounting for the effect of a covariate
-    RRphylo(tree=treedino,y=massdino)
+RRphylo(tree=treedino,y=massdino)
 
 # Case 2. "RRphylo" accounting for the effect of a covariate
-  # "RRphylo" on the covariate in order to retrieve ancestral state values
-    RRphylo(tree=treedino,y=massdino)->RRcova
-    c(RRcova$aces,massdino)->cov.values
-    c(rownames(RRcova$aces),names(massdino))->names(cov.values)
+# "RRphylo" on the covariate in order to retrieve ancestral state values
+RRphylo(tree=treedino,y=massdino)->RRcova
+c(RRcova$aces,massdino)->cov.values
+c(rownames(RRcova$aces),names(massdino))->names(cov.values)
 
-    RRphylo(tree=treedino,y=massdino,cov=cov.values)
+RRphylo(tree=treedino,y=massdino,cov=cov.values)
 
 # Case 3. "RRphylo" specifying the ancestral states
-  data("DataCetaceans")
-  DataCetaceans$treecet->treecet
-  DataCetaceans$masscet->masscet
-  DataCetaceans$brainmasscet->brainmasscet
-  DataCetaceans$aceMyst->aceMyst
+data("DataCetaceans")
+DataCetaceans$treecet->treecet
+DataCetaceans$masscet->masscet
+DataCetaceans$brainmasscet->brainmasscet
+DataCetaceans$aceMyst->aceMyst
 
-  RRphylo(tree=treecet,y=masscet,aces=aceMyst)
+RRphylo(tree=treecet,y=masscet,aces=aceMyst)
 
 # Case 4. Multiple "RRphylo"
-  drop.tip(treecet,treecet$tip.label[-match(names(brainmasscet),treecet$tip.label)])->treecet.multi
-  masscet[match(treecet.multi$tip.label,names(masscet))]->masscet.multi
+drop.tip(treecet,treecet$tip.label[-match(names(brainmasscet),treecet$tip.label)])->treecet.multi
+masscet[match(treecet.multi$tip.label,names(masscet))]->masscet.multi
 
-  RRphylo(treecet.multi,masscet.multi)->RRmass.multi
-  RRmass.multi$aces[,1]->acemass.multi
-  c(acemass.multi,masscet.multi)->x1.mass
-  RRphylo(treecet.multi,y=brainmasscet,x1=x1.mass)
+RRphylo(tree=treecet.multi, y=masscet.multi)->RRmass.multi
+RRmass.multi$aces[,1]->acemass.multi
+c(acemass.multi,masscet.multi)->x1.mass
 
-
+RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass)
     }
 }
 \references{
 Castiglione, S., Tesone, G., Piccolo, M., Melchionna, M., Mondanaro, A., Serio, C., Di Febbraro, M., & Raia, P.(2018). A new method for testing evolutionary rate variation and shifts in phenotypic evolution. \emph{Methods in Ecology and Evolution}, 9: 974-983.doi:10.1111/2041-210X.12954
+
+Serio, C., Castiglione, S., Tesone, G., Piccolo, M., Melchionna, M., Mondanaro, A., Di Febbraro, M., & Raia, P.(2019). Macroevolution of toothed whales exceptional relative brain size. \emph{Evolutionary Biology}, 46: 332-342. doi:10.1007/s11692-019-09485-7
+
+Melchionna, M., Mondanaro, A., Serio, C., Castiglione, S., Di Febbraro, M., Rook, L.,Diniz-Filho,J.A.F., Manzi, G., Profico, A., Sansalone, G., & Raia, P.(2020).Macroevolutionary trends of brain mass in Primates. \emph{Biological Journal of the Linnean Society}, 129: 14-25. doi:10.1093/biolinnean/blz161
 }
 \author{
 Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto

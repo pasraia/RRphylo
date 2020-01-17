@@ -9,11 +9,11 @@ scaleTree(tree, tip.ages, node.ages=NULL, min.branch=0.1)
 \arguments{
 \item{tree}{a phylogenetic tree. The tree needs not to be ultrametric and fully dichotomous.}
 
-\item{tip.ages}{a named vector of tip ages in terms of distance from the youngest tip.}
+\item{tip.ages}{a named vector including the ages (i.e. distance from the youngest tip within the tree) of the tips to be changed. If unspecified, the function assumes all the tips are correctly placed with respect to the root.}
 
-\item{node.ages}{a named vector of node ages in terms of distance from the youngest tip. If no calibration date for nodes is available except for the tree root, the vector must contain as only entry the tree height with the root number as name.}
+\item{node.ages}{a named vector including the ages (i.e. distance from the youngest tip within the tree) of the nodes to be changed. If no calibration date for nodes is supplied, the function shifts node position only where needed to fit tip ages.}
 
-\item{min.branch}{the minimum branch length that will be imposed when no age is specified.}
+\item{min.branch}{the minimum branch length that will be imposed for shifted nodes.}
 }
 \value{
 Rescaled phylogentic tree.
@@ -33,11 +33,9 @@ DataFelids$treefel->tree
 max(nodeHeights(tree))->H
 
 #### Example 1 ####
-H-diag(vcv(tree))->tipAges
-tipAges[tips(tree,146)]<-min(tipAges)
-H->nodeAges
-names(nodeAges)<-Ntip(tree)+1
-scaleTree(tree,tipAges,nodeAges)->treeS1
+rep(0,4)->tipAges
+names(tipAges)<-tips(tree,146)
+scaleTree(tree,tipAges)->treeS1
 
 edge.col<-rep("black",nrow(tree$edge))
 edge.col[which(treeS1$edge[,2]\%in\%getDescendants(treeS1,146))]<-"red"
@@ -47,10 +45,9 @@ plot(tree,edge.color = edge.col,show.tip.label=F)
 plot(treeS1,edge.color = edge.col,show.tip.label=F)
 
 #### Example 2 ####
-nodeAges<-c(H,23.5,15.6)
-names(nodeAges)<-c(84,85,139)
-tipAges<-H-diag(vcv(tree))
-scaleTree(tree,tipAges,nodeAges)->treeS2
+nodeAges<-c(23.5,15.6)
+names(nodeAges)<-c(85,139)
+scaleTree(tree,node.ages=nodeAges)->treeS2
 
 edge.col<-rep("black",nrow(tree$edge))
 edge.col[which(treeS1$edge[,2]\%in\%c(getDescendants(treeS1,85),
@@ -58,9 +55,28 @@ edge.col[which(treeS1$edge[,2]\%in\%c(getDescendants(treeS1,85),
 
 layout(2:1)
 plot(tree,edge.color = edge.col,show.tip.label=F)
+nodelabels(bg="w",frame="n",node=c(85,139),col="green")
 plot(treeS2,edge.color = edge.col,show.tip.label=F)
+nodelabels(bg="w",frame="n",node=c(85,139),col="green")
+
+#### Example 3 ####
+16->nodeAges
+names(nodeAges)<-"145"
+tipAges<-19
+names(tipAges)<-tree$tip.label[1]
+scaleTree(tree,tip.ages = tipAges,node.ages=nodeAges)->treeS3
+
+edge.col<-rep("black",nrow(tree$edge))
+edge.col[which(treeS3$edge[,2]\%in\%c(1,getMommy(tree,1),
+                                    getDescendants(treeS3,145)))]<-"red"
+
+layout(2:1)
+plot(tree,edge.color = edge.col,show.tip.label=F)
+nodelabels(bg="w",frame="n",node=145,col="green")
+plot(treeS3,edge.color = edge.col,show.tip.label=F)
+nodelabels(bg="w",frame="n",node=145,col="green")
 }
 }
 \author{
-Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
+Silvia Castiglione, Pasquale Raia, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
 }
