@@ -1,28 +1,7 @@
 citHeader("To cite RRphylo, search.shift, search.trend and auxilliary functions in publications use:")
 
-citEntry(entry        = "Manual",
-         header       = "RRphylo package",
-         title        = "RRphylo: Phylogenetic Ridge Regression Methods for Comparative Studies.",
-         author       = personList(as.person("Pasquale Raia"),
-                                   as.person("Silvia Castiglione"),
-                                   as.person("Carmela Serio"),
-                                   as.person("Alessandro Mondanaro"),
-                                   as.person("Marina Melchionna"),
-                                   as.person("Mirko Di Febbraro"),
-                                   as.person("Antonio Profico"),
-                                   as.person("Francesco Carotenuto")),
-         year         = "2019",
-         volume       = "9",
-         pages        = "974-983",
-         url          = "https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.12954",
-         textVersion  = paste("Raia, P., Castiglione, S., Serio, C., Mondanaro, A., Melchionna, M., Di Febbraro, M., Profico, A., &                                Carotenuto,F. (2019).",
-                        "RRphylo: Phylogenetic Ridge Regression Methods for Comparative Studies.",
-                        "R package version 2.3.0."
-                        )
-)
-
 citEntry(entry        = "Article",
-         header       = "RRphylo, search.shift, and auxilliary functions",
+         header       = "RRphylo package, search.shift, and auxilliary functions",
          title        = "A new method for testing evolutionary rate variation and shifts in phenotypic evolution.",
          author       = personList(as.person("Silvia Castiglione"),
                                    as.person("Gianmarco Tesone"),
