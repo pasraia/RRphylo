@@ -681,7 +681,7 @@ search.trend<-function (RR, y,x1=NULL, nsim = 100, clus = 0.5, node = NULL, cov 
   cl <- makeCluster(round((detectCores() * clus), 0))
   registerDoParallel(cl)
   res <- foreach(i = 1:nsim, .packages = c("car","outliers","nlme", "ape",
-                                           "geiger", "phytools", "penalized", "doParallel", "lmtest"
+                                           "geiger", "phytools", "doParallel", "lmtest"
   )) %dopar% {
 
     gc()

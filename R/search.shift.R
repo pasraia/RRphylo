@@ -203,7 +203,7 @@ search.shift<-function(RR,
       }
 
       if (length(p.single[p.single >= 0.975 | p.single <=
-                          0.025]) > 2)  {
+                          0.025]) >= 2)  {
         p.init <- p.single
         l2N.init <- leaf2N.diff[match(names(p.init),
                                       names(leaf2N.diff))]
