@@ -40,7 +40,7 @@ The function returns a 'list' containing the output of StableTraits and StableTr
 This function runs StableTraits and StableTraitsSum (\cite{Elliot and Mooers 2014}) from within the R environment and returns its output into the workspace.
 }
 \details{
-The StableTraits software is available at https://mickelliot.com/, along with instructions for compilation. Once it is installed, the user must set as R working directory the folder where the StableTraits software are installed. Further information about the arguments and outputs of StableTraits and StableTraitsSum can be found at http://www.michaelelliot.net/stabletraits/. \code{StableTraitsR} automatically recognizes which Operating System is running on the computer (it has been tested successfully on MacOS and Windows machines).
+The StableTraits software is available at https://mickelliot.com/, along with instructions for compilation. Once it is installed, the user must set as R working directory the folder where the StableTraits software are installed. Further information about the arguments and outputs of StableTraits and StableTraitsSum can be found at https://mickelliot.com/. \code{StableTraitsR} automatically recognizes which Operating System is running on the computer (it has been tested successfully on MacOS and Windows machines).
 }
 \examples{
 \donttest{
