@@ -1,3 +1,8 @@
+# RRphylo 2.4.1
+What's new in version 2.4.1
+New function added!
+The function cutPhylo cuts all the branches of the phylogeny which are younger than a specific age or node.
+
 # RRphylo 2.4.0
 What's new in version 2.4.0
 New function added!
