@@ -79,7 +79,6 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
                       min.dim=NULL,max.dim=NULL,min.dist=NULL,PGLSf=FALSE,
                       declust=FALSE,nsim=1000,rsim=1000,clus=.5,foldername=NULL)
 {
-
   # require(ape)
   # require(geiger)
   # require(phytools)
@@ -100,115 +99,6 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
     PGLSf->declust
   }
 
-  traitgram = function(
-    x, phy,
-    xaxt='s',
-    underscore = FALSE,
-    show.names = TRUE,
-    show.xaxis.values = TRUE,
-    method = c('ML','pic'),
-    col=NULL,
-    lwd=NULL,
-    mgp=NULL,...)
-  {
-
-    method <- match.arg(method)
-    Ntaxa = length(phy$tip.label)
-    Ntot = Ntaxa + phy$Nnode
-    phy = picante::node.age(phy)
-    ages = phy$ages[match(1:Ntot,phy$edge[,2])]
-    ages[Ntaxa+1]=0
-
-
-    if (class(x) %in% c('matrix','array')) {
-      xx = as.numeric(x)
-      names(xx) = row.names(x)
-    } else xx = x
-
-    if (!is.null(names(xx))) {
-      umar = 0.1
-      if (!all(names(xx) %in% phy$tip.label)) {
-        print('trait and phy names do not match')
-        return()
-      }
-      xx = xx[match(phy$tip.label,names(xx))]
-    } else umar = 0.1
-
-    lmar = 0.2
-    if (xaxt=='s') if (show.xaxis.values) lmar = 1 else lmar = 0.5
-    xanc <- ape::ace(xx, phy, method=method)$ace
-    xall = c(xx,xanc)
-
-    a0 = ages[phy$edge[,1]]
-    a1 = ages[phy$edge[,2]]
-    x0 = xall[phy$edge[,1]]
-    x1 = xall[phy$edge[,2]]
-
-
-    if (show.names) {
-      maxNameLength = max(nchar(names(xx)))
-      ylim = c(min(ages),max(ages)*(1+maxNameLength/50))
-      if (!underscore) names(xx) = gsub('_',' ',names(xx))
-    } else ylim = range(ages)
-
-    if(is.null(mgp)) magp<-NULL else{
-      mgp->magp
-    }
-
-    if(is.null(col)) colo<-par("fg") else{
-      col->colo
-      colo[match(names(x1),names(colo))]->colo
-      data.frame(x0,x1,a0,a1,colo)->dato
-      dato[order(dato[,5],decreasing=T),]->dato
-      dato[,1]->x0
-      dato[,2]->x1
-      dato[,3]->a0
-      dato[,4]->a1
-      as.character(dato[,5])->colo
-      rownames(dato)->names(x1)->names(x0)->names(a1)->names(a0)->names(colo)
-    }
-
-    par(mar = c(3, 2.5, 2, 1))
-    plot(range(c(a0,a1)),range(c(x0,x1)),
-
-         type='n',xaxt='n',yaxt='n',
-         xlab='',ylab='',bty='n',cex.axis=0.8)
-    if (xaxt=='s') if (show.xaxis.values) axis(1,labels=TRUE,mgp=magp) else axis(1,labels=FALSE,mgp=magp)
-
-    if(is.null(lwd)) linwd<-1 else{
-      lwd->linwd
-      linwd[match(names(x1),names(linwd))]->linwd
-    }
-
-    segments(a0,x0,a1,x1,col=colo,lwd=linwd)
-
-    if (show.names) {
-      text(max(ages),sort(xx),
-           labels = names(xx)[order(xx)],
-           adj = -0,
-           srt=90,
-           cex=.3)
-    }
-
-    return(data.frame(a1,x1))
-  }
-
-  Plot_ConvexHull<-function(xcoord, ycoord, lcolor,lwd=NULL, lty=NULL,col.p=NULL){
-    hpts <- chull(x = xcoord, y = ycoord)
-    hpts <- c(hpts, hpts[1])
-    lines(xcoord[hpts], ycoord[hpts], col = lcolor,lwd=lwd, lty=lty)
-    polygon(xcoord[hpts], ycoord[hpts], col=col.p, border=NA)
-  }
-
-  unitV <- function(x) {
-    sum(x^2)^0.5
-  }
-  deg2rad <- function(deg) {
-    (deg * pi)/(180)
-  }
-  rad2deg <- function(rad) {
-    (rad * 180)/(pi)
-  }
   phylo.run.test<-function(tree,state,st,nsim=100){
     cophenetic.phylo(tree)->cop
     cop[which(state==st),which(state==st)]->subcop
@@ -259,11 +149,12 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
     RR$tree->tree1
     RR$aces->RRaces
     if(is.null(aceV)==FALSE){
-      if (class(aceV) == "data.frame") aceV <- as.matrix(aceV)
+      if (inherits(aceV,"data.frame")) aceV <- as.matrix(aceV)
       RRaces[match(rownames(aceV),rownames(RRaces)),]<-aceV
     }
-    if (class(y) == "data.frame")
-      y <- treedata(tree1, y, sort = TRUE)[[2]]
+
+    #if (inherits(y,"data.frame"))
+    y <- treedata(tree1, y, sort = TRUE)[[2]]
 
     RR$tip.path->L
     RR$rates->betas
@@ -303,13 +194,14 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
     if(is.null(nodes)){
 
       subtrees(tree1)->subT->subTN
-      if(length(unlist(lapply(subT,Ntip))>max.dim)>0){
-        subT[-c(which(unlist(lapply(subT,Ntip))<min.dim),which(unlist(lapply(subT,Ntip))>max.dim))]->subT
+      if(length(sapply(subT,Ntip)>max.dim)>0){
+        subT[-c(which(sapply(subT,Ntip)<min.dim),which(sapply(subT,Ntip)>max.dim))]->subT
 
       }else{
         subT[-which(unlist(lapply(subT,Ntip))<min.dim)]->subT
       }
-      unlist(lapply(subT,function(x) getMRCA(tree1,x$tip.label)))->names(subT)
+
+      sapply(subT,function(x) getMRCA(tree1,x$tip.label))->names(subT)
       as.numeric(names(subT))->nod
       c(nod,Ntip(tree1)+1)->nod
       subT[[length(subT)+1]]<-tree1
@@ -461,7 +353,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       res.ran <- list()
       cl <- makeCluster(round((detectCores() * clus), 0))
       registerDoParallel(cl)
-      res.ran <- foreach(i = 1:nsim,
+      res.ran <- foreach(k = 1:nsim,
                          .packages = c("RRphylo","ape", "geiger", "phytools", "doParallel")) %dopar%
         {
           gc()
@@ -508,7 +400,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
             rownames(mean.diffR[[u]])<-names(msel)
           }
           names(mean.diffR)<-names(mean.diff)
-          mean.diffR->res.ran[[i]]
+          mean.diffR->res.ran[[k]]
 
         }
       stopCluster(cl)
@@ -791,7 +683,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       res.ran <- list()
       cl <- makeCluster(round((detectCores() * clus), 0))
       registerDoParallel(cl)
-      res.ran <- foreach(i = 1:nsim,
+      res.ran <- foreach(k = 1:nsim,
                          .packages = c("RRphylo","ape", "geiger", "phytools", "doParallel")) %dopar%
         {
           gc()
@@ -838,7 +730,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
             rownames(mean.diffR[[u]])<-names(msel)
           }
           names(mean.diffR)<-names(mean.diff)
-          mean.diffR->res.ran[[i]]
+          mean.diffR->res.ran[[k]]
 
         }
       stopCluster(cl)
@@ -1046,8 +938,8 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
 
   }else{
     tree->tree1
-    if (class(y) == "data.frame")
-      y <- treedata(tree1, y, sort = TRUE)[[2]]
+    #if (inherits(y,"data.frame"))
+    y <- treedata(tree1, y, sort = TRUE)[[2]]
 
     state[match(rownames(y),names(state))]->state
     if("nostate"%in%state) state[-which(state=="nostate")]->state.real else state->state.real
@@ -1072,21 +964,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
         }
       }
 
-      # if(PGLS){
-      #   rep("B",length(state))->f
-      #   f[which(state==onestate)]<-"A"
-      #   runs.test(as.factor(f))$p->ranp
-      # }else{
-      #   ranp<-1
-      # }
-
-
       cophenetic.phylo(tree1)->cop
-      # if(ranp<=0.05) {
-      #   cova = vcv(tree1)
-      #   geomorph.data.frame(y.gdf=y,state.gdf=state)->gdf
-      #   quiet(residuals(procD.pgls(y.gdf~state.gdf,data=gdf, Cov = cova))->y)
-      # }
       mean(apply(y[which(state==onestate),],1,unitV))->vs1->vs2
       t(combn(names(state[which(state==onestate)]),2))->ctt
       aa<-array()
@@ -1194,28 +1072,10 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
         if(any(table(state[which(state%in%stcomb1[,k])])<4)) state2decl[[k]]<-NA else{
           replace(state,which(state%in%stcomb1[,k]),"A")->f
           replace(f,which(!state%in%stcomb1[,k]),"B")->f
-          #         f<-array()
-          # for(i in 1:length(state)) {
-          #   if(state[i]%in%stcomb1[,k]) f[i]<-"A" else f[i]<-"B"
-          # }
-          # names(f)<-names(state)
+
           state2decl[[k]]<-f
         }
       }
-
-      # if(declust){
-      #   decl<-list()
-      #   for(j in unique(state.real)){
-      #     if(length(which(state==j))<4) next else declusterize(tree1,state,j)->decl[[j]]
-      #   }
-      # unlist(decl)->remtips
-      # if(length(remtips)>0){
-      #   y[-match(remtips,rownames(y)),]->y
-      #   state[-match(remtips,names(state))]->state
-      #   drop.tip(tree1,remtips)->tree1
-      # }
-      # }
-
 
       if(declust){
         if(ncol(stcomb1)==1&("nostate"%in%state)==FALSE)
@@ -1223,12 +1083,6 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
             decl<-list()
             for(k in 1:ncol(stcomb1)){
               if(any(!is.na(state2decl[[k]]))){
-                # f<-array()
-                # for(i in 1:length(state)) {
-                #   if(state[i]%in%stcomb1[,k]) f[i]<-"A" else f[i]<-"B"
-                # }
-                # names(f)<-names(state)
-                #runs.test(as.factor(f))$p->ranp[k]
                 setTimeLimit(elapsed=60,transient=TRUE)
                 try(repeat({
                   declusterize(tree1,state2decl[[k]],"A")->dec
@@ -1241,11 +1095,8 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
                 setTimeLimit(elapsed=Inf)
               }else decl[[k]]<-NA
             }
-            #declusterize(tree1,f,"A")->decl[[k]]
-
           }
       }else{
-        #ranp<-rep(1,ncol(stcomb1))
         sapply(state2decl,function(x){
           if(!any(is.na(x))) phylo.run.test(tree1,x,"A")$p->ret else 1->ret
           return(ret)

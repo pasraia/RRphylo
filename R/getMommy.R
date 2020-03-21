@@ -16,11 +16,6 @@
 #'
 #' getMommy(tree=Tstage,N=12)
 
-
-
-
-
-
 getMommy<-function(tree,
                    N,
                    curr=NULL){

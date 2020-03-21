@@ -101,7 +101,7 @@
 #' as.numeric(c(rownames(SC.clade[[1]])[1],as.numeric(as.character(SC.clade[[1]][1,1]))))->conv.nodes
 #'
 #' overfitRR(RR=RRfel, y=PCscoresfel,conv.args =
-#' list(node=conv.nodes,state=statefel,declut=TRUE),nsim=10,clus=.5)
+#' list(node=conv.nodes,state=statefel,declust=TRUE),nsim=10,clus=.5)
 #'
 #'
 #' }
@@ -121,8 +121,9 @@ overfitRR<-function(RR,y,
 
   RR$tree->tree
 
-  if (class(y) == "data.frame")
-    y <- treedata(tree, y, sort = TRUE)[[2]]
+  # if (inherits(y,"data.frame"))
+  #   y <- treedata(tree, y, sort = TRUE)[[2]]
+  if(is.null(nrow(y))) y <- treedata(tree, y, sort = TRUE)[[2]][,1] else y <- treedata(tree, y, sort = TRUE)[[2]]
 
   if (length(y) > Ntip(tree)) {
     RR$aces->y.ace
@@ -154,7 +155,10 @@ overfitRR<-function(RR,y,
 
   if(is.null(shift.args)==FALSE){
     if(is.null(shift.args$node)==FALSE) shift.node<-shift.args$node else shift.node<-NULL
-    if(is.null(shift.args$state)==FALSE) shift.state<-shift.args$state else shift.state<-NULL
+    if(is.null(shift.args$state)==FALSE) {
+      shift.state<-shift.args$state
+      shift.state<-treedata(tree,shift.state, sort = TRUE)[[2]][,1]
+      }else shift.state<-NULL
   }else{
     shift.node<-NULL
     shift.state<-NULL
@@ -162,7 +166,10 @@ overfitRR<-function(RR,y,
 
   if(is.null(conv.args)==FALSE){
     if(is.null(conv.args$node)==FALSE) conv.node<-conv.args$node else conv.node<-NULL
-    if(is.null(conv.args$state)==FALSE) conv.state<-conv.args$state else conv.state<-NULL
+    if(is.null(conv.args$state)==FALSE){
+      conv.state<-conv.args$state
+      conv.state<-treedata(tree,conv.state, sort = TRUE)[[2]][,1]
+    }else conv.state<-NULL
     if(is.null(conv.args$declust)==FALSE) conv.declust<-conv.args$declust else conv.declust<-FALSE
   }else{
     conv.node<-NULL

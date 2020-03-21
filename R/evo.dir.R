@@ -109,15 +109,6 @@ evo.dir<-function(RR,
   #require(phytools)
   #require(geiger)
 
-  getMommy<-function(tree,node,curr=NULL){
-    if(is.null(curr)) curr<-vector()
-    daughters<-tree$edge[which(tree$edge[,2]==node),1]
-    curr<-c(curr,daughters)
-    w<-which(daughters>=length(tree$tip))
-    if(length(w)>0) for(i in 1:length(w))
-      curr<-getMommy(tree,daughters[w[i]],curr)
-    return(curr)
-  }
 
   angle.btw.species<-function(tree,pair,phen,random=rdm,angle.dimension=AD)
   {
@@ -287,6 +278,7 @@ evo.dir<-function(RR,
 
     match.arg(y.type)
     if(y.type=="original"){
+      y <- treedata(RR$tree, y, sort = TRUE)[[2]]
       y->tipP
       RR$aces->ancP
       rbind(ancP,tipP)->phen

@@ -30,11 +30,6 @@
 #' @references
 #' Castiglione, S., Tesone, G., Piccolo, M., Melchionna, M., Mondanaro, A., Serio, C., Di Febbraro, M., & Raia, P.(2018). A new method for testing evolutionary rate variation and shifts in phenotypic evolution. \emph{Methods in Ecology and Evolution}, 9: 974-983.doi:10.1111/2041-210X.12954
 #' @examples
-#' data("DataOrnithodirans")
-#' DataOrnithodirans$treedino->treedino
-#' DataOrnithodirans$massdino->massdino
-#' DataOrnithodirans$statedino->statedino
-#'
 #' \donttest{
 #' data("DataOrnithodirans")
 #' DataOrnithodirans$treedino->treedino
@@ -81,6 +76,7 @@ search.shift<-function(RR,
   # require(phytools)
   # require(geiger)
   # require(scales)
+
   tree <- RR$tree
   rates <- RR$rates
   betas<-RR$multiple.rates
@@ -180,17 +176,18 @@ search.shift<-function(RR,
 
       if (length(p.single[p.single >= 0.975 | p.single <=
                           0.025])==0){
-        p.single <- p.single[c(which.max(p.single), which.min(p.single))]
-        leaf2N.diff <- leaf2N.diff[match(names(p.single),
-                                         names(leaf2N.diff))]
         p.init <- p.single
         l2N.init <- leaf2N.diff[match(names(p.init),
                                       names(leaf2N.diff))]
+
+        p.single <- p.single[c(which.max(p.single), which.min(p.single))]
+        leaf2N.diff <- leaf2N.diff[match(names(p.single),
+                                         names(leaf2N.diff))]
       }
 
 
       if (length(p.single[p.single >= 0.975 | p.single <=
-                          0.025]) < 2) {
+                          0.025])==1) {
         p.init <- p.single
         l2N.init <- leaf2N.diff[match(names(p.init),
                                       names(leaf2N.diff))]
@@ -458,6 +455,7 @@ search.shift<-function(RR,
       return(res)
     }
   } else {
+    state <- treedata(tree, state, sort = TRUE)[[2]][,1]
     frame <- data.frame(status = state, rate = rates[match(names(state),
                                                            rownames(rates))])
     p.status.diff <- array()

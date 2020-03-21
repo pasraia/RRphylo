@@ -27,14 +27,14 @@
 #' fastBM(tree)->pred2
 #'
 #' PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp,x2=pred1,x1=pred2),tree=tree)
+#'
 #' RRphylo::RRphylo(tree,resp)->RR
 #' PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp,x2=pred1,x1=pred2),tree=tree,RR=RR)
-#'
 #'
 #' PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp.multi,x2=pred1,x1=pred2),tree=tree)
 #' RRphylo::RRphylo(tree,resp.multi)->RR
 #' PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp.multi,x2=pred1,x1=pred2),tree=tree,RR=RR)
-#'}
+#' }
 
 PGLS_fossil<-function(modform,data,tree,RR=NULL)
 {
@@ -43,6 +43,11 @@ PGLS_fossil<-function(modform,data,tree,RR=NULL)
   # require(geomorph)
   # require(geiger)
 
+  for(k in 1:length(data)){
+    data[[k]]->sam
+    if(is.null(nrow(sam))) data[[k]] <- treedata(tree, sam, sort = TRUE)[[2]][,1] else data[[k]] <- treedata(tree, sam, sort = TRUE)[[2]]
+  }
+
   vars <- rownames(attr(terms(modform), "factors"))
 
   for(i in 1:length(vars)){
@@ -50,9 +55,6 @@ PGLS_fossil<-function(modform,data,tree,RR=NULL)
   }
 
   data[which(names(data)==vars[1])][[1]]->y
-
-  if (class(y) == "data.frame")
-    y <- treedata(tree, y, sort = TRUE)[[2]]
 
   if(is.null(RR)){
     if(length(y)>Ntip(tree)){

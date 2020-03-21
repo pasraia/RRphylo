@@ -116,8 +116,6 @@ search.trend<-function (RR, y,x1=NULL, nsim = 100, clus = 0.5, node = NULL, cov 
   # require(outliers)
   # require(car)
 
-  range01 <- function(x, ...){(x - min(x, ...)) / (max(x, ...) - min(x, ...))}
-
   t <- RR$tree
   if(min(diag(vcv(t)))/max(diag(vcv(t)))>=0.9) stop("not enough fossil information")
   rates <- RR$rates
@@ -128,8 +126,10 @@ search.trend<-function (RR, y,x1=NULL, nsim = 100, clus = 0.5, node = NULL, cov 
   if (length(y) > Ntip(t)&is.null(rownames(y))) stop("The matrix of phenotypes needs to be named")
   if (length(y) == Ntip(t)&is.null(names(y))) stop("The vector of phenotypes needs to be named")
 
-  if (class(y) == "data.frame")
-    y <- treedata(t, y, sort = TRUE)[[2]]
+  # if (inherits(y,"data.frame"))
+  #   y <- treedata(t, y, sort = TRUE)[[2]]
+  if(is.null(nrow(y))) y <- treedata(t, y, sort = TRUE)[[2]][,1] else y <- treedata(t, y, sort = TRUE)[[2]]
+
   H <- max(nodeHeights(t))
   eds <- t$edge[, 2]
   eds[which(t$edge[, 2] < Ntip(t) + 1)] <- t$tip.label
@@ -220,7 +220,8 @@ search.trend<-function (RR, y,x1=NULL, nsim = 100, clus = 0.5, node = NULL, cov 
       REGabs.betas[[i]] <- regr.1
     }
     colnames(rbi.slopeA) <- c("slope","p-value")
-    rownames(rbi.slopeA) <- names(REGabs.betas)<-colnames(data)[5:(5 +dim(y)[2])]
+    if(is.null(colnames(y))) rownames(rbi.slopeA) <- names(REGabs.betas)<-colnames(data)[5:(5 +dim(y)[2])] else
+      rownames(rbi.slopeA) <- names(REGabs.betas)<-c(colnames(y),"multiple")
   }else { #### Rate Trend Real Uni #####
     rbi.rate <- rbi[, c(5, 6)]
     bet <- rbi.rate[, 1]
@@ -286,7 +287,8 @@ search.trend<-function (RR, y,x1=NULL, nsim = 100, clus = 0.5, node = NULL, cov 
     colnames(PP)[dim(PP)[2]] <- "age"
     trendR <- apply(PP[1:(dim(PP)[2] - 1)], 2, function(x) lm(range01(x) ~ PP[, dim(PP)[2]]))
     trend.reg <- lapply(trendR, function(x) coefficients(summary(x)))
-    names(trend.reg) <- c(paste("y", seq(1:dim(y)[2]), sep = ""),"multiple")
+    if(is.null(colnames(y))) names(trend.reg) <- c(paste("y", seq(1:dim(y)[2]), sep = ""),"multiple") else
+      names(trend.reg) <- c(colnames(y),"multiple")
     dev<-array()
     for(i in 1:length(trend.reg)){
       if(trend.reg[[i]][2,1]<0) (min(predict(trendR[[i]]))-mean(range01(PP[,i])))/sd(range01(PP[,i]))->dev[i] else (max(predict(trendR[[i]]))-mean(range01(PP[,i])))/sd(range01(PP[,i]))->dev[i]
@@ -366,7 +368,9 @@ search.trend<-function (RR, y,x1=NULL, nsim = 100, clus = 0.5, node = NULL, cov 
         trend.regC <- apply(PP[1:(dim(PP)[2] - 1)],
                             2, function(x) summary(lm(range01(x) ~ PP[, dim(PP)[2]])))
         trend.regC <- lapply(trend.regC, coefficients)
-        names(trend.regC) <- c(paste("y", seq(1:dim(y)[2]),sep = ""),"multiple")
+        #names(trend.regC) <- c(paste("y", seq(1:dim(y)[2]),sep = ""),"multiple")
+        if(is.null(colnames(y))) names(trend.regC) <- c(paste("y", seq(1:dim(y)[2]), sep = ""),"multiple") else
+          names(trend.regC) <- c(colnames(y),"multiple")
         trend.reg.y.sel[[j]] <- apply(PP[1:(dim(PP)[2] -
                                               1)], 2, function(x) predict(lm(x ~ PP[, dim(PP)[2]])))
 
@@ -593,7 +597,9 @@ search.trend<-function (RR, y,x1=NULL, nsim = 100, clus = 0.5, node = NULL, cov 
     names(rbi.slopeA.sel)<-node
     if (class(sma.resA) == "list") {
       if(is.null(sma.resPP)==FALSE){
-        names(sma.resA) <- colnames(rbi.sma)[1:(dim(y)[2]+1)]
+        if(is.null(colnames(y))) names(sma.resA) <- colnames(rbi.sma)[1:(dim(y)[2]+1)] else
+          names(sma.resA) <-c(colnames(y),"multiple")
+
         names(sma.resPP) <- names(sma.resPPemm) <- names(trend.reg)
       }
     }
@@ -1403,7 +1409,7 @@ search.trend<-function (RR, y,x1=NULL, nsim = 100, clus = 0.5, node = NULL, cov 
         bet <- A[, i]
         age <- max(A[, dim(A)[2]])-A[, dim(A)[2]]
         names(bet)<-names(age)<-rownames(A)
-        CIabsolute[[length(CIabsolute)]][-which(rownames(CIabsolute[[length(CIabsolute)]])==(Ntip(t)+1)),]->RBTAci
+        CIabsolute[[length(CIabsolute)]]->RBTAci
       }else{
         bet<-A[-which(rownames(A)==(Ntip(t)+1)),i]
         age <- max(A[-which(rownames(A)==(Ntip(t)+1)), dim(A)[2]])-A[-which(rownames(A)==(Ntip(t)+1)), dim(A)[2]][]

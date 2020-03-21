@@ -18,6 +18,7 @@
 
 phyloclust<-function(tree,state,focal,nsim=100){
 
+  state <- treedata(tree, state, sort = TRUE)[[2]][,1]
   focal->st
   cophenetic.phylo(tree)->cop
   cop[which(state==st),which(state==st)]->subcop
