@@ -4,7 +4,7 @@
 \alias{swap.phylo}
 \title{Test the effect of phylogenetic uncertainty on rate shifts found at a particular node}
 \usage{
-swap.phylo(tree,si=0.5,si2=0.5,node,y,rts,nrep=100,cov=NULL)
+swap.phylo(tree,si=0.5,si2=0.5,node,y,rts,nrep=100,cov=NULL,clus=0.5)
 }
 \arguments{
 \item{tree}{a phylogenetic tree. The tree needs not to be ultrametric or fully dichotomous.}
@@ -22,6 +22,8 @@ swap.phylo(tree,si=0.5,si2=0.5,node,y,rts,nrep=100,cov=NULL)
 \item{nrep}{the number of simulated trees to be produced.}
 
 \item{cov}{the covariate to be indicated if its effect on rate values must be accounted for. Contrary to \code{RRphylo}, \code{cov} needs to be as long as the number of tips of the tree.}
+
+\item{clus}{the proportion of clusters to be used in parallel computing (only if \code{y} is multivariate).}
 }
 \value{
 The function returns a 'list' object containing:
@@ -37,16 +39,17 @@ The function uses a number of alternative phylogenies with altered (as compared 
 \code{swap.phylo} changes the tree topology and branch lengths to a level specified by the user. Up to half of the tips, and half of the branch lengths can be changed randomly. The function provides a 'swapped' tree, yet, importantly, once a shift in the rate of evolution has been found by \code{\link{RRphylo}}, this function can be used to test whether the shift depends on the tree topology and branch lengths. It runs \code{RRphylo} on swapped trees (default is 100) and then calculates the absolute rate difference between all the branches of the shifted node and the rest of the tree. A t-test is eventually performed to assess significance.
 }
 \examples{
+\donttest{
   data("DataApes")
   DataApes$PCstage->PCstage
   DataApes$Tstage->Tstage
   DataApes$CentroidSize->CS
 
-\donttest{
 # Case 1. swap.phylo without accounting for the effect of a covariate
   RRphylo(tree=Tstage,y=PCstage)->RR
   RR$rates->rr
   swap.phylo(Tstage,node=61,y=PCstage,rts=rr)
+
 # Case 2. swap.phylo accounting for the effect of a covariate
   RRphylo(tree=Tstage,y=CS)->RRcova
   c(RRcova$aces,CS)->cov.values

@@ -4,12 +4,14 @@
 \name{DataOrnithodirans}
 \alias{DataOrnithodirans}
 \title{Example dataset}
-\format{A list containing:
+\format{
+A list containing:
 \describe{
 \item{\strong{treedino}}{Ornithodirans phylogenetic tree}.
 \item{\strong{massdino}}{numeric vector of ornithodirans body masses}.
 \item{\strong{statedino}}{vector of ornithodirans locomotory type}.
-}}
+}
+}
 \usage{
 data(DataOrnithodirans)
 }

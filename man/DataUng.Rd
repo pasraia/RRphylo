@@ -4,12 +4,14 @@
 \name{DataUng}
 \alias{DataUng}
 \title{Example dataset}
-\format{A list containing:
+\format{
+A list containing:
 \describe{
 \item{\strong{$PCscoresung}}{A data frame containing 205 shape variables for mandible of 'Ungulatomorpha'}.
 \item{\strong{$treeung}}{Phylogenetic tree of 'Ungulatomorpha'}.
 \item{\strong{$stateung}}{vector of 'Ungulatomorpha' feeding type}.
-}}
+}
+}
 \usage{
 data(DataUng)
 }

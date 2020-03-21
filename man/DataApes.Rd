@@ -4,14 +4,16 @@
 \name{DataApes}
 \alias{DataApes}
 \title{Example dataset}
-\format{A list containing:
+\format{
+A list containing:
 \describe{
 \item{\strong{$PCstage}}{A data frame containing 38 shape variables for Apes' facial skull at different ontogenetic stages}.
 \item{\strong{$PCadult}}{A data frame containing 3 shape variables for Apes' facial skull}.
 \item{\strong{$Tstage}}{Phylogenetic tree of Apes including the different ontogenetic stages of each species as polytomies}.
 \item{\strong{$Tadult}}{Phylogenetic tree of Apes}.
 \item{\strong{$CentroidSize}}{numeric vector of Centroid Size values of \sQuote{PCstage}}.
-}}
+}
+}
 \usage{
 data(DataApes)
 }

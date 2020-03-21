@@ -54,11 +54,10 @@ DataOrnithodirans$treedino->treedino
 DataOrnithodirans$massdino->massdino
 
 # Case 1. "RRphylo" without accounting for the effect of a covariate
-RRphylo(tree=treedino,y=massdino)
+RRphylo(tree=treedino,y=massdino)->RRcova
 
 # Case 2. "RRphylo" accounting for the effect of a covariate
 # "RRphylo" on the covariate in order to retrieve ancestral state values
-RRphylo(tree=treedino,y=massdino)->RRcova
 c(RRcova$aces,massdino)->cov.values
 c(rownames(RRcova$aces),names(massdino))->names(cov.values)
 

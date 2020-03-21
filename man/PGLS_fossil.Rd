@@ -36,9 +36,9 @@ fastBM(tree)->pred1
 fastBM(tree)->pred2
 
 PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp,x2=pred1,x1=pred2),tree=tree)
+
 RRphylo::RRphylo(tree,resp)->RR
 PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp,x2=pred1,x1=pred2),tree=tree,RR=RR)
-
 
 PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp.multi,x2=pred1,x1=pred2),tree=tree)
 RRphylo::RRphylo(tree,resp.multi)->RR

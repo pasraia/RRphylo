@@ -4,11 +4,13 @@
 \name{DataFelids}
 \alias{DataFelids}
 \title{Example dataset}
-\format{A list containing:
+\format{
+A list containing:
 \describe{
 \item{\strong{$PCscoresfel}}{A data frame containing 83 shape variables for felids' mandible}.
 \item{\strong{$treefel}}{Phylogenetic tree of felids}.
-}}
+}
+}
 \usage{
 data(DataFelids)
 }

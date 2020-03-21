@@ -126,7 +126,7 @@ search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="node9", foldername = t
 as.numeric(c(rownames(SC.clade[[1]])[1],as.numeric(as.character(SC.clade[[1]][1,1]))))->conv.nodes
 
 overfitRR(RR=RRfel, y=PCscoresfel,conv.args =
-list(node=conv.nodes,state=statefel,declut=TRUE),nsim=10,clus=.5)
+list(node=conv.nodes,state=statefel,declust=TRUE),nsim=10,clus=.5)
 
 
 }
