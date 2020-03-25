@@ -34,12 +34,13 @@
 #' }
 #' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
 #' @examples
+#'\donttest{
 #'     data("DataApes")
 #'     DataApes$PCstage->PCstage
 #'     DataApes$Tstage->Tstage
 #'
-#'\donttest{
-#'     RRphylo(tree=Tstage,y=PCstage)->RR
+#'     cc<- 2/parallel::detectCores()
+#'     RRphylo(tree=Tstage,y=PCstage,clus=cc)->RR
 #'
 #' # Case 1. "evo.dir" without performing randomization
 #'     evo.dir(RR,angle.dimension="rates",pair.type="node",
@@ -91,7 +92,7 @@
 #'
 #' # Case 2. "evo.dir" with performing randomization
 #'     evo.dir(RR,angle.dimension="rates",pair.type="node",node=57,
-#'     random="yes")->evo.p
+#'     random="yes",nrep=10)->evo.p
 #'
 #'  # Case 2.1 angles and sizes of resultant vectors between individual species and the MRCA:
 #'   # for a focal node

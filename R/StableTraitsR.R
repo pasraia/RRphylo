@@ -21,7 +21,7 @@
 #' @importFrom ape write.tree read.tree
 #' @export
 #' @references Elliot, M. G., & Mooers, A. Ø. (2014). Inferring ancestral states without assuming neutrality or gradualism using a stable model of continuous character evolution. \emph{BMC evolutionary biology}, 14: 226. doi.org/10.1186/s12862-014-0226-8
-#' @examples \donttest{
+#' @examples \dontrun{
 #' library(ape)
 #' library(phytools)
 #'

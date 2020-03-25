@@ -32,13 +32,13 @@
 #' @references Castiglione, S., Serio, C., Tamagnini, D., Melchionna, M., Mondanaro, A., Di Febbraro, M., Profico, A., Piras, P.,Barattolo, F., & Raia, P. (2019b). A new, fast method to search for morphological convergence with shape data. \emph{PLoS ONE}, 14, e0226949. https://doi.org/10.1371/journal.pone.0226949
 #' @examples
 #' \donttest{
-#' Data("DataOrnithodirans")
+#' data("DataOrnithodirans")
 #' DataOrnithodirans$treedino->treedino
 #' DataOrnithodirans$massdino->massdino
 #' DataOrnithodirans$statedino->statedino
+#' cc<- 2/parallel::detectCores()
 #'
 #' # Extract Pterosaurs tree and data
-#'
 #' library(ape)
 #' extract.clade(treedino,748)->treeptero
 #' massdino[match(treeptero$tip.label,names(massdino))]->massptero
@@ -55,20 +55,20 @@
 #'
 #' overfitRR(RR=dinoRates,y=massdino,swap.args =list(si=0.2,si2=0.2),
 #'           shift.args = list(node=rownames(SSnode$single.clades),state=statedino),
-#'           nsim=10,clus=.5)
+#'           nsim=10,clus=cc)
 #'
 #' # Case 2 search.trend on the entire tree
-#' search.trend(RR=RRptero, y=log(massptero),nsim=100, clus=0.5,
+#' search.trend(RR=RRptero, y=log(massptero),nsim=100,clus=cc,
 #'              foldername=tempdir(),cov=NULL,ConfInt=FALSE,node=NULL)->STtree
 #'
 #' overfitRR(RR=RRptero,y=log(massptero),swap.args =list(si=0.2,si2=0.2),
-#'           trend.args = list(),nsim=10,clus=.5)->overfit.STtree
+#'           trend.args = list(),nsim=10,clus=cc)
 #'
 #' # Case 3 search.trend at specified nodes
-#' search.trend(RR=RRptero, y=log(massptero),node=143,clus=0.5,foldername=tempdir(),
+#' search.trend(RR=RRptero, y=log(massptero),node=143,clus=cc,foldername=tempdir(),
 #'              cov=NULL,ConfInt=FALSE)->STnode
 #'
-#' overfitRR(RR=RRptero,y=log(massptero),trend.args = list(node=143),nsim=10,clus=.5)
+#' overfitRR(RR=RRptero,y=log(massptero),trend.args = list(node=143),nsim=10,clus=cc)
 #'
 #' # Case 4 overfitRR on multiple RRphylo
 #' data("DataCetaceans")
@@ -86,9 +86,9 @@
 #' c(acemass.multi,masscet.multi)->x1.mass
 #'
 #' RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass)->RRmulti
-#' search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,clus=0.5,foldername=tempdir())->STcet
+#' search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,clus=cc,foldername=tempdir())->STcet
 #'
-#' overfitRR(RR=RRmulti,y=brainmasscet,trend.args = list(),x1=x1.mass,nsim=10,clus=.5)
+#' overfitRR(RR=RRmulti,y=brainmasscet,trend.args = list(),x1=x1.mass,nsim=10,clus=cc)
 #'
 #' # Case 5 searching convergence between clades and within a single state
 #' data("DataFelids")
@@ -96,12 +96,13 @@
 #' DataFelids$treefel->treefel
 #' DataFelids$statefel->statefel
 #'
-#' RRphylo(tree=treefel,y=PCscoresfel)->RRfel
-#' search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="node9", foldername = tempdir())->SC.clade
+#' RRphylo(tree=treefel,y=PCscoresfel,clus=cc)->RRfel
+#' search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="node9",
+#'             foldername = tempdir(),clus=cc)->SC.clade
 #' as.numeric(c(rownames(SC.clade[[1]])[1],as.numeric(as.character(SC.clade[[1]][1,1]))))->conv.nodes
 #'
 #' overfitRR(RR=RRfel, y=PCscoresfel,conv.args =
-#' list(node=conv.nodes,state=statefel,declust=TRUE),nsim=10,clus=.5)
+#' list(node=conv.nodes,state=statefel,declust=TRUE),nsim=10,clus=cc)
 #'
 #'
 #' }

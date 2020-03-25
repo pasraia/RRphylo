@@ -10,12 +10,13 @@
 #' @importFrom graphics abline barplot legend
 #' @return The function produces two barplots. On the left side, the rates (in absolute values) computed for the focal clade (blue) are plotted against the rates of the rest of the tree (green). On the right side, the absolute rates of individual branches of the focal clade are collated in increasing rate value (blue bars), and contrasted to the average rate computed over the rest of the tree branches (the vertical red line). It also returns the rate values for both nodes and species descending from the focal node.
 #' @examples
+#'\donttest{
 #' data("DataApes")
 #' DataApes$PCstage->PCstage
 #' DataApes$Tstage->Tstage
+#' cc<- 2/parallel::detectCores()
 #'
-#'\donttest{
-#' RRphylo(tree=Tstage,y=PCstage)->RR
+#' RRphylo(tree=Tstage,y=PCstage,clus=cc)->RR
 #'
 #' plotRates(RR,node=72,foldername=tempdir(),export.tiff = TRUE)
 #' }

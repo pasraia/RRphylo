@@ -33,12 +33,14 @@
 #' @return If \code{random = "yes"}, results also include p-values for the angles.
 #' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
 #' @examples
-#'
+#' \donttest{
 #'   data("DataApes")
 #'   DataApes$PCstage->PCstage
 #'   DataApes$Tstage->Tstage
-#' \donttest{
-#'   RRphylo(tree=Tstage,y=PCstage)->RR
+#'   cc<- 2/parallel::detectCores()
+#'
+#'   RRphylo(tree=Tstage,y=PCstage, clus=cc)->RR
+#'
 #' # Case 1. Without performing randomization test
 #'
 #'  # Case 1.1 Computing angles between rate vectors
@@ -71,29 +73,29 @@
 #'  # Case 2.1 Computing angles between rate vectors
 #'   # for each possible couple of species descending from node 72
 #'     evo.dir(RR,angle.dimension="rates",pair.type="node",node=72 ,
-#'     random="yes",nrep=100)
+#'     random="yes",nrep=10)
 #'
 #'   # for a given couple of species
 #'     evo.dir(RR,angle.dimension="rates",pair.type="tips",
-#'     pair= c("Sap_1","Tro_2"),random="yes",nrep=100)
+#'     pair= c("Sap_1","Tro_2"),random="yes",nrep=10)
 #'
 #'  # Case 2.2 computing angles between phenotypic vectors provided by the user
 #'   # for each possible couple of species descending from node 72
 #'     evo.dir(RR,angle.dimension="phenotypes",y.type="original",
-#'     y=PCstage,pair.type="node",node=72,random="yes",nrep=100)
+#'     y=PCstage,pair.type="node",node=72,random="yes",nrep=10)
 #'
 #'   # for a given couple of species
 #'     evo.dir(RR,angle.dimension="phenotypes",y.type="original",
-#'     y=PCstage,pair.type="tips",pair=c("Sap_1","Tro_2"),random="yes",nrep=100)
+#'     y=PCstage,pair.type="tips",pair=c("Sap_1","Tro_2"),random="yes",nrep=10)
 #'
 #'  # Case 2.3 computing angles between phenotypic vectors produced by "RRphylo"
 #'   # for each possible couple of species descending from node 72
 #'     evo.dir(RR,angle.dimension="phenotypes",y.type="RR",
-#'     pair.type="node",node=72,random="yes",nrep=100)
+#'     pair.type="node",node=72,random="yes",nrep=10)
 #'
 #'   # for a given couple of species
 #'     evo.dir(RR,angle.dimension="phenotypes",y.type="RR",
-#'     pair.type="tips",pair=c("Sap_1","Tro_2"),random="yes",nrep=100)
+#'     pair.type="tips",pair=c("Sap_1","Tro_2"),random="yes",nrep=10)
 #'     }
 
 evo.dir<-function(RR,

@@ -43,7 +43,7 @@
 #' c(RRcova$aces,massdino)->cov.values
 #' c(rownames(RRcova$aces),names(massdino))->names(cov.values)
 #'
-#' RRphylo(tree=treedino,y=massdino,cov=cov.values)
+#' RRphylo(tree=treedino,y=massdino,cov=cov.values)->RR
 #'
 #' # Case 3. "RRphylo" specifying the ancestral states
 #' data("DataCetaceans")
@@ -52,9 +52,10 @@
 #' DataCetaceans$brainmasscet->brainmasscet
 #' DataCetaceans$aceMyst->aceMyst
 #'
-#' RRphylo(tree=treecet,y=masscet,aces=aceMyst)
+#' RRphylo(tree=treecet,y=masscet,aces=aceMyst)->RR
 #'
 #' # Case 4. Multiple "RRphylo"
+#' library(ape)
 #' drop.tip(treecet,treecet$tip.label[-match(names(brainmasscet),treecet$tip.label)])->treecet.multi
 #' masscet[match(treecet.multi$tip.label,names(masscet))]->masscet.multi
 #'
@@ -62,7 +63,7 @@
 #' RRmass.multi$aces[,1]->acemass.multi
 #' c(acemass.multi,masscet.multi)->x1.mass
 #'
-#' RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass)
+#' RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass)->RR
 #'     }
 
 

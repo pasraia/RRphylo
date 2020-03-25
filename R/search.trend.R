@@ -44,6 +44,7 @@
 #' data("DataOrnithodirans")
 #' DataOrnithodirans$treedino->treedino
 #' DataOrnithodirans$massdino->massdino
+#' cc<- 2/parallel::detectCores()
 #'
 #' # Extract Pterosaurs tree and data
 #' library(ape)
@@ -55,11 +56,11 @@
 #' RRphylo(tree=treeptero,y=log(massptero))->RRptero
 #'
 #' # Case 1.1. "search.trend" whitout indicating nodes to be tested for trends
-#' search.trend(RR=RRptero, y=log(massptero), nsim=100, clus=0.5,
+#' search.trend(RR=RRptero, y=log(massptero), nsim=100, clus=cc,
 #'              foldername=tempdir(),cov=NULL,ConfInt=FALSE,node=NULL)
 #'
 #' # Case 1.2. "search.trend" indicating nodes to be specifically tested for trends
-#' search.trend(RR=RRptero, y=log(massptero), nsim=100, node=143, clus=0.5,
+#' search.trend(RR=RRptero, y=log(massptero), nsim=100, node=143, clus=cc,
 #'              foldername=tempdir(),cov=NULL,ConfInt=FALSE)
 #'
 #'
@@ -71,11 +72,11 @@
 #' RRphylo(tree=treeptero,y=log(massptero),cov=cov.values)->RRpteroCov
 #'
 #' # Case 2.1. "search.trend" whitout indicating nodes to be tested for trends
-#' search.trend(RR=RRpteroCov, y=log(massptero), nsim=100, clus=0.5,
+#' search.trend(RR=RRpteroCov, y=log(massptero), nsim=100, clus=cc,
 #'              foldername=tempdir(),ConfInt=FALSE,cov=cov.values)
 #'
 #' # Case 2.2. "search.trend" indicating nodes to be specifically tested for trends
-#' search.trend(RR=RRpteroCov, y=log(massptero), nsim=100, node=143, clus=0.5,
+#' search.trend(RR=RRpteroCov, y=log(massptero), nsim=100, node=143, clus=cc,
 #'              foldername=tempdir(),ConfInt=FALSE,cov=cov.values)
 #'
 #'
@@ -95,7 +96,7 @@
 #'
 #' RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass)->RRmulti
 #'
-#' search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,clus=0.5,foldername=tempdir())
+#' search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,clus=cc,foldername=tempdir())
 #'    }
 
 search.trend<-function (RR, y,x1=NULL, nsim = 100, clus = 0.5, node = NULL, cov = NULL,

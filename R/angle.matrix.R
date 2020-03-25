@@ -2,13 +2,14 @@
 #'
 #' @description This function computes and compares ontogenetic vectors among species in a tree.
 #' @usage angle.matrix(RR,node,Y=NULL,select.axes=c("no","yes"),
-#' type=c("phenotypes","rates"),cova=NULL)
+#' type=c("phenotypes","rates"),cova=NULL,clus=0.5)
 #' @param RR an object produced by \code{\link{RRphylo}}.
 #' @param node the number identifying the most recent common ancestor to all the species the user wants ontogenetic vectors be computed.
 #' @param Y multivariate trait values at tips.
 #' @param type specifies weather to perform the analysis on phenotypic (\code{"phenotypes"}) or rate (\code{"rates"}) vectors.
 #' @param select.axes if \code{"yes"}, \code{Y} variables are individually regressed against developmental stages and only significant variables are retained to compute ontogenetic vectors. All variables are retained otherwise.
 #' @param cova the covariate to be indicated if its effect on rate values must be accounted for. Contrary to \code{RRphylo}, \code{cova} needs to be as long as the number of tips in the tree. As the covariate only affects rates computation, there is no covariate to provide when \code{type = "phenotypes"}.
+#' @param clus the proportion of clusters to be used in parallel computing.
 #' @importFrom stats confint logLik var xtabs
 #' @importFrom smatr sma
 #' @importFrom rlist list.append
@@ -25,40 +26,41 @@
 #' }
 #' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
 #' @examples
+#'   \donttest{
 #'   data("DataApes")
 #'   DataApes$PCstage->PCstage
 #'   DataApes$Tstage->Tstage
 #'   DataApes$CentroidSize->CS
 #'
-#'   \donttest{
-#'   RRphylo(tree=Tstage,y=PCstage)->RR
+#'   cc<- 2/parallel::detectCores()
+#'   RRphylo(tree=Tstage,y=PCstage,clus=cc)->RR
 #' # Case 1. without accounting for the effect of a covariate
 #'
 #'  # Case 1.1 selecting shape variables that show significant relationship with age
 #'   # on phenotypic vectors
-#'     angle.matrix(RR,node=72,Y=PCstage,select.axes="yes",type="phenotypes")
+#'     angle.matrix(RR,node=72,Y=PCstage,select.axes="yes",type="phenotypes",clus=cc)
 #'   # on rates vectors
-#'     angle.matrix(RR,node=72,Y=PCstage,select.axes="yes",type="rates")
+#'     angle.matrix(RR,node=72,Y=PCstage,select.axes="yes",type="rates",clus=cc)
 #'
 #'  # Case 1.2 using all shape variables
 #'   # on phenotypic vectors
-#'     angle.matrix(RR,node=72,Y=PCstage,select.axes="no",type="phenotypes")
+#'     angle.matrix(RR,node=72,Y=PCstage,select.axes="no",type="phenotypes",clus=cc)
 #'   # on rates vectors
-#'     angle.matrix(RR,node=72,Y=PCstage,select.axes="no",type="rates")
+#'     angle.matrix(RR,node=72,Y=PCstage,select.axes="no",type="rates",clus=cc)
 #'
 #'
 #' # Case 2. accounting for the effect of a covariate (on rates vectors only)
 #'
 #'  # Case 2.1 selecting shape variables that show significant relationship with age
-#'    angle.matrix(RR,node=72,Y=PCstage,select.axes="yes",type="rates", cova=CS)
+#'    angle.matrix(RR,node=72,Y=PCstage,select.axes="yes",type="rates", cova=CS,clus=cc)
 #'
 #'
 #'  # Case 2.2 using all shape variables
-#'    angle.matrix(RR,node=72,Y=PCstage,select.axes="no",type="rates",cova=CS)
+#'    angle.matrix(RR,node=72,Y=PCstage,select.axes="no",type="rates",cova=CS,clus=cc)
 #'   }
 
 
-angle.matrix<-function(RR,node,Y=NULL,select.axes=c("no","yes"),type=c("phenotypes","rates"),cova=NULL)
+angle.matrix<-function(RR,node,Y=NULL,select.axes=c("no","yes"),type=c("phenotypes","rates"),cova=NULL,clus=0.5)
 {
   #require(smatr)
   #require(rlist)
@@ -88,14 +90,14 @@ angle.matrix<-function(RR,node,Y=NULL,select.axes=c("no","yes"),type=c("phenotyp
 
     if(is.null(cova)){
 
-      RRphylo(tree,y.sel)->rr.sel
+      RRphylo(tree,y.sel,clus=clus)->rr.sel
 
     }else{
 
       RRphylo(tree,cova)->RRcova
       c(RRcova$aces,cova)->covari
       names(covari)<-c(rownames(RRcova$aces),names(cova))
-      RRphylo(tree,y.sel,cov=covari)->rr.sel
+      RRphylo(tree,y.sel,cov=covari,clus=clus)->rr.sel
     }
     match.arg(type)
     if(type=="rates") {
@@ -110,14 +112,14 @@ angle.matrix<-function(RR,node,Y=NULL,select.axes=c("no","yes"),type=c("phenotyp
 
     if(is.null(cova)){
 
-      RRphylo(tree,Y)->RR
+      RRphylo(tree,Y,clus=clus)->RR
 
     }else{
 
       RRphylo(tree,cova)->RRcova
       c(RRcova$aces,cova)->covari
       names(covari)<-c(rownames(RRcova$aces),names(cova))
-      RRphylo(tree,Y,cov=covari)->RR
+      RRphylo(tree,Y,cov=covari,clus=clus)->RR
     }
 
     if(type=="rates") {

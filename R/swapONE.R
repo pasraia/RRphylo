@@ -34,8 +34,6 @@ swapONE<-function(tree,
 
   #require(phangorn)
 
-  tree->tree1
-
   maxN <- function(x, N=2){
     len <- length(x)
     if(N>len){
@@ -44,7 +42,6 @@ swapONE<-function(tree,
     }
     sort(x,partial=len-N+1)[len-N+1]
   }
-
 
   ### swap tips ###
   if(si>0){
@@ -126,28 +123,46 @@ swapONE<-function(tree,
     for(i in 1:length(t.change)){
       if(DF[DF[,1]==strsplit(names(t.change),"\\.")[[i]][1],5]<DF[DF[,1]==strsplit(names(t.change),"\\.")[[i]][2],4] | DF[DF[,1]==strsplit(names(t.change),"\\.")[[i]][2],5]<DF[DF[,1]==strsplit(names(t.change),"\\.")[[i]][1],4]) check[i]<-"bar" else check[i]<-"good"
     }
-
     if(length(which(check=="bar"))>0) t.change[-which(check=="bar")]->t.change
+
     if(length(t.change)<1) {
       warning("no swap implemented, fuzzy node aging only will be performed")
       tree1->tree1
     } else {
-      sw.tips<-c()
-      for(i in 1:length(t.change)){
-        c(sw.tips,c(which(tree1$tip.label==strsplit(names(t.change),split="\\.")[[i]][1]),which(tree1$tip.label==strsplit(names(t.change),split="\\.")[[i]][2])))->sw.tips
-        tree1$tip.label[replace(seq(1:Ntip(tree1)),
-                                c(which(tree1$tip.label==strsplit(names(t.change),split="\\.")[[i]][1]),
-                                  which(tree1$tip.label==strsplit(names(t.change),split="\\.")[[i]][2])),
-                                c(which(tree1$tip.label==strsplit(names(t.change),split="\\.")[[i]][2]),
-                                  which(tree1$tip.label==strsplit(names(t.change),split="\\.")[[i]][1])))]->tree1$tip.label
-      }
+      repeat({
+        tree->tree1
+        sw.tips<-c()
+        for(i in 1:length(t.change)){
+          c(sw.tips,c(which(tree1$tip.label==strsplit(names(t.change),split="\\.")[[i]][1]),
+                      which(tree1$tip.label==strsplit(names(t.change),split="\\.")[[i]][2])))->sw.tips
+          tree1$tip.label[replace(seq(1:Ntip(tree1)),
+                                  c(which(tree1$tip.label==strsplit(names(t.change),split="\\.")[[i]][1]),
+                                    which(tree1$tip.label==strsplit(names(t.change),split="\\.")[[i]][2])),
+                                  c(which(tree1$tip.label==strsplit(names(t.change),split="\\.")[[i]][2]),
+                                    which(tree1$tip.label==strsplit(names(t.change),split="\\.")[[i]][1])))]->tree1$tip.label
+        }
 
 
-      diag(vcv(tree1))-ages[match(tree1$tip.label,names(ages))]->corr
+        data.frame(tree1$edge[,2],tree1$edge.length)->DF1
+        DF1[which(DF1[,1]<=Ntip(tree1)),]->DF1
+        data.frame(tree1$tip.label[DF1[,1]],DF1,diag(vcv(tree1))[DF1[,1]],ages[match(tree1$tip.label[DF1[,1]],names(ages))])->DF1
+        colnames(DF1)<-c("tip","Ntip","leaf","age","age.real")
+        DF1$age-DF1$age.real->DF1$corr
+        as.character(DF1[which((DF1$leaf-DF1$corr)<0),1])->no.change
+
+        if(length(no.change)>0) t.change[-unlist(lapply(no.change, function(k) grep(k,names(t.change))))]->t.change else break
+      })
+
       data.frame(tree1$edge[,2],tree1$edge.length)->DF1
       DF1[which(DF1[,1]<=Ntip(tree1)),]->DF1
+      data.frame(tree1$tip.label[DF1[,1]],DF1,diag(vcv(tree1))[DF1[,1]],ages[match(tree1$tip.label[DF1[,1]],names(ages))])->DF1
+      colnames(DF1)<-c("tip","Ntip","leaf","age","age.real")
+      DF1$age-DF1$age.real->DF1$corr
+      DF1$leaf-DF1$corr->DF1$new.leaf
 
-      tree1$edge.length[as.numeric(rownames(DF1))]<-(DF1[,2]-corr)
+      tree1$edge.length[match(DF1[,2],tree1$edge[,2])]<-DF1$new.leaf
+      # tree1$edge.length[as.numeric(rownames(DF1))]<-(DF1[,2]-corr)
+      # scaleTree(tree1,max(ages)-ages[match(tree1$tip.label,names(ages))])->tree1
     }
   }else sw.tips<-NULL
   ### change node ages ######
@@ -166,8 +181,6 @@ swapONE<-function(tree,
     nodedge[,5]->tree1$edge.length
   }else N<-NULL
   KF.dist(tree,tree1)->KF
-
-
 
   if(isTRUE(plot.swap)){
     colo<-rep("black",nrow(tree$edge))
