@@ -54,12 +54,13 @@ This function takes the result list produced by \code{\link{evo.dir}} as the inp
 \code{retrieve.angles} allows to focalize the extraction to a particular node, species, or both. Otherwise it returns the whole dataset.
 }
 \examples{
+\donttest{
     data("DataApes")
     DataApes$PCstage->PCstage
     DataApes$Tstage->Tstage
 
-\donttest{
-    RRphylo(tree=Tstage,y=PCstage)->RR
+    cc<- 2/parallel::detectCores()
+    RRphylo(tree=Tstage,y=PCstage,clus=cc)->RR
 
 # Case 1. "evo.dir" without performing randomization
     evo.dir(RR,angle.dimension="rates",pair.type="node",
@@ -111,7 +112,7 @@ This function takes the result list produced by \code{\link{evo.dir}} as the inp
 
 # Case 2. "evo.dir" with performing randomization
     evo.dir(RR,angle.dimension="rates",pair.type="node",node=57,
-    random="yes")->evo.p
+    random="yes",nrep=10)->evo.p
 
  # Case 2.1 angles and sizes of resultant vectors between individual species and the MRCA:
   # for a focal node

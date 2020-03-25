@@ -22,12 +22,13 @@ The function produces two barplots. On the left side, the rates (in absolute val
 The function \code{plotRates} plots the \code{\link{RRphylo}} rates computed for a given clade as compared to the rates computed for the rest of the tree.
 }
 \examples{
+\donttest{
 data("DataApes")
 DataApes$PCstage->PCstage
 DataApes$Tstage->Tstage
+cc<- 2/parallel::detectCores()
 
-\donttest{
-RRphylo(tree=Tstage,y=PCstage)->RR
+RRphylo(tree=Tstage,y=PCstage,clus=cc)->RR
 
 plotRates(RR,node=72,foldername=tempdir(),export.tiff = TRUE)
 }

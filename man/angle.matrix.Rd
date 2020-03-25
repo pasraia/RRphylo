@@ -5,7 +5,7 @@
 \title{Ontogenetic shape vectors analysis}
 \usage{
 angle.matrix(RR,node,Y=NULL,select.axes=c("no","yes"),
-type=c("phenotypes","rates"),cova=NULL)
+type=c("phenotypes","rates"),cova=NULL,clus=0.5)
 }
 \arguments{
 \item{RR}{an object produced by \code{\link{RRphylo}}.}
@@ -19,6 +19,8 @@ type=c("phenotypes","rates"),cova=NULL)
 \item{type}{specifies weather to perform the analysis on phenotypic (\code{"phenotypes"}) or rate (\code{"rates"}) vectors.}
 
 \item{cova}{the covariate to be indicated if its effect on rate values must be accounted for. Contrary to \code{RRphylo}, \code{cova} needs to be as long as the number of tips in the tree. As the covariate only affects rates computation, there is no covariate to provide when \code{type = "phenotypes"}.}
+
+\item{clus}{the proportion of clusters to be used in parallel computing.}
 }
 \value{
 A list containing 4 objects:
@@ -39,36 +41,37 @@ This function computes and compares ontogenetic vectors among species in a tree.
 The \code{angle.matrix} function takes as objects a phylogenetic tree (retrieved directly from an \code{\link{RRphylo}} object), including the different ontogenetic stages of each species as polytomies. Names at tips must be written as species ID and stage number separated by the underscore. The \code{RRphylo} object \code{angle.matrix} is fed with is just used to extract the dichotomized version of the phylogeny. This is necessary because node numbers change randomly at dichotomizing non-binary trees. However, when performing \code{angle.matrix} with the covariate the \code{RRphylo } object must be produced without accounting for the covariate. Furthermore, as the covariate only affects the rates computation, it makes no sense to use it when computing vectors for phenotypic variables. Once angles and vectors are computed, \code{angle.matrix} performs two tests by means of standard major axis (SMA) regression. For each species pair, the "biogenetic test" verifies whether the angle between species grows during development, meaning that the two species becomes less similar to each other during growth. The "paedomorphosis test" tells whether there is heterochronic shape change in the data. Under paedomorphosis, the adult stages of one (paedomorphic) species will resemble the juvenile stages of the other (peramorphic) species. The test regresses the angles formed by the shapes at different ontogenetic stages of a species to the shape at the youngest stage of the other in the pair, against age. Then, it tests whether the two regression lines (one per species) have different slopes, and whether they have different signs. If the regression lines point to different directions, it means that one of the two species in the pair resembles, with age, the juveniles of the other, indicating paedomorphosis. Ontogenetic vectors of individual species are further computed, in reference to the MRCA of the pair, and to the first stage of each species (i.e. intraspecifically). Importantly, the size of the ontogenetic vectors of rates tell whether the two species differ in terms of developmental rate, which is crucial to understand which process is behind paedomorphosis, where it applies.While performing the analysis, the function prints messages on-screen informing about tests results. If \code{select.axes = "yes"}, informs the user about which phenotypic variables are used. Secondly, it specifies whether ontogenetic vectors to MRCA, and intraspecific ontogenetic vectors significantly differ in angle or size between species pairs. Then, for each species pair, it indicates if the biogenetic law and paedomorphosis apply.
 }
 \examples{
+  \donttest{
   data("DataApes")
   DataApes$PCstage->PCstage
   DataApes$Tstage->Tstage
   DataApes$CentroidSize->CS
 
-  \donttest{
-  RRphylo(tree=Tstage,y=PCstage)->RR
+  cc<- 2/parallel::detectCores()
+  RRphylo(tree=Tstage,y=PCstage,clus=cc)->RR
 # Case 1. without accounting for the effect of a covariate
 
  # Case 1.1 selecting shape variables that show significant relationship with age
   # on phenotypic vectors
-    angle.matrix(RR,node=72,Y=PCstage,select.axes="yes",type="phenotypes")
+    angle.matrix(RR,node=72,Y=PCstage,select.axes="yes",type="phenotypes",clus=cc)
   # on rates vectors
-    angle.matrix(RR,node=72,Y=PCstage,select.axes="yes",type="rates")
+    angle.matrix(RR,node=72,Y=PCstage,select.axes="yes",type="rates",clus=cc)
 
  # Case 1.2 using all shape variables
   # on phenotypic vectors
-    angle.matrix(RR,node=72,Y=PCstage,select.axes="no",type="phenotypes")
+    angle.matrix(RR,node=72,Y=PCstage,select.axes="no",type="phenotypes",clus=cc)
   # on rates vectors
-    angle.matrix(RR,node=72,Y=PCstage,select.axes="no",type="rates")
+    angle.matrix(RR,node=72,Y=PCstage,select.axes="no",type="rates",clus=cc)
 
 
 # Case 2. accounting for the effect of a covariate (on rates vectors only)
 
  # Case 2.1 selecting shape variables that show significant relationship with age
-   angle.matrix(RR,node=72,Y=PCstage,select.axes="yes",type="rates", cova=CS)
+   angle.matrix(RR,node=72,Y=PCstage,select.axes="yes",type="rates", cova=CS,clus=cc)
 
 
  # Case 2.2 using all shape variables
-   angle.matrix(RR,node=72,Y=PCstage,select.axes="no",type="rates",cova=CS)
+   angle.matrix(RR,node=72,Y=PCstage,select.axes="no",type="rates",cova=CS,clus=cc)
   }
 }
 \author{

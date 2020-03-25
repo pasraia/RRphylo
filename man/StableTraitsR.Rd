@@ -43,7 +43,7 @@ This function runs StableTraits and StableTraitsSum (\cite{Elliot and Mooers 201
 The StableTraits software is available at https://mickelliot.com/, along with instructions for compilation. Once it is installed, the user must set as R working directory the folder where the StableTraits software are installed. Further information about the arguments and outputs of StableTraits and StableTraitsSum can be found at https://mickelliot.com/. \code{StableTraitsR} automatically recognizes which Operating System is running on the computer (it has been tested successfully on MacOS and Windows machines).
 }
 \examples{
-\donttest{
+\dontrun{
 library(ape)
 library(phytools)
 

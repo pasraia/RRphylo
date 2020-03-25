@@ -24,11 +24,12 @@ The function computes the distance between pairs of nodes, pairs of tips, or bet
 data("DataApes")
 DataApes$Tstage->Tstage
 
-distNodes(tree=Tstage)
-distNodes(tree=Tstage,node=64)
-distNodes(tree=Tstage,node="Tro_2")
-distNodes(tree=Tstage,node=c(64,48))
-distNodes(tree=Tstage,node=c(64,"Tro_2"))
+cc<- 2/parallel::detectCores()
+distNodes(tree=Tstage,clus=cc)
+distNodes(tree=Tstage,node=64,clus=cc)
+distNodes(tree=Tstage,node="Tro_2",clus=cc)
+distNodes(tree=Tstage,node=c(64,48),clus=cc)
+distNodes(tree=Tstage,node=c(64,"Tro_2"),clus=cc)
 }
 }
 \author{

@@ -77,20 +77,22 @@ data("DataFelids")
 DataFelids$PCscoresfel->PCscoresfel
 DataFelids$treefel->treefel
 DataFelids$statefel->statefel
+cc<- 2/parallel::detectCores()
 
-RRphylo(treefel,PCscoresfel)->RRfel
+RRphylo(treefel,PCscoresfel,clus=cc)->RRfel
 
 
 ## Case 1. searching convergence between clades
 # by setting min.dist as node distance
-search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="node9", foldername = tempdir())
-
+search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="node9",
+            foldername = tempdir(),clus=cc)
 # by setting min.dist as time distance
-search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="time38", foldername = tempdir())
+search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="time38",
+            foldername = tempdir(),clus=cc)
 
 ## Case 2. searching convergence within a single state
-search.conv(tree=treefel, y=PCscoresfel, state=statefel,declust=TRUE, foldername = tempdir())
-
+search.conv(tree=treefel, y=PCscoresfel, state=statefel,declust=TRUE,
+            foldername = tempdir(),clus=cc)
   }
 }
 \references{
