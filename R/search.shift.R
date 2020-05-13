@@ -179,10 +179,8 @@ search.shift<-function(RR,
         p.init <- p.single
         l2N.init <- leaf2N.diff[match(names(p.init),
                                       names(leaf2N.diff))]
-
-        p.single <- p.single[c(which.max(p.single), which.min(p.single))]
-        leaf2N.diff <- leaf2N.diff[match(names(p.single),
-                                         names(leaf2N.diff))]
+        p.single <- NULL
+        leaf2N.diff <- NULL
       }
 
 
@@ -270,12 +268,15 @@ search.shift<-function(RR,
 
         leaf2N.diff <- leaf2N.diff[match(names(p.single),
                                          names(leaf2N.diff))]
+
+        p.single[order(p.single)]->p.single
       }
 
 
-      p.single[order(p.single)]->p.single
+
       pdf(file=paste(foldername, "AR results for rate differences.pdf",sep="/"))
-      if(length(which(p.single<=0.025|p.single>=0.975))>0){
+      #if(length(which(p.single<=0.025|p.single>=0.975))>0){
+      if(!is.null(p.single)){
         if(Ntip(tree)>100) plot(tree, show.tip.label = FALSE) else plot(tree, cex=.8)
         xy <- list()
         for (w in 1:length(p.single)) {
@@ -298,11 +299,15 @@ search.shift<-function(RR,
         if(Ntip(tree)>100) plot(tree, show.tip.label = FALSE) else plot(tree, cex=.8)
       }
       dev.off()
-      res<-list(data.frame("rate difference"=l2N.init[match(names(p.init),names(l2N.init))],"p-value"=p.init),
-                data.frame("rate difference"=leaf2N.diff[match(names(p.single),names(leaf2N.diff))],"p-value"=p.single),
-                rates)
-      names(res)<-c("all.clades","single.clades","rates")
-      return(res)
+      data.frame("rate difference"=l2N.init[match(names(p.init),names(l2N.init))],"p-value"=p.init)->allres
+      if(!is.null(p.single))
+        data.frame("rate difference"=leaf2N.diff[match(names(p.single),names(leaf2N.diff))],"p-value"=p.single)->single else single<-NULL
+      res<-list(allres,single)
+      names(res)<-c("all.clades","single.clades")
+      if(!is.null(cov)) {
+        res<-c(res,list(rates))
+        names(res)[3]<-"rates"
+      }
     } else {
       node = node
       Cbranch <- list()
@@ -341,7 +346,7 @@ search.shift<-function(RR,
         hist(ran.diffR, main="",cex.lab=1.5,
              yaxt="n",xaxt="n",ylab=paste("node", node, sep = " "),xlab="",mgp=c(0.2,0,0),
              xlim = c(1.1 * min(c(leaf2NC.diff,ran.diffR)),1.1 * max(c(leaf2NC.diff,ran.diffR))))
-        hist(c(leaf2NC.diff,ran.diffR),plot=F)->hi
+        hist(c(leaf2NC.diff,ran.diffR),plot=FALSE)->hi
         if(length(hi$breaks)%%2==1) (hi$breaks[seq(1,length(hi$breaks),2)])->athi else
           c(hi$breaks[seq(1,length(hi$breaks),2)],
             (hi$breaks[length(hi$breaks)]+abs(diff(hi$breaks[seq(1,length(hi$breaks),2)][1:2]))))->athi
@@ -356,9 +361,12 @@ search.shift<-function(RR,
         #                                        2.5 * range(ran.diffR)[2]))
         # abline(v = leaf2NC.diff, col = "green", lwd = 3)
         names(leaf2NC.diff)<-names(p.shift)<-node
-        res<-list(data.frame("rate difference"=leaf2NC.diff,"p-value"=p.shift),
-                  rates)
-        names(res)<-c("single.clade","rates")
+        res<-list(data.frame("rate difference"=leaf2NC.diff,"p-value"=p.shift))
+        names(res)<-"single.clade"
+        if(!is.null(cov)) {
+          res<-c(res,list(rates))
+          names(res)[2]<-"rates"
+        }
       }else{
         pdf(file=paste(foldername, "AR results for rate differences.pdf",sep="/"),width=8.3,height=11.7)
         par(mfrow = c(length(node) + 1, 1))
@@ -366,7 +374,7 @@ search.shift<-function(RR,
         hist(ran.diffR, main="",cex.lab=1.5,
              yaxt="n",ylab="All clades together",xlab="",mgp=c(0.2,0.5,0),xaxt="n",
              xlim = c(1.1 * min(c(leaf2NC.diff,ran.diffR)),1.1 * max(c(leaf2NC.diff,ran.diffR))))
-        hist(c(leaf2NC.diff,ran.diffR),plot=F)->hi
+        hist(c(leaf2NC.diff,ran.diffR),plot=FALSE)->hi
         if(length(hi$breaks)%%2==1) (hi$breaks[seq(1,length(hi$breaks),2)])->athi else
           c(hi$breaks[seq(1,length(hi$breaks),2)],
             (hi$breaks[length(hi$breaks)]+abs(diff(hi$breaks[seq(1,length(hi$breaks),2)][1:2]))))->athi
@@ -429,7 +437,7 @@ search.shift<-function(RR,
           hist(ran.diff[[m]], main="",cex.lab=1.5,
                yaxt="n",ylab=paste("node", node[m], sep = " "),xlab="",mgp=c(0.2,0.5,0),xaxt="n",
                xlim = c(1.1 * min(c(leaf2N.diff[m],ran.diff[[m]])),1.1 * max(c(leaf2N.diff[m],ran.diff[[m]]))))
-          hist(c(leaf2N.diff[m],ran.diff[[m]]),plot=F)->hi
+          hist(c(leaf2N.diff[m],ran.diff[[m]]),plot=FALSE)->hi
           if(length(hi$breaks)%%2==1) (hi$breaks[seq(1,length(hi$breaks),2)])->athi else
             c(hi$breaks[seq(1,length(hi$breaks),2)],
               (hi$breaks[length(hi$breaks)]+abs(diff(hi$breaks[seq(1,length(hi$breaks),2)][1:2]))))->athi
@@ -445,18 +453,17 @@ search.shift<-function(RR,
         }
         dev.off()
         res<-list(data.frame("rate.difference"=leaf2NC.diff,"p.value"=p.shift),
-                  data.frame("rate difference"=leaf2N.diff[match(names(p.single),names(leaf2N.diff))],"p-value"=p.single),
-                  rates)
-
-        names(res)<-c("all.clades.together","single.clades","rates")
+                  data.frame("rate difference"=leaf2N.diff[match(names(p.single),names(leaf2N.diff))],"p-value"=p.single))
+        names(res)<-c("all.clades.together","single.clades")
+        if(!is.null(cov)) {
+          res<-c(res,list(rates))
+          names(res)[3]<-"rates"
+        }
       }
-
-
-      return(res)
     }
   } else {
     state <- treedata(tree, state, sort = TRUE)[[2]][,1]
-    frame <- data.frame(status = state, rate = rates[match(names(state),
+    frame <- data.frame(status = as.factor(state), rate = rates[match(names(state),
                                                            rownames(rates))])
     p.status.diff <- array()
     if (length(unique(state)) > 2) {
@@ -496,7 +503,7 @@ search.shift<-function(RR,
         hist(status.diffS[, idx[i]], main="",xaxt="n",cex.lab=1.5,
              yaxt="n",ylab=paste("state", colnames(status.diffS)[idx[i]], sep = " "),xlab="",mgp=c(0.2,0.5,0),
              xlim = c(1.1*min(c(status.diff[idx[i]],status.diffS[, idx[i]])),1.1*max(c(status.diff[idx[i]],status.diffS[, idx[i]]))))
-        hist(c(status.diff[idx[i]],status.diffS[, idx[i]]),plot=F)->hi
+        hist(c(status.diff[idx[i]],status.diffS[, idx[i]]),plot=FALSE)->hi
         if(length(hi$breaks)%%2==1) (hi$breaks[seq(1,length(hi$breaks),2)])->athi else
           c(hi$breaks[seq(1,length(hi$breaks),2)],
             (hi$breaks[length(hi$breaks)]+abs(diff(hi$breaks[seq(1,length(hi$breaks),2)][1:2]))))->athi
@@ -520,9 +527,12 @@ search.shift<-function(RR,
       unlist(p.status.diff)->p.status.diff
       unlist(status.diff)->status.diff
 
-      res<-list(data.frame("rate difference"=status.diff[match(names(p.status.diff),names(status.diff))],p.status.diff),rates)
-      names(res)<-c("state.results","rates")
-      return(res)
+      res<-list(data.frame("rate difference"=status.diff[match(names(p.status.diff),names(status.diff))],p.status.diff))
+      names(res)<-"state.results"
+      if(!is.null(cov)) {
+        res<-c(res,list(rates))
+        names(res)[2]<-"rates"
+      }
     } else {
       status.diff <- diff(tapply(abs(frame$rate), state,
                                  mean))
@@ -545,7 +555,7 @@ search.shift<-function(RR,
            yaxt="n",ylab="",xlab="random differences",
            cex.lab=1,mgp=c(1.5,0.8,0),
            xlim = c(1.1*min(c(status.diff,status.diffS)), 1.1*max(c(status.diff,status.diffS))))
-      hist(c(status.diff,status.diffS),plot=F)->hi
+      hist(c(status.diff,status.diffS),plot=FALSE)->hi
       if(length(hi$breaks)%%2==1) (hi$breaks[seq(1,length(hi$breaks),2)])->athi else
         c(hi$breaks[seq(1,length(hi$breaks),2)],
           (hi$breaks[length(hi$breaks)]+abs(diff(hi$breaks[seq(1,length(hi$breaks),2)][1:2]))))->athi
@@ -557,9 +567,13 @@ search.shift<-function(RR,
                                                              1)]))[1]/nrep
       state.results<-data.frame("rate difference"=status.diff[match(names(p.status.diff),names(status.diff))],"p.value"=p.status.diff)
       rownames(state.results)<-paste(names(p.status.diff),unique(state)[which(unique(state)!=names(p.status.diff))],sep="-")
-      res<-list(state.results,rates)
-      names(res)<-c("state.results","rates")
-      return(res)
+      res<-list(state.results)
+      names(res)<-c("state.results")
+      if(!is.null(cov)) {
+        res<-c(res,list(rates))
+        names(res)[2]<-"rates"
+      }
     }
   }
+  return(res)
 }

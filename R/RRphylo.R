@@ -196,9 +196,10 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
       i = 1
       while (i <= length(N)) {
         nn <- getMRCA(treeN, tar.tips[[i]])
-        treeN <- bind.tip(treeN, tip.label = paste("nod",
-                                                   N[i], sep = ""), edge.length = 0, where = nn,
-                          position = 0.001)
+        treeN$edge.length[which(treeN$edge[,2]==nn)]->edlen
+        if(edlen<=0.001) edlen/10->pp else 0.001->pp
+        treeN <- bind.tip(treeN, tip.label = paste("nod",N[i], sep = ""),
+                          edge.length = 0, where = nn,position = edlen)
         npos <- which(treeN$tip.label == paste("nod", N[i], sep = ""))
         if (npos == 1) ynew <- rbind(P[i, ], ynew)
         if (npos == nrow(ynew) + 1) ynew <- rbind(ynew, P[i, ]) else {
@@ -265,12 +266,11 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
       i = 1
       while (i <= length(N)) {
         nn <- getMRCA(treeN, tar.tips[[i]])
-        treeN <- bind.tip(treeN,
-                          tip.label = paste("nod",N[i], sep = ""),
-                          edge.length = 0, where = nn,position = 0.001)
-        npos <- which(treeN$tip.label ==
-                        paste("nod",N[i], sep = ""))
-
+        treeN$edge.length[which(treeN$edge[,2]==nn)]->edlen
+        if(edlen<=0.001) edlen/10->pp else 0.001->pp
+        treeN <- bind.tip(treeN, tip.label = paste("nod",N[i], sep = ""),
+                          edge.length = 0, where = nn,position = edlen)
+        npos <- which(treeN$tip.label == paste("nod", N[i], sep = ""))
         if (npos == 1) ynew <- c(P[i], ynew)
 
         if (npos == length(ynew) + 1) ynew <- c(ynew, P[i]) else {
@@ -481,8 +481,7 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
         factOut <- which(betas != "0")
         betas[factOut] <- res
         betas[zeroes] <- 0
-      }
-      else {
+      }else {
         R <- log(abs(betas))
         Y <- abs(cov)
         res <- residuals(lm(R ~ Y))
