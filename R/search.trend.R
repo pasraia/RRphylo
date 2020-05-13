@@ -10,7 +10,7 @@
 #' @param cov the covariate values to be specified if the RR object has been created using a  covariate for rates calculation.  As for \code{RRphylo}, \code{'cov'} must be as long as the number of nodes plus the number of tips of the tree, which can be obtained by running \code{RRphylo} on the covariate as well, and taking the vector of ancestral states and tip values to form the covariate (see the example below).
 #' @param foldername the path of the folder where plots are to be found.
 #' @param ConfInt if \code{TRUE}, the function returns 95\% confidence intervals around phenotypes and rates produced according to the Brownian motion model of evolution. It is \code{FALSE} by default.
-#' @return The function returns a ‘list’ object including:
+#' @return The function returns a list object including:
 #' @return \strong{$rbt} for each branch of the tree, there are the \code{RRphylo} rates and the distance from the tree root (age). If y is multivariate, it also includes the multiple rates for each y vector. If \code{node} is specified, each branch is classified as belonging or not to the indicated clades.
 #' @return \strong{$pbt} a data frame of phenotypic values and their distance from the tree root for each node (i.e. ancestral states) and tip of the tree.
 #' @return \strong{$phenotypic.regression} results of phenotype versus age regression. It reports a p-value for the regression slope between the variables (p.real), a p-value computed contrasting the real slope to Brownian motion simulations (p.random), and a parameter indicating the deviation of the phenotypic mean from the root value in terms of the number of standard deviations of the trait distribution (dev). dev is 0 under Brownian Motion. Only p.random should be inspected to assess significance.
@@ -30,8 +30,7 @@
 #' @importFrom outliers outlier
 #' @importFrom car outlierTest
 #' @importFrom emmeans emmeans emtrends
-#' @importFrom phytools nodeHeights make.simmap plotSimmap brownieREML
-#' @importFrom pvclust pvclust pvpick
+#' @importFrom phytools nodeHeights
 #' @importFrom utils combn
 #' @importFrom parallel makeCluster detectCores stopCluster
 #' @importFrom doParallel registerDoParallel

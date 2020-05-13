@@ -1,5 +1,4 @@
 #' @title Matrix of branch lengths along root-to-tip paths
-#'
 #' @description This function produces a \eqn{n * m} matrix, where n=number of tips and m=number of branches (i.e. n + number of nodes). Each row represents the branch lengths aligned along a root-to-tip path.
 #' @usage makeL(tree)
 #' @param tree a phylogenetic tree. The tree needs not to be ultrametric and fully dichotomous.

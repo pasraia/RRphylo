@@ -19,7 +19,7 @@
 #' @return \strong{$p.swap} the probability that the rates at \code{node} are different from rates at the rest of the tree.
 #' @return \strong{$rates} the distribution of rates per branch as calculated by \code{RRphylo} on 'swapped' phylogenies.
 #' @examples
-#' \donttest{
+#' \dontrun{
 #'   data("DataApes")
 #'   DataApes$PCstage->PCstage
 #'   DataApes$Tstage->Tstage

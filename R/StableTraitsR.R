@@ -21,7 +21,8 @@
 #' @importFrom ape write.tree read.tree
 #' @export
 #' @references Elliot, M. G., & Mooers, A. Ø. (2014). Inferring ancestral states without assuming neutrality or gradualism using a stable model of continuous character evolution. \emph{BMC evolutionary biology}, 14: 226. doi.org/10.1186/s12862-014-0226-8
-#' @examples \dontrun{
+#' @examples
+#' \dontrun{
 #' library(ape)
 #' library(phytools)
 #'
@@ -101,7 +102,7 @@ StableTraitsR<-function(tree,y,path,output=NULL,aces=NULL,argST=NULL,argSTS=NULL
   }
 
   write.tree(t,file=paste(path,"tree",sep=""))
-  write.table(y,file=paste(path,"y",sep=""),col.names = F,quote=F)
+  write.table(y,file=paste(path,"y",sep=""),col.names = FALSE,quote=FALSE)
 
   if(is.null(output)) "output"->out else output->out
 
@@ -155,10 +156,10 @@ StableTraitsR<-function(tree,y,path,output=NULL,aces=NULL,argST=NULL,argSTS=NULL
     system2("cmd", args = tot.argSTS)
   }
 
-  read.table(paste(path,out,".ancstates",sep=""),header = T)->aces.list
-  read.table(paste(path,out,".brlens",sep=""),header = T)->rates.res
+  read.table(paste(path,out,".ancstates",sep=""),header = TRUE)->aces.list
+  read.table(paste(path,out,".brlens",sep=""),header = TRUE)->rates.res
   read.tree(paste(path,out,".tree",sep=""))->STtree
-  read.table(paste(path,out,".progress",sep=""),header = T)->STprogress
+  read.table(paste(path,out,".progress",sep=""),header = TRUE)->STprogress
   read.tree(paste(path,out,".rates_tree",sep=""))->rates_tree
   if("brownian"%in%names(argSTS)) read.tree(paste(path,out,".scaled_tree",sep=""))->brownian_tree else NULL->brownian_tree
 

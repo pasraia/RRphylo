@@ -17,21 +17,23 @@
 #' @param nsim number of simulations to be performed. It is set at 100 by default.
 #' @param clus the proportion of clusters to be used in parallel computing.
 #' @return The function returns a 'list' containing:
+#' @return \strong{$mean.sampling} the mean proportion of species actually removed from the tree over the iterations.
 #' @return \strong{$rootCI} the 95\% confidence interval around the root value.
 #' @return \strong{$ace.regressions} the results of linear regression between ancestral state estimates before and after the subsampling.
 #' @return \strong{$conv.results} a list including results for \code{search.conv} performed under \code{clade} and \code{state} conditions. If a node pair is specified within \code{conv.args}, the \code{$clade} object contains the percentage of simulations producing significant p-values for convergence between the clades. If a state vector is supplied within \code{conv.args}, the object \code{$state} contains the percentage of simulations producing significant p-values for convergence within (single state) or between states (multiple states).
 #' @return \strong{$shift.results} a list including results for \code{search.shift} performed under \code{clade} and \code{sparse} conditions. If one or more nodes are specified within \code{shift.args}, the \code{$clade} object contains for each node the percentage of simulations producing significant p-value separated by shift sign, and the same figures by considering all the specified nodes as evolving under a single rate (all.clades).If a state vector is supplied within \code{shift.args}, the object \code{$sparse} contains the percentage of simulations producing significant p-value separated by shift sign ($p.states).
 #' @return \strong{$trend.results} a list including the percentage of simulations showing significant p-values for phenotypes versus age and absolute rates versus age regressions for the entire tree separated by slope sign ($tree). If one or more nodes are specified within \code{trend.args}, the list also includes the same results at nodes ($node) and the results for comparison between nodes ($comparison).
 #' @author Silvia Castiglione, Carmela Serio, Pasquale Raia
-#' @details Methods using a large number of parameters risk being overfit. This usually translates in poor fitting with data and trees other than the those originally used. With \code{RRphylo} methods this risk is usually very low. However, the user can assess how robust the results got by applying \code{search.shift}, \code{search.trend} or \code{search.conv} are by running \code{overfitRR}. With the latter, the original tree and data are subsampled by specifying a \code{s} parameter, that is the proportion of tips to be removed from the tree. Internally, \code{overfitRR} further shuffles the tree by using the function \code{\link{swapONE}}. Thereby, both the potential for overfit and phylogenetic uncertainty are accounted for straight away.
+#' @details Methods using a large number of parameters risk being overfit. This usually translates in poor fitting with data and trees other than the those originally used. With \code{RRphylo} methods this risk is usually very low. However, the user can assess how robust the results got by applying \code{search.shift}, \code{search.trend} or \code{search.conv} are by running \code{overfitRR}. With the latter, the original tree and data are subsampled by specifying a \code{s} parameter, that is the proportion of tips to be removed from the tree. In some cases, though, removing as many tips as imposed by \code{s} would delete too many tips right in clades and/or states under testing. In these cases, the function maintains no less than 5 species at least in each clade/state under testing (or all species if there is less), reducing the sampling parameter \code{s} if necessary. Internally, \code{overfitRR} further shuffles the tree by using the function \code{\link{swapONE}}. Thereby, both the potential for overfit and phylogenetic uncertainty are accounted for straight away.
 #' @export
 #' @importFrom rlist list.append
 #' @importFrom ddpcr quiet
+#' @importFrom utils setTxtProgressBar txtProgressBar
 #' @references Castiglione, S., Tesone, G., Piccolo, M., Melchionna, M., Mondanaro, A., Serio, C., Di Febbraro, M., & Raia, P. (2018). A new method for testing evolutionary rate variation and shifts in phenotypic evolution. \emph{Methods in Ecology and Evolution}, 9: 974-983.doi:10.1111/2041-210X.12954
 #' @references Castiglione, S., Serio, C., Mondanaro, A., Di Febbraro, M., Profico, A., Girardi, G., & Raia, P. (2019a) Simultaneous detection of macroevolutionary patterns in phenotypic means and rate of change with and within phylogenetic trees including extinct species. \emph{PLoS ONE}, 14: e0210101. https://doi.org/10.1371/journal.pone.0210101
 #' @references Castiglione, S., Serio, C., Tamagnini, D., Melchionna, M., Mondanaro, A., Di Febbraro, M., Profico, A., Piras, P.,Barattolo, F., & Raia, P. (2019b). A new, fast method to search for morphological convergence with shape data. \emph{PLoS ONE}, 14, e0226949. https://doi.org/10.1371/journal.pone.0226949
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' data("DataOrnithodirans")
 #' DataOrnithodirans$treedino->treedino
 #' DataOrnithodirans$massdino->massdino
@@ -127,6 +129,10 @@ overfitRR<-function(RR,y,
   if(is.null(nrow(y))) y <- treedata(tree, y, sort = TRUE)[[2]][,1] else y <- treedata(tree, y, sort = TRUE)[[2]]
 
   if (length(y) > Ntip(tree)) {
+    if((Ntip(tree)-round(Ntip(tree)*s))<ncol(y))
+    stop(paste("After the sampling there are more variables than observations.
+               Please consider running your preliminary analyses with",
+               (Ntip(tree)-round(Ntip(tree)*s)),"variables.",sep=" "))
     RR$aces->y.ace
     tree$node.label<-rownames(y.ace)
     y[match(tree$tip.label,rownames(y)),]->y
@@ -178,24 +184,69 @@ overfitRR<-function(RR,y,
     conv.declust<-NULL
   }
 
+
+  pb = txtProgressBar(min = 0, max = nsim, initial = 0)
+
   rootlist<-list()
   acefit<-STcut<-SScut<-SScutS<-SCcut<-SCcutS<-list()
+  real.s<-array()
   for(k in 1:nsim){
+    setTxtProgressBar(pb,k)
     '%ni%' <- Negate('%in%')
+    # repeat({
+    #   #suppressWarnings(swapONE(tree,0.1,0.1)[[1]])->tree.swap
+    #   suppressWarnings(swapONE(tree,si=si,si2=si2,node=swap.node,plot.swap=FALSE)[[1]])->tree.swap
+    #   #sample(y,round((Ntip(tree)*s),0))->offs
+    #   #sapply(trend.node,function(x) length(tips(tree,x))-length(which(names(offs)%in%tips(tree,x))))->lt
+    #   #sapply(shift.node,function(x) length(tips(tree,x))-length(which(names(offs)%in%tips(tree,x))))->lss
+    #   sample(tree$tip.label,round((Ntip(tree)*s),0))->offs
+    #   sapply(trend.node,function(x) length(tips(tree,x))-length(which(offs%in%tips(tree,x))))->lt
+    #   sapply(shift.node,function(x) length(tips(tree,x))-length(which(offs%in%tips(tree,x))))->lss
+    #   sapply(conv.node,function(x) length(tips(tree,x))-length(which(offs%in%tips(tree,x))))->lsc
+    #   if(length(which(lt<5))==0&length(which(lss<5))==0&length(which(lsc<5))==0) break
+    # })
 
+    if(s>0){
+      unlist(lapply(trend.node,function(x) {
+        length(tips(tree,x))->lenx
+        if(lenx<=5) tips(tree,x) else sample(tips(tree,x),5)
+      }))->out.st
+      unlist(lapply(shift.node,function(x) {
+        length(tips(tree,x))->lenx
+        if(lenx<=5) tips(tree,x) else sample(tips(tree,x),5)
+      }))->out.ss
+      unlist(lapply(conv.node,function(x) {
+        length(tips(tree,x))->lenx
+        if(lenx<=5) tips(tree,x) else sample(tips(tree,x),5)
+      }))->out.sc
 
-    repeat({
-      #suppressWarnings(swapONE(tree,0.1,0.1)[[1]])->tree.swap
-      suppressWarnings(swapONE(tree,si=si,si2=si2,node=swap.node,plot.swap=FALSE)[[1]])->tree.swap
-      #sample(y,round((Ntip(tree)*s),0))->offs
-      #sapply(trend.node,function(x) length(tips(tree,x))-length(which(names(offs)%in%tips(tree,x))))->lt
-      #sapply(shift.node,function(x) length(tips(tree,x))-length(which(names(offs)%in%tips(tree,x))))->lss
-      sample(tree$tip.label,round((Ntip(tree)*s),0))->offs
-      sapply(trend.node,function(x) length(tips(tree,x))-length(which(offs%in%tips(tree,x))))->lt
-      sapply(shift.node,function(x) length(tips(tree,x))-length(which(offs%in%tips(tree,x))))->lss
-      sapply(conv.node,function(x) length(tips(tree,x))-length(which(offs%in%tips(tree,x))))->lsc
-      if(length(which(lt<5))==0&length(which(lss<5))==0&length(which(lsc<5))==0) break
-    })
+      if(!is.null(shift.state)){
+        table(shift.state)->tab.ss
+        unlist(lapply(1:length(tab.ss),function(x) {
+          if(tab.ss[x]<=5) names(which(shift.state==names(tab.ss)[x])) else
+            sample(names(which(shift.state==names(tab.ss)[x])),5)
+        }))->out.st.ss
+      } else out.st.ss<-NULL
+
+      if(!is.null(conv.state)){
+        table(conv.state)->tab.cs
+        unlist(lapply(1:length(tab.cs),function(x) {
+          if(tab.cs[x]<=5) names(which(conv.state==names(tab.cs)[x])) else
+            sample(names(which(conv.state==names(tab.cs)[x])),5)
+        }))->out.st.sc
+      }else out.st.sc<-NULL
+
+      unique(c(out.st,out.ss,out.sc,out.st.ss,out.st.sc))->outs
+      if(length(outs>0)) tree$tip.label[-match(outs,tree$tip.label)]->samtips else tree$tip.label->samtips
+
+      sx<-s
+      repeat({
+        if(length(samtips)>Ntip(tree)*sx) break else s*.9->sx
+      })
+      sample(samtips,round(Ntip(tree)*sx,0))->offs
+    }
+
+    suppressWarnings(swapONE(tree,si=si,si2=si2,node=swap.node,plot.swap=FALSE)[[1]])->tree.swap
 
     if(length(y)>Ntip(tree)) y[match(tree.swap$tip.label,rownames(y)),]->y else y[match(tree.swap$tip.label,names(y))]->y
 
@@ -219,6 +270,8 @@ overfitRR<-function(RR,y,
       tree.swap->treecut
       y.ace->y.acecut
     }
+
+    1-(Ntip(treecut)/Ntip(tree))->real.s[k]
 
     if(is.null(cov)==FALSE) {
       cov[match(c(tree.swap$node.label,tree.swap$tip.label), names(cov))]->cov
@@ -636,8 +689,8 @@ overfitRR<-function(RR,y,
   list(p.convC,p.convS)->conv.res
   names(conv.res)<-c("clade","state")
 
-  res<-list(root.conf.int,acefit,conv.res,shift.res,trend.res)
-  names(res)<-c("rootCI","ace.regressions","conv.results","shift.results","trend.results")
+  res<-list(mean(real.s),root.conf.int,acefit,conv.res,shift.res,trend.res)
+  names(res)<-c("mean.sampling","rootCI","ace.regressions","conv.results","shift.results","trend.results")
 
   return(res)
 }

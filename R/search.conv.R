@@ -53,7 +53,7 @@
 #' @author Silvia Castiglione, Carmela Serio, Pasquale Raia, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto, Paolo Piras, Davide Tamagnini
 #' @references Castiglione, S., Serio, C., Tamagnini, D., Melchionna, M., Mondanaro, A., Di Febbraro, M., Profico, A., Piras, P.,Barattolo, F., & Raia, P. (2019). A new, fast method to search for morphological convergence with shape data. \emph{PLoS ONE}, 14, e0226949. https://doi.org/10.1371/journal.pone.0226949
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' data("DataFelids")
 #' DataFelids$PCscoresfel->PCscoresfel
 #' DataFelids$treefel->treefel
@@ -1051,10 +1051,10 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       polar.plot(lengths=c(0,mean(unname(as.matrix(ccc)[c(3,4)])),mean(unname(as.matrix(ccc)[c(3,4)]))),
                  polar.pos = c(0,ccc[7],ccc[8]),rp.type="p",line.col=rgb(0,0,0,0.6),
                  poly.col=rgb(127/255,127/255,127/255,0.4),start=90,radial.lim=range(0,max(ccc[c(3,4)])),radial.labels=""
-                 ,boxed.radial = F,mar=c(1,1,2,1),label.pos=lp,labels=lbs)
+                 ,boxed.radial = FALSE,mar=c(1,1,2,1),label.pos=lp,labels=lbs)
       title(main=onestate,cex.main = 2)
       polar.plot(lengths=c(0,ccc[3],ccc[4]),polar.pos = c(0,ccc[5],ccc[6]),
-                 line.col="blue",lwd=4,start=90,add=TRUE,radial.labels="",boxed.radial = F)
+                 line.col="blue",lwd=4,start=90,add=TRUE,radial.labels="",boxed.radial = FALSE)
       text(paste("p-value = ",ccc[9]),x=0,y=-max(ccc[c(3,4)])/2.3,cex=1.5,col="red")
 
       dev.off()
@@ -1247,10 +1247,10 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
         polar.plot(lengths=c(0,mean(unname(as.matrix(ccc)[i,c(3,4)])),mean(unname(as.matrix(ccc)[i,c(3,4)]))),
                    polar.pos = c(0,ccc[i,7],ccc[i,8]),rp.type="p",line.col=rgb(0,0,0,0.6),
                    poly.col=rgb(127/255,127/255,127/255,0.4),start=90,radial.lim=range(0,max(ccc[,c(3,4)])),radial.labels=""
-                   ,boxed.radial = F,mar=c(1,1,2,1),label.pos=lp,labels=lbs)
+                   ,boxed.radial = FALSE,mar=c(1,1,2,1),label.pos=lp,labels=lbs)
         title(main=paste(as.character(res.tot[i,1]),as.character(res.tot[i,2]),sep="-"),cex.main = 2)
         polar.plot(lengths=c(0,ccc[i,3],ccc[i,4]),polar.pos = c(0,ccc$l1[i],ccc$l2[i]),
-                   line.col="blue",lwd=4,start=90,add=TRUE,radial.labels="",boxed.radial = F)
+                   line.col="blue",lwd=4,start=90,add=TRUE,radial.labels="",boxed.radial = FALSE)
         text(paste("p-value = ",ccc[i,9]),x=0,y=-max(ccc[i,c(3,4)])/2.3,cex=1.5,col="red")
       }
       dev.off()

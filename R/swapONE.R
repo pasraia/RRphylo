@@ -13,7 +13,7 @@
 #' @importFrom ape cophenetic.phylo
 #' @return The function returns a list containing the 'swapped' version of the original tree, and the Kuhner-Felsenstein distance between the trees.
 #' @author Silvia Castiglione, Pasquale Raia, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
-#' @references Kuhner, M. K. & Felsenstein, J. (1994). A simulation comparison of phylogeny algorithms under equal and unequal evolutionary rates, \emph{Molecular Biology and Evolution}, 11: 459–468.
+#' @references Kuhner, M. K. & Felsenstein, J. (1994). A simulation comparison of phylogeny algorithms under equal and unequal evolutionary rates, \emph{Molecular Biology and Evolution}, 11: 459-468.
 #' @examples
 #' data("DataOrnithodirans")
 #' DataOrnithodirans$treedino->treedino
@@ -33,7 +33,7 @@ swapONE<-function(tree,
                   plot.swap=FALSE){
 
   #require(phangorn)
-
+  tree1<-tree
   maxN <- function(x, N=2){
     len <- length(x)
     if(N>len){
@@ -78,7 +78,7 @@ swapONE<-function(tree,
 
     for(x in 1:length(patr.dist)){
       dN<-c()
-      getSis(tree,names(shifts)[x],printZoom = F)->sis
+      getSis(tree,names(shifts)[x],printZoom = FALSE)->sis
       suppressWarnings(as.numeric(sis)->nsis)
       if(any(is.na(nsis))) which(tree$tip.label%in%sis[which(is.na(nsis))])->sis[which(is.na(nsis))]
       as.numeric(sis)->sis
@@ -98,7 +98,7 @@ swapONE<-function(tree,
       }
 
       getMommy(tree,which(tree$tip.label==names(shifts)[x]))[1]->mom
-      getSis(tree,mom,printZoom = F)->sismom
+      getSis(tree,mom,printZoom = FALSE)->sismom
       suppressWarnings(as.numeric(sismom)->nsismom)
       if(any(is.na(nsismom))) c(dN,which(tree$tip.label%in%sismom[which(is.na(nsismom))]))->dN
       tree$tip.label[dN]->dN
@@ -117,7 +117,6 @@ swapONE<-function(tree,
     DF[which(DF[,1]<=Ntip(tree)),]->DF
     data.frame(tree$tip.label,DF,ages-DF[,2],ages)->DF
     colnames(DF)<-c("tip","Ntip","leaf","age.node","age")
-
 
     check<-array()
     for(i in 1:length(t.change)){
@@ -168,7 +167,7 @@ swapONE<-function(tree,
   ### change node ages ######
   if(si2>0){
     data.frame(tree1$edge,nodeHeights(tree1),tree1$edge.length)->nodedge
-    sample(nodedge[nodedge[,2]>Ntip(tree1)+1,2],Nnode(tree1)*si2)->N
+    sample(nodedge[nodedge[,2]>Ntip(tree1)+1,2],(Nnode(tree1)-1)*si2)->N
 
     for(i in 1:length(N)){
       runif(1,nodedge[nodedge[,2]==N[i],3],min(nodedge[nodedge[,1]==N[i],4]))->new.pos

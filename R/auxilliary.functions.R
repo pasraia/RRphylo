@@ -65,7 +65,7 @@ traitgram = function(
     col->colo
     colo[match(names(x1),names(colo))]->colo
     data.frame(x0,x1,a0,a1,colo)->dato
-    dato[order(dato[,5],decreasing=T),]->dato
+    dato[order(dato[,5],decreasing=TRUE),]->dato
     dato[,1]->x0
     dato[,2]->x1
     dato[,3]->a0

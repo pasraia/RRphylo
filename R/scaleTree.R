@@ -29,8 +29,8 @@
 #' edge.col[which(treeS1$edge[,2]%in%getDescendants(treeS1,146))]<-"red"
 #'
 #' layout(2:1)
-#' plot(tree,edge.color = edge.col,show.tip.label=F)
-#' plot(treeS1,edge.color = edge.col,show.tip.label=F)
+#' plot(tree,edge.color = edge.col,show.tip.label=FALSE)
+#' plot(treeS1,edge.color = edge.col,show.tip.label=FALSE)
 #'
 #' #### Example 2 ####
 #' nodeAges<-c(23.5,15.6)
@@ -42,9 +42,9 @@
 #'                                     getDescendants(treeS1,139)))]<-"red"
 #'
 #' layout(2:1)
-#' plot(tree,edge.color = edge.col,show.tip.label=F)
+#' plot(tree,edge.color = edge.col,show.tip.label=FALSE)
 #' nodelabels(bg="w",frame="n",node=c(85,139),col="green")
-#' plot(treeS2,edge.color = edge.col,show.tip.label=F)
+#' plot(treeS2,edge.color = edge.col,show.tip.label=FALSE)
 #' nodelabels(bg="w",frame="n",node=c(85,139),col="green")
 #'
 #' #### Example 3 ####
@@ -59,9 +59,9 @@
 #'                                     getDescendants(treeS3,145)))]<-"red"
 #'
 #' layout(2:1)
-#' plot(tree,edge.color = edge.col,show.tip.label=F)
+#' plot(tree,edge.color = edge.col,show.tip.label=FALSE)
 #' nodelabels(bg="w",frame="n",node=145,col="green")
-#' plot(treeS3,edge.color = edge.col,show.tip.label=F)
+#' plot(treeS3,edge.color = edge.col,show.tip.label=FALSE)
 #' nodelabels(bg="w",frame="n",node=145,col="green")
 #'}
 
