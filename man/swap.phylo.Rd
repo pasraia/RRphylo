@@ -39,7 +39,7 @@ The function uses a number of alternative phylogenies with altered (as compared 
 \code{swap.phylo} changes the tree topology and branch lengths to a level specified by the user. Up to half of the tips, and half of the branch lengths can be changed randomly. The function provides a 'swapped' tree, yet, importantly, once a shift in the rate of evolution has been found by \code{\link{RRphylo}}, this function can be used to test whether the shift depends on the tree topology and branch lengths. It runs \code{RRphylo} on swapped trees (default is 100) and then calculates the absolute rate difference between all the branches of the shifted node and the rest of the tree. A t-test is eventually performed to assess significance.
 }
 \examples{
-\donttest{
+\dontrun{
   data("DataApes")
   DataApes$PCstage->PCstage
   DataApes$Tstage->Tstage

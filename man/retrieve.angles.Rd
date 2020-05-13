@@ -54,7 +54,7 @@ This function takes the result list produced by \code{\link{evo.dir}} as the inp
 \code{retrieve.angles} allows to focalize the extraction to a particular node, species, or both. Otherwise it returns the whole dataset.
 }
 \examples{
-\donttest{
+\dontrun{
     data("DataApes")
     DataApes$PCstage->PCstage
     DataApes$Tstage->Tstage

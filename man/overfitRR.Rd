@@ -39,6 +39,8 @@ aces=NULL,x1=NULL,aces.x1=NULL,cov=NULL,rootV=NULL,nsim=100,clus=.5)
 \value{
 The function returns a 'list' containing:
 
+\strong{$mean.sampling} the mean proportion of species actually removed from the tree over the iterations.
+
 \strong{$rootCI} the 95\% confidence interval around the root value.
 
 \strong{$ace.regressions} the results of linear regression between ancestral state estimates before and after the subsampling.
@@ -53,10 +55,10 @@ The function returns a 'list' containing:
 Testing the robustness of \code{\link{search.trend}} (\cite{Castiglione et al. 2019a}), \code{\link{search.shift}} (\cite{Castiglione et al. 2018}), and  \code{\link{search.conv}} (\cite{Castiglione et al. 2019b}) results to sampling effects and phylogenetic uncertainty.
 }
 \details{
-Methods using a large number of parameters risk being overfit. This usually translates in poor fitting with data and trees other than the those originally used. With \code{RRphylo} methods this risk is usually very low. However, the user can assess how robust the results got by applying \code{search.shift}, \code{search.trend} or \code{search.conv} are by running \code{overfitRR}. With the latter, the original tree and data are subsampled by specifying a \code{s} parameter, that is the proportion of tips to be removed from the tree. Internally, \code{overfitRR} further shuffles the tree by using the function \code{\link{swapONE}}. Thereby, both the potential for overfit and phylogenetic uncertainty are accounted for straight away.
+Methods using a large number of parameters risk being overfit. This usually translates in poor fitting with data and trees other than the those originally used. With \code{RRphylo} methods this risk is usually very low. However, the user can assess how robust the results got by applying \code{search.shift}, \code{search.trend} or \code{search.conv} are by running \code{overfitRR}. With the latter, the original tree and data are subsampled by specifying a \code{s} parameter, that is the proportion of tips to be removed from the tree. In some cases, though, removing as many tips as imposed by \code{s} would delete too many tips right in clades and/or states under testing. In these cases, the function maintains no less than 5 species at least in each clade/state under testing (or all species if there is less), reducing the sampling parameter \code{s} if necessary. Internally, \code{overfitRR} further shuffles the tree by using the function \code{\link{swapONE}}. Thereby, both the potential for overfit and phylogenetic uncertainty are accounted for straight away.
 }
 \examples{
-\donttest{
+\dontrun{
 data("DataOrnithodirans")
 DataOrnithodirans$treedino->treedino
 DataOrnithodirans$massdino->massdino

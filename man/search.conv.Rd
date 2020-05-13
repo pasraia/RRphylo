@@ -72,7 +72,7 @@ The function scans a phylogenetic tree looking for morphological convergence bet
 Regardless the case (either 'state' or 'clade'), the function stores a plot into the folder specified by \code{foldername}. If convergence among clades is tested, the clade pair plotted corresponds to those clades with the smallest \code{$average distance from group centroid}. The figure shows the Euclidean distances computed between the MRCAs of the clades and the mean Euclidean distance computed between all the tips belonging to the converging clades, as compared to the distribution of these same figures across the rest of the tree. Furthermore, the function stores the PC1/PC2 plot obtained by PCA of the species phenotypes. Convergent clades are indicated by colored convex hulls. Large colored dots represent the mean phenotypes per clade (i.e. their group centroids). Eventually, a modified traitgram plot is produced, highlighting the branches of the clades found to converge. In both PCA and traitgram, asterisks represent the ancestral phenotypes of the individual clades. If convergence among states is tested, the function produces a PC plot with colored convex hulls enclosing species belonging to different states. Furthermore, it generates circular plots of the mean angle between states (blue lines) and the range of random angles (gray shaded area). The p-value for the convergence test is printed within the circular plots.
 }
 \examples{
-\donttest{
+\dontrun{
 data("DataFelids")
 DataFelids$PCscoresfel->PCscoresfel
 DataFelids$treefel->treefel

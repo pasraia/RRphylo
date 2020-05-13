@@ -38,7 +38,7 @@ swapONE(tree=treedino,si=0.5,si2=0.5,plot.swap=FALSE)
 swapONE(tree=treedino,node=423,si=0.5,si2=0.5,plot.swap=FALSE)
 }
 \references{
-Kuhner, M. K. & Felsenstein, J. (1994). A simulation comparison of phylogeny algorithms under equal and unequal evolutionary rates, \emph{Molecular Biology and Evolution}, 11: 459–468.
+Kuhner, M. K. & Felsenstein, J. (1994). A simulation comparison of phylogeny algorithms under equal and unequal evolutionary rates, \emph{Molecular Biology and Evolution}, 11: 459-468.
 }
 \author{
 Silvia Castiglione, Pasquale Raia, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto

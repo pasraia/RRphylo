@@ -26,7 +26,7 @@ search.trend(RR,y,x1=NULL,nsim=100,clus=0.5,node=NULL,cov=NULL,foldername,ConfIn
 \item{ConfInt}{if \code{TRUE}, the function returns 95\% confidence intervals around phenotypes and rates produced according to the Brownian motion model of evolution. It is \code{FALSE} by default.}
 }
 \value{
-The function returns a ‘list’ object including:
+The function returns a list object including:
 
 \strong{$rbt} for each branch of the tree, there are the \code{RRphylo} rates and the distance from the tree root (age). If y is multivariate, it also includes the multiple rates for each y vector. If \code{node} is specified, each branch is classified as belonging or not to the indicated clades.
 
