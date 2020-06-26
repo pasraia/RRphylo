@@ -40,8 +40,6 @@ require(phytools)
 require(RRphylo)
 require(ddpcr)
 
-range01 <- function(x, ...){(x - min(x, ...)) / (max(x, ...) - min(x, ...))}
-
 sim.bdtree(b = .5, d = 0.2,seed=14)->tree
 rt<-0
 s2m<-1
@@ -83,7 +81,7 @@ for(i in 1:100){
   betas <- (solve(t(L) %*% L + lambda * diag(ncol(L))) %*% 
               t(L)) %*% (as.matrix(yb)-rootV)
   bts <- abs(betas)
-  range01(bts)->BTS[[i]]
+  RRphylo:::range01(bts)->BTS[[i]]
   as.matrix(as.data.frame(bts[match(names(rootB),rownames(bts)),]))->bts
   bts
 }
@@ -121,7 +119,7 @@ legend("topleft",legend=c("nodes","tips","brownian range"),fill=c("red","green",
 ds=1
 yt1<-y+diag(vcv(tree))*ds
 
-range01(yt1)->yd
+RRphylo:::range01(yt1)->yd
 
 
 data.frame(tree$edge[,2],nodeHeights(tree)[,2])->hei
@@ -151,7 +149,7 @@ for(i in 1:100)
 {
   fastBM(tree,sig2=s2m,a=rootV,bounds=c(min(yd),max(yd)))->yc
   yc->yl[[i]]
-  range01(yc)->yc
+  RRphylo:::range01(yc)->yc
   lambda <- rr$lambda
   betas <- (solve(t(L) %*% L + lambda * diag(ncol(L))) %*% 
               t(L)) %*% (as.matrix(yc) - rootV)
