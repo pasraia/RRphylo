@@ -40,6 +40,8 @@ require(phytools)
 require(RRphylo)
 require(ddpcr)
 
+RRphylo:::range01->range01
+
 sim.bdtree(b = .5, d = 0.2,seed=14)->tree
 rt<-0
 s2m<-1
