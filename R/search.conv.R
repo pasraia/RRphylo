@@ -155,7 +155,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
     #return(list(tree=tree,state=state))
     return(remT=remT)
   }
-
+getMommy->getMommy
 
   if(is.null(state)){
 
@@ -238,17 +238,17 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
             nod[-which(nod%in%getDescendants(tree1,sel1))]->mean.sel else
               nod->mean.sel
 
-          if(length(which(mean.sel%in%RRphylo::getMommy(tree1,sel1)))>0)
-            mean.sel[-which(mean.sel%in%RRphylo::getMommy(tree1,sel1))]->mean.sel else
+          if(length(which(mean.sel%in%getMommy(tree1,sel1)))>0)
+            mean.sel[-which(mean.sel%in%getMommy(tree1,sel1))]->mean.sel else
               mean.sel->mean.sel
           mean.sel[-which(mean.sel==sel1)]->mean.sel
 
           if(dist.type=="time") {
-            RRphylo::distNodes(tree1,sel1)[1:Nnode(tree1),]->distN
+            distNodes(tree1,sel1)[1:Nnode(tree1),]->distN
             distN[,2]->matDist
             distN[,1]->matN
           }else{
-            RRphylo::distNodes(tree1,sel1)[1:Nnode(tree1),1]->matDist
+            distNodes(tree1,sel1)[1:Nnode(tree1),1]->matDist
           }
 
           matDist->matNod
@@ -282,13 +282,13 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
               for(g in 1:dim(ctt)[1]){
                 phen[match(c(as.character(ctt[g,1]),as.character(ctt[g,2])),rownames(phen)),]->ppTT
                 as.matrix(ppTT)->ppTT
-                aa[g] <- rad2deg(acos((ppTT[1,]%*%ppTT[2,])/(RRphylo::unitV(ppTT[1,]) *RRphylo::unitV(ppTT[2,]))))
+                aa[g] <- rad2deg(acos((ppTT[1,]%*%ppTT[2,])/(unitV(ppTT[1,]) *unitV(ppTT[2,]))))
               }
               mean(aa)->ang.tip
 
 
               aces[which(rownames(aces)%in%c(sel1,mean.sel[k])),]->ac
-              rad2deg(acos((ac[1,] %*% ac[2,])/(RRphylo::unitV(ac[1,]) *RRphylo::unitV(ac[2,]))))->ang.ac
+              rad2deg(acos((ac[1,] %*% ac[2,])/(unitV(ac[1,]) *unitV(ac[2,]))))->ang.ac
 
               c(dir.diff=ang.tip/nT,diff=(ang.tip+ang.ac)/nT,ang=ang.ac,ang.tip=ang.tip,nD=nD,nT=nT)->diff.p[k,]
 
