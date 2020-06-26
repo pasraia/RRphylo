@@ -65,7 +65,7 @@ RRphylo(tree=treedino,y=massdino)->dinoRates
 # with auto-recognize
 search.shift(RR=dinoRates,status.type="clade",foldername=tempdir())
 # testing two hypothetical clades
-search.shift(RR=dinoRates,status.type="clade",node=c(697,748),foldername=tempdir())
+search.shift(RR=dinoRates,status.type="clade",node=c(696,746),foldername=tempdir())
 
 # Case 1.2 "sparse" condition
 # testing the sparse condition.

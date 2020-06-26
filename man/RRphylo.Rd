@@ -21,7 +21,7 @@ RRphylo(tree,y,cov=NULL,rootV=NULL,aces=NULL,x1=NULL,aces.x1=NULL,clus=0.5)
 
 \item{aces.x1}{a named vector of ancestral character values at nodes for \code{x1}. It must be indicated if both \code{aces} and \code{x1} are specified. Names correspond to the nodes in the tree.}
 
-\item{clus}{the proportion of clusters to be used in parallel computing (only if \code{y} is multivariate).}
+\item{clus}{the proportion of clusters to be used in parallel computing (only if \code{y} is multivariate). To run the single-threaded version of \code{RRphylo} set \code{clus} = 0.}
 }
 \value{
 \strong{tree} the tree used by \code{RRphylo}. The fully dichotomous version of the tree argument. For trees with polytomies, the tree is resolved by using \code{multi2di} function in the package \pkg{ape}. If the latter is a dichotomous tree, the two trees will be identical.

@@ -20,7 +20,7 @@ type=c("phenotypes","rates"),cova=NULL,clus=0.5)
 
 \item{cova}{the covariate to be indicated if its effect on rate values must be accounted for. Contrary to \code{RRphylo}, \code{cova} needs to be as long as the number of tips in the tree. As the covariate only affects rates computation, there is no covariate to provide when \code{type = "phenotypes"}.}
 
-\item{clus}{the proportion of clusters to be used in parallel computing.}
+\item{clus}{the proportion of clusters to be used in parallel computing. To run the single-threaded version of \code{angle.matrix} set \code{clus} = 0.}
 }
 \value{
 A list containing 4 objects:

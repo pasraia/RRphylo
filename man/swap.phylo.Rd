@@ -23,7 +23,7 @@ swap.phylo(tree,si=0.5,si2=0.5,node,y,rts,nrep=100,cov=NULL,clus=0.5)
 
 \item{cov}{the covariate to be indicated if its effect on rate values must be accounted for. Contrary to \code{RRphylo}, \code{cov} needs to be as long as the number of tips of the tree.}
 
-\item{clus}{the proportion of clusters to be used in parallel computing (only if \code{y} is multivariate).}
+\item{clus}{the proportion of clusters to be used in parallel computing (only if \code{y} is multivariate). To run the single-threaded version of \code{swap.phylo} set \code{clus} = 0.}
 }
 \value{
 The function returns a 'list' object containing:

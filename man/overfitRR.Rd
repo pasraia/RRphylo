@@ -34,7 +34,7 @@ aces=NULL,x1=NULL,aces.x1=NULL,cov=NULL,rootV=NULL,nsim=100,clus=.5)
 
 \item{nsim}{number of simulations to be performed. It is set at 100 by default.}
 
-\item{clus}{the proportion of clusters to be used in parallel computing.}
+\item{clus}{the proportion of clusters to be used in parallel computing. To run the single-threaded version of \code{overfitRR} set \code{clus} = 0.}
 }
 \value{
 The function returns a 'list' containing:
@@ -67,7 +67,7 @@ cc<- 2/parallel::detectCores()
 
 # Extract Pterosaurs tree and data
 library(ape)
-extract.clade(treedino,748)->treeptero
+extract.clade(treedino,746)->treeptero
 massdino[match(treeptero$tip.label,names(massdino))]->massptero
 massptero[match(treeptero$tip.label,names(massptero))]->massptero
 

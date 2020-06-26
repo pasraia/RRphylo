@@ -35,7 +35,7 @@ clus=.5,foldername=NULL)
 
 \item{rsim}{number of simulations to be performed to produce the random distribution of theta values. It is set at 1000 by default.}
 
-\item{clus}{the proportion of clusters to be used in parallel computing.}
+\item{clus}{the proportion of clusters to be used in parallel computing. To run the single-threaded version of \code{search.conv} set \code{clus} = 0.}
 
 \item{foldername}{the path of the folder where plots are to be found.}
 }

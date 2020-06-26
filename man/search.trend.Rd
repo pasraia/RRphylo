@@ -15,7 +15,7 @@ search.trend(RR,y,x1=NULL,nsim=100,clus=0.5,node=NULL,cov=NULL,foldername,ConfIn
 
 \item{nsim}{number of simulations to be performed. It is set at 100 by default.}
 
-\item{clus}{the proportion of clusters to be used in parallel computing.}
+\item{clus}{the proportion of clusters to be used in parallel computing. To run the single-threaded version of \code{search.trend} set \code{clus} = 0.}
 
 \item{node}{the node number of individual clades to be specifically tested and contrasted to each other. It is \code{NULL} by default. Notice the node number must refer to the dichotomic version of the original tree, as produced by \code{RRphylo}.}
 
@@ -61,7 +61,7 @@ cc<- 2/parallel::detectCores()
 
 # Extract Pterosaurs tree and data
 library(ape)
-extract.clade(treedino,748)->treeptero
+extract.clade(treedino,746)->treeptero
 massdino[match(treeptero$tip.label,names(massdino))]->massptero
 massptero[match(treeptero$tip.label,names(massptero))]->massptero
 

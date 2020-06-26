@@ -35,7 +35,7 @@ swapONE(tree=treedino,si=0.5,si2=0.5,plot.swap=FALSE)
 
 ## Case 2. change the topology and the branch lengths of the
 ##         tree by keeping the monophyly of a specific clade
-swapONE(tree=treedino,node=423,si=0.5,si2=0.5,plot.swap=FALSE)
+swapONE(tree=treedino,node=422,si=0.5,si2=0.5,plot.swap=FALSE)
 }
 \references{
 Kuhner, M. K. & Felsenstein, J. (1994). A simulation comparison of phylogeny algorithms under equal and unequal evolutionary rates, \emph{Molecular Biology and Evolution}, 11: 459-468.

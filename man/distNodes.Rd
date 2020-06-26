@@ -11,7 +11,7 @@ distNodes(tree,node=NULL,clus=0.5)
 
 \item{node}{either a single node/tip or a pair of nodes/tips.}
 
-\item{clus}{the proportion of clusters to be used in parallel computing.}
+\item{clus}{the proportion of clusters to be used in parallel computing. To run the single-threaded version of \code{distNodes} set \code{clus} = 0.}
 }
 \value{
 If \code{node} is specified, the function returns a data frame with distances between the focal node/tip and the other nodes/tips on the tree (or for the selected pair only). Otherwise, the function returns a matrix containing the number of nodes intervening between each pair of nodes and tips.
