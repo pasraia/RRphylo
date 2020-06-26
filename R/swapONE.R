@@ -9,7 +9,6 @@
 #' @details \code{swapONE} changes the tree topology and branch lengths. Up to half of the tips, and half of the branch lengths can be changed randomly. Each randomly selected node is allowed to move up to 2 nodes apart from its original position.
 #' @export
 #' @importFrom stats runif
-#' @importFrom phangorn KF.dist
 #' @importFrom ape cophenetic.phylo
 #' @return The function returns a list containing the 'swapped' version of the original tree, and the Kuhner-Felsenstein distance between the trees.
 #' @author Silvia Castiglione, Pasquale Raia, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
@@ -23,7 +22,7 @@
 #'
 #' ## Case 2. change the topology and the branch lengths of the
 #' ##         tree by keeping the monophyly of a specific clade
-#' swapONE(tree=treedino,node=423,si=0.5,si2=0.5,plot.swap=FALSE)
+#' swapONE(tree=treedino,node=422,si=0.5,si2=0.5,plot.swap=FALSE)
 
 
 swapONE<-function(tree,
@@ -33,6 +32,7 @@ swapONE<-function(tree,
                   plot.swap=FALSE){
 
   #require(phangorn)
+
   tree1<-tree
   maxN <- function(x, N=2){
     len <- length(x)
@@ -45,6 +45,7 @@ swapONE<-function(tree,
 
   ### swap tips ###
   if(si>0){
+    if(Ntip(tree)*si==1) 2/Ntip(tree)->si
     apply(vcv(tree),1,function(x) which(x==maxN(x,N=3)))->shifts
     if(!is.null(node)){
       for(i in 1:length(node)){
@@ -166,6 +167,7 @@ swapONE<-function(tree,
   }else sw.tips<-NULL
   ### change node ages ######
   if(si2>0){
+    if(Ntip(tree)*si2==1) 2/Ntip(tree)->si2
     data.frame(tree1$edge,nodeHeights(tree1),tree1$edge.length)->nodedge
     sample(nodedge[nodedge[,2]>Ntip(tree1)+1,2],(Nnode(tree1)-1)*si2)->N
 
@@ -179,7 +181,7 @@ swapONE<-function(tree,
     }
     nodedge[,5]->tree1$edge.length
   }else N<-NULL
-  KF.dist(tree,tree1)->KF
+  phangorn::KF.dist(tree,tree1)->KF
 
   if(isTRUE(plot.swap)){
     colo<-rep("black",nrow(tree$edge))

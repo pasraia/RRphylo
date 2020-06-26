@@ -70,7 +70,6 @@ scaleTree<- function(tree, tip.ages=NULL, node.ages=NULL, min.branch=0.1)
 {
   # require(ape)
   # require(phytools)
-  # require(RRphylo)
 
   abs(min.branch)->min.diff
 

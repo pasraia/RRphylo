@@ -9,10 +9,8 @@
 #' @param type specifies weather to perform the analysis on phenotypic (\code{"phenotypes"}) or rate (\code{"rates"}) vectors.
 #' @param select.axes if \code{"yes"}, \code{Y} variables are individually regressed against developmental stages and only significant variables are retained to compute ontogenetic vectors. All variables are retained otherwise.
 #' @param cova the covariate to be indicated if its effect on rate values must be accounted for. Contrary to \code{RRphylo}, \code{cova} needs to be as long as the number of tips in the tree. As the covariate only affects rates computation, there is no covariate to provide when \code{type = "phenotypes"}.
-#' @param clus the proportion of clusters to be used in parallel computing.
+#' @param clus the proportion of clusters to be used in parallel computing. To run the single-threaded version of \code{angle.matrix} set \code{clus} = 0.
 #' @importFrom stats confint logLik var xtabs
-#' @importFrom smatr sma
-#' @importFrom rlist list.append
 #' @export
 #' @details The \code{angle.matrix} function takes as objects a phylogenetic tree (retrieved directly from an \code{\link{RRphylo}} object), including the different ontogenetic stages of each species as polytomies. Names at tips must be written as species ID and stage number separated by the underscore. The \code{RRphylo} object \code{angle.matrix} is fed with is just used to extract the dichotomized version of the phylogeny. This is necessary because node numbers change randomly at dichotomizing non-binary trees. However, when performing \code{angle.matrix} with the covariate the \code{RRphylo } object must be produced without accounting for the covariate. Furthermore, as the covariate only affects the rates computation, it makes no sense to use it when computing vectors for phenotypic variables. Once angles and vectors are computed, \code{angle.matrix} performs two tests by means of standard major axis (SMA) regression. For each species pair, the "biogenetic test" verifies whether the angle between species grows during development, meaning that the two species becomes less similar to each other during growth. The "paedomorphosis test" tells whether there is heterochronic shape change in the data. Under paedomorphosis, the adult stages of one (paedomorphic) species will resemble the juvenile stages of the other (peramorphic) species. The test regresses the angles formed by the shapes at different ontogenetic stages of a species to the shape at the youngest stage of the other in the pair, against age. Then, it tests whether the two regression lines (one per species) have different slopes, and whether they have different signs. If the regression lines point to different directions, it means that one of the two species in the pair resembles, with age, the juveniles of the other, indicating paedomorphosis. Ontogenetic vectors of individual species are further computed, in reference to the MRCA of the pair, and to the first stage of each species (i.e. intraspecifically). Importantly, the size of the ontogenetic vectors of rates tell whether the two species differ in terms of developmental rate, which is crucial to understand which process is behind paedomorphosis, where it applies.While performing the analysis, the function prints messages on-screen informing about tests results. If \code{select.axes = "yes"}, informs the user about which phenotypic variables are used. Secondly, it specifies whether ontogenetic vectors to MRCA, and intraspecific ontogenetic vectors significantly differ in angle or size between species pairs. Then, for each species pair, it indicates if the biogenetic law and paedomorphosis apply.
 #' @return A list containing 4 objects:
@@ -65,6 +63,17 @@ angle.matrix<-function(RR,node,Y=NULL,select.axes=c("no","yes"),type=c("phenotyp
   #require(smatr)
   #require(rlist)
   #require(geiger)
+
+  if (!requireNamespace("smatr", quietly = TRUE)) {
+    stop("Package \"smatr\" needed for this function to work. Please install it.",
+         call. = FALSE)
+  }
+
+  if (!requireNamespace("rlist", quietly = TRUE)) {
+    stop("Package \"rlist\" needed for this function to work. Please install it.",
+         call. = FALSE)
+  }
+
 
   unitV<-function(x){ sum(x^2)^.5 }
 
@@ -265,7 +274,7 @@ angle.matrix<-function(RR,node,Y=NULL,select.axes=c("no","yes"),type=c("phenotyp
       }
       for(w in 1:length(rowmat))
       {
-        list.append(couple.mat,rowmat[[w]])->couple.mat
+        rlist::list.append(couple.mat,rowmat[[w]])->couple.mat
       }
 
     }
@@ -425,7 +434,7 @@ angle.matrix<-function(RR,node,Y=NULL,select.axes=c("no","yes"),type=c("phenotyp
         data.frame(group=group,age=age,angle=mat2[,1])->mat3
         as.numeric(as.character(mat3$age))->mat3$age
 
-        if(class(try(sma(angle~age*group,data=mat3)->res.slope,silent=TRUE))=="try-error") {
+        if(class(try(smatr::sma(angle~age*group,data=mat3)->res.slope,silent=TRUE))=="try-error") {
 
           summary(lm(angle~group/age-1,data=mat3))->a
           t(a$coef[c(3,4),c(1,4)])->a1
@@ -451,7 +460,7 @@ angle.matrix<-function(RR,node,Y=NULL,select.axes=c("no","yes"),type=c("phenotyp
           names(sma.res)<-c("Results of comparing lines among groups","Coefficients by group in variable 'group'")
         }
         data.frame(age=as.numeric(unique(age)),biogen.vector)->bg.data
-        sma(biogen.vector~age,data=bg.data)->bg.res
+        smatr::sma(biogen.vector~age,data=bg.data)->bg.res
         list(as.data.frame(bg.res$coef),data.frame(p=unlist(bg.res$p),R2=unlist(bg.res$r2)))->bg.test
         names(bg.test)<-c("biogenetic law test coefficients","biogenetic law test significance")
         list(matrix=mat,paedomorphosis.test=sma.res,biogenetic.test=bg.test)->smat.res[[i]]

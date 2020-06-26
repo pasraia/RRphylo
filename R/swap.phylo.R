@@ -9,7 +9,7 @@
 #' @param rts the rates found by \code{\link{RRphylo}} on the original tree.
 #' @param nrep the number of simulated trees to be produced.
 #' @param cov the covariate to be indicated if its effect on rate values must be accounted for. Contrary to \code{RRphylo}, \code{cov} needs to be as long as the number of tips of the tree.
-#' @param clus the proportion of clusters to be used in parallel computing (only if \code{y} is multivariate).
+#' @param clus the proportion of clusters to be used in parallel computing (only if \code{y} is multivariate). To run the single-threaded version of \code{swap.phylo} set \code{clus} = 0.
 #' @importFrom graphics hist par
 #' @importFrom grDevices rgb
 #' @importFrom stats t.test

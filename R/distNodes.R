@@ -3,7 +3,7 @@
 #' @usage distNodes(tree,node=NULL,clus=0.5)
 #' @param tree a phylogenetic tree. The tree needs not to be ultrametric and fully dichotomous.
 #' @param node either a single node/tip or a pair of nodes/tips.
-#' @param clus the proportion of clusters to be used in parallel computing.
+#' @param clus the proportion of clusters to be used in parallel computing. To run the single-threaded version of \code{distNodes} set \code{clus} = 0.
 #' @export
 #' @return If \code{node} is specified, the function returns a data frame with distances between the focal node/tip and the other nodes/tips on the tree (or for the selected pair only). Otherwise, the function returns a matrix containing the number of nodes intervening between each pair of nodes and tips.
 #' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
@@ -24,7 +24,6 @@ distNodes<-function(tree,node=NULL,clus=0.5){
   #require(ape)
   #require(phytools)
   #require(geiger)
-  #require(RRphylo)
   #require(doParallel)
   #require(parallel)
 
@@ -37,7 +36,7 @@ distNodes<-function(tree,node=NULL,clus=0.5){
     matrix(ncol=ncol(L),nrow=ncol(L))->mat
     i=1
     res<-list()
-    cl <- makeCluster(round((detectCores() * clus), 0))
+    if(round((detectCores() * clus), 0)==0) cl<-makeCluster(1) else cl <- makeCluster(round((detectCores() * clus), 0))
     registerDoParallel(cl)
     res <- foreach(i = 1:length(nam),
                    .packages = c("RRphylo","ape", "geiger", "phytools", "doParallel")) %dopar%

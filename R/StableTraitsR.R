@@ -43,7 +43,6 @@ StableTraitsR<-function(tree,y,path,output=NULL,aces=NULL,argST=NULL,argSTS=NULL
   # require(ape)
   # require(phytools)
   # require(geiger)
-  # require(RRphylo)
 
   if (is.binary.tree(tree)) t <- tree else t <- multi2di(tree,random=FALSE)
   y[match(t$tip.label,names(y))]->y

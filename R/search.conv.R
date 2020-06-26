@@ -16,16 +16,12 @@
 #' @param declust if species under a given state (or a pair of states) to be tested for convergence are phylogenetically closer than expected by chance, trait similarity might depend on proximity rather than true convergence. In this case, by setting \code{declust = TRUE}, tips under the focal state (or states) are removed randomly until clustering disappears. A minimum of 3 species per state is enforced to remain anyway.
 #' @param nsim number of simulations to perform sampling within the theta random distribution. It is set at 1000 by default.
 #' @param rsim number of simulations to be performed to produce the random distribution of theta values. It is set at 1000 by default.
-#' @param clus the proportion of clusters to be used in parallel computing.
+#' @param clus the proportion of clusters to be used in parallel computing. To run the single-threaded version of \code{search.conv} set \code{clus} = 0.
 #' @param foldername the path of the folder where plots are to be found.
 #' @export
 #' @importFrom grDevices chull
-#' @importFrom vegan betadisper
-#' @importFrom cluster pam
 #' @importFrom graphics axis layout lines segments
 #' @importFrom stats TukeyHSD aov princomp
-#' @importFrom plotrix polar.plot
-#' @importFrom geomorph procD.pgls geomorph.data.frame
 #' @importFrom ape vcv cophenetic.phylo
 #' @return If convergence between clades is tested, the function returns a list including:
 #' @return \itemize{\item\strong{$node pairs}: a dataframe containing for each pair of nodes:
@@ -88,11 +84,29 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
   # require(parallel)
   # require(vegan)
   # require(cluster)
-  # require(picante)
   # require(plotrix)
   # require(RColorBrewer)
-  # require(tseries)
   # require(geomorph)
+
+  if (!requireNamespace("vegan", quietly = TRUE)) {
+    stop("Package \"vegan\" needed for this function to work. Please install it.",
+         call. = FALSE)
+  }
+
+  if (!requireNamespace("cluster", quietly = TRUE)) {
+    stop("Package \"cluster\" needed for this function to work. Please install it.",
+         call. = FALSE)
+  }
+
+  if (!requireNamespace("plotrix", quietly = TRUE)) {
+    stop("Package \"plotrix\" needed for this function to work. Please install it.",
+         call. = FALSE)
+  }
+
+  if (!requireNamespace("RColorBrewer", quietly = TRUE)) {
+    stop("Package \"RColorBrewer\" needed for this function to work. Please install it.",
+         call. = FALSE)
+  }
 
   if(!missing(PGLSf)){
     warning("argument PGLSf is deprecated; please use declust instead.",
@@ -211,7 +225,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       RRaces[match(nod,rownames(RR$aces)),]->aces
 
       res<-list()
-      cl <- makeCluster(round((detectCores() * clus), 0))
+      if(round((detectCores() * clus), 0)==0) cl<-makeCluster(1) else cl <- makeCluster(round((detectCores() * clus), 0))
       registerDoParallel(cl)
       res <- foreach(i = 1:(length(nod)-1),
                      .packages = c("RRphylo","ape", "geiger", "phytools", "doParallel")) %dopar%
@@ -460,7 +474,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
 
         ### perform betadisper and TukeyHSD ###
         dist(do.call(rbind,phen2))->dis
-        betadisper(dis,gr)->bd
+        vegan::betadisper(dis,gr)->bd
         data.frame(bd$group,dist=bd$distance)->M
         sc.sel->x
         data.frame(gr=paste(rownames(x),x[,1],sep="/"),ndist=x[,5],dtime=x[,6])->xdist
@@ -506,7 +520,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
 
         ### perform betadisper and TukeyHSD ###
         dist(do.call(rbind,phen2))->dis
-        betadisper(dis,gr)->bd
+        vegan::betadisper(dis,gr)->bd
         data.frame(bd$group,dist=bd$distance)->M
         sc.sel->x
         data.frame(gr=paste(rownames(x),x[,1],sep="/"),ndist=x[,5],dtime=x[,6])->xdist
@@ -790,7 +804,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
 
         ### perform betadisper and TukeyHSD ###
         dist(do.call(rbind,phen2))->dis
-        betadisper(dis,gr)->bd
+        vegan::betadisper(dis,gr)->bd
         data.frame(bd$group,dist=bd$distance)->M
         sc.sel->x
         data.frame(gr=paste(rownames(x),x[,1],sep="/"),ndist=x[,5],dtime=x[,6])->xdist
@@ -837,7 +851,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
 
         ### perform betadisper and TukeyHSD ###
         dist(do.call(rbind,phen2))->dis
-        betadisper(dis,gr)->bd
+        vegan::betadisper(dis,gr)->bd
         data.frame(bd$group,dist=bd$distance)->M
         sc.sel->x
         data.frame(gr=paste(rownames(x),x[,1],sep="/"),ndist=x[,5],dtime=x[,6])->xdist
@@ -889,6 +903,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
     linwd[which(colo!="gray")]<-3
     names(linwd)<-names(colo)
 
+    if(ncol(phen)>nrow(phen)) phen[,1:nrow(phen)]->phen
     princomp(phen)->a
     a$scores[order(a$scores[,1]),]->bb
     suppressWarnings(bb[match(c(nn[1],path1[-which(as.numeric(path1)<=nn[1])]),rownames(bb)),]->a1)
@@ -924,8 +939,8 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
     plot(bb[-match(nn, rownames(bb)),1:2], ylab="PC2",xlab="PC1",cex=1.5,mgp=c(1.5,0.5,0),font.lab=2,pch=21,col="black",bg="gray",asp=1)
     Plot_ConvexHull(xcoord = a1[,1], ycoord = a1[,2], lcolor = "#E7298A",lwd=3,lty=2, col.p = rgb(212/255,185/255,218/255,0.5))
     Plot_ConvexHull(xcoord = a2[,1], ycoord = a2[,2], lcolor = "#91003F",lwd=3,lty=2, col.p = rgb(212/255,185/255,218/255,0.5))
-    points(pam(a1, 1)$medoids,xlim=range(bb[,1]),ylim=range(bb[,2]),bg="#E7298A",type = "p",pch=21,col="black", cex=2.5)
-    points(pam(a2, 1)$medoids,xlim=range(bb[,1]),ylim=range(bb[,2]),bg="#91003F",type = "p",pch=21,col="black", cex=2.5)
+    points(cluster::pam(a1, 1)$medoids,xlim=range(bb[,1]),ylim=range(bb[,2]),bg="#E7298A",type = "p",pch=21,col="black", cex=2.5)
+    points(cluster::pam(a2, 1)$medoids,xlim=range(bb[,1]),ylim=range(bb[,2]),bg="#91003F",type = "p",pch=21,col="black", cex=2.5)
     points(a1[1,1],a1[1,2],xlim=range(bb[,1]),ylim=range(bb[,2]),col="black",type = "p",pch=8, cex=1.5,lwd=2)
     points(a2[1,1],a2[1,2],xlim=range(bb[,1]),ylim=range(bb[,2]),col="black",type = "p",pch=8, cex=1.5,lwd=2)
 
@@ -1024,11 +1039,12 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       layout(mat,heights = ht)
 
       c("nostate",names(sort(table(state.real), decreasing = TRUE)))->statetoplot
+      if(ncol(y)>nrow(y)) y[,1:nrow(y)]->ypc else y->ypc
       princomp(y)->compy
       compy$scores[,1:2]->sco
       #y[,1:2]->sco
       sco[match(names(state),rownames(sco)),]->sco
-      brewer.pal(3,"Set2")[1]->cols
+      RColorBrewer::brewer.pal(3,"Set2")[1]->cols
       par(mar=c(2.5,2.5,1,1))
       plot(sco, ylab="PC2",xlab="PC1",cex=1.5,mgp=c(1.5,0.5,0),font.lab=2,xlim=c(range(sco[,1])[1]*1.1,range(sco[,1])[2]),col="white",asp=1)
       for(h in 1:length(statetoplot)){
@@ -1048,12 +1064,12 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       lbs<-seq(0,340,20)
 
       par(cex.axis=.75)
-      polar.plot(lengths=c(0,mean(unname(as.matrix(ccc)[c(3,4)])),mean(unname(as.matrix(ccc)[c(3,4)]))),
+      plotrix::polar.plot(lengths=c(0,mean(unname(as.matrix(ccc)[c(3,4)])),mean(unname(as.matrix(ccc)[c(3,4)]))),
                  polar.pos = c(0,ccc[7],ccc[8]),rp.type="p",line.col=rgb(0,0,0,0.6),
                  poly.col=rgb(127/255,127/255,127/255,0.4),start=90,radial.lim=range(0,max(ccc[c(3,4)])),radial.labels=""
                  ,boxed.radial = FALSE,mar=c(1,1,2,1),label.pos=lp,labels=lbs)
       title(main=onestate,cex.main = 2)
-      polar.plot(lengths=c(0,ccc[3],ccc[4]),polar.pos = c(0,ccc[5],ccc[6]),
+      plotrix::polar.plot(lengths=c(0,ccc[3],ccc[4]),polar.pos = c(0,ccc[5],ccc[6]),
                  line.col="blue",lwd=4,start=90,add=TRUE,radial.labels="",boxed.radial = FALSE)
       text(paste("p-value = ",ccc[9]),x=0,y=-max(ccc[c(3,4)])/2.3,cex=1.5,col="red")
 
@@ -1205,12 +1221,12 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       layout(mat,heights = ht)
 
       if("nostate"%in%state) c("nostate",names(sort(table(state.real), decreasing = TRUE)))->statetoplot else names(sort(table(state.real), decreasing = TRUE))->statetoplot
-
-      princomp(y)->compy
+      if(ncol(y)>nrow(y)) y[,1:nrow(y)]->ypc else y->ypc
+      princomp(ypc)->compy
       compy$scores[,1:2]->sco
       #y[,1:2]->sco
       sco[match(names(state),rownames(sco)),]->sco
-      brewer.pal(length(unique(state)),"Set2")->cols
+      RColorBrewer::brewer.pal(length(unique(state)),"Set2")->cols
       par(mar=c(2.5,2.5,1,1))
       plot(sco, ylab="PC2",xlab="PC1",cex=1.5,mgp=c(1.5,0.5,0),font.lab=2,xlim=c(range(sco[,1])[1]*1.1,range(sco[,1])[2]),col="white",asp=1)
       for(h in 1:length(statetoplot)){
@@ -1244,12 +1260,12 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       }
       for(i in 1:nrow(res.tot)){
         par(cex.axis=.75)
-        polar.plot(lengths=c(0,mean(unname(as.matrix(ccc)[i,c(3,4)])),mean(unname(as.matrix(ccc)[i,c(3,4)]))),
+        plotrix::polar.plot(lengths=c(0,mean(unname(as.matrix(ccc)[i,c(3,4)])),mean(unname(as.matrix(ccc)[i,c(3,4)]))),
                    polar.pos = c(0,ccc[i,7],ccc[i,8]),rp.type="p",line.col=rgb(0,0,0,0.6),
                    poly.col=rgb(127/255,127/255,127/255,0.4),start=90,radial.lim=range(0,max(ccc[,c(3,4)])),radial.labels=""
                    ,boxed.radial = FALSE,mar=c(1,1,2,1),label.pos=lp,labels=lbs)
         title(main=paste(as.character(res.tot[i,1]),as.character(res.tot[i,2]),sep="-"),cex.main = 2)
-        polar.plot(lengths=c(0,ccc[i,3],ccc[i,4]),polar.pos = c(0,ccc$l1[i],ccc$l2[i]),
+        plotrix::polar.plot(lengths=c(0,ccc[i,3],ccc[i,4]),polar.pos = c(0,ccc$l1[i],ccc$l2[i]),
                    line.col="blue",lwd=4,start=90,add=TRUE,radial.labels="",boxed.radial = FALSE)
         text(paste("p-value = ",ccc[i,9]),x=0,y=-max(ccc[i,c(3,4)])/2.3,cex=1.5,col="red")
       }

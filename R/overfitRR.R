@@ -15,7 +15,7 @@
 #' @param cov if used to produce the \code{RR} object, the covariate must be specified. As in \code{RRphylo}, the covariate vector must be as long as the number of nodes plus the number of tips of the tree, which can be obtained by running \code{RRphylo} on the covariate as well, and taking the vector of ancestral states and tip values to form the covariate.
 #' @param rootV if used to produce the \code{RR} object, the phenotypic value at the tree root must be specified.
 #' @param nsim number of simulations to be performed. It is set at 100 by default.
-#' @param clus the proportion of clusters to be used in parallel computing.
+#' @param clus the proportion of clusters to be used in parallel computing. To run the single-threaded version of \code{overfitRR} set \code{clus} = 0.
 #' @return The function returns a 'list' containing:
 #' @return \strong{$mean.sampling} the mean proportion of species actually removed from the tree over the iterations.
 #' @return \strong{$rootCI} the 95\% confidence interval around the root value.
@@ -26,8 +26,6 @@
 #' @author Silvia Castiglione, Carmela Serio, Pasquale Raia
 #' @details Methods using a large number of parameters risk being overfit. This usually translates in poor fitting with data and trees other than the those originally used. With \code{RRphylo} methods this risk is usually very low. However, the user can assess how robust the results got by applying \code{search.shift}, \code{search.trend} or \code{search.conv} are by running \code{overfitRR}. With the latter, the original tree and data are subsampled by specifying a \code{s} parameter, that is the proportion of tips to be removed from the tree. In some cases, though, removing as many tips as imposed by \code{s} would delete too many tips right in clades and/or states under testing. In these cases, the function maintains no less than 5 species at least in each clade/state under testing (or all species if there is less), reducing the sampling parameter \code{s} if necessary. Internally, \code{overfitRR} further shuffles the tree by using the function \code{\link{swapONE}}. Thereby, both the potential for overfit and phylogenetic uncertainty are accounted for straight away.
 #' @export
-#' @importFrom rlist list.append
-#' @importFrom ddpcr quiet
 #' @importFrom utils setTxtProgressBar txtProgressBar
 #' @references Castiglione, S., Tesone, G., Piccolo, M., Melchionna, M., Mondanaro, A., Serio, C., Di Febbraro, M., & Raia, P. (2018). A new method for testing evolutionary rate variation and shifts in phenotypic evolution. \emph{Methods in Ecology and Evolution}, 9: 974-983.doi:10.1111/2041-210X.12954
 #' @references Castiglione, S., Serio, C., Mondanaro, A., Di Febbraro, M., Profico, A., Girardi, G., & Raia, P. (2019a) Simultaneous detection of macroevolutionary patterns in phenotypic means and rate of change with and within phylogenetic trees including extinct species. \emph{PLoS ONE}, 14: e0210101. https://doi.org/10.1371/journal.pone.0210101
@@ -42,7 +40,7 @@
 #'
 #' # Extract Pterosaurs tree and data
 #' library(ape)
-#' extract.clade(treedino,748)->treeptero
+#' extract.clade(treedino,746)->treeptero
 #' massdino[match(treeptero$tip.label,names(massdino))]->massptero
 #' massptero[match(treeptero$tip.label,names(massptero))]->massptero
 #'
@@ -122,6 +120,11 @@ overfitRR<-function(RR,y,
   # require(ddpcr)
   # require(rlist)
 
+  if (!requireNamespace("ddpcr", quietly = TRUE)) {
+    stop("Package \"ddpcr\" needed for this function to work. Please install it.",
+         call. = FALSE)
+  }
+
   RR$tree->tree
 
   # if (inherits(y,"data.frame"))
@@ -130,9 +133,9 @@ overfitRR<-function(RR,y,
 
   if (length(y) > Ntip(tree)) {
     if((Ntip(tree)-round(Ntip(tree)*s))<ncol(y))
-    stop(paste("After the sampling there are more variables than observations.
-               Please consider running your preliminary analyses with",
-               (Ntip(tree)-round(Ntip(tree)*s)),"variables.",sep=" "))
+    # stop(paste("After the sampling there are more variables than observations.
+    #            Please consider running your preliminary analyses with",
+    #            (Ntip(tree)-round(Ntip(tree)*s)),"variables.",sep=" "))
     RR$aces->y.ace
     tree$node.label<-rownames(y.ace)
     y[match(tree$tip.label,rownames(y)),]->y
@@ -356,11 +359,11 @@ overfitRR<-function(RR,y,
     if(is.null(rootV)==FALSE) rootV->rootVcut else rootVcut<-NULL
 
     RRphylo(treecut,ycut,aces=acescut,x1=x1cut,aces.x1=aces.x1cut,cov=covcut,rootV = rootVcut,clus=clus)->RRcut
-    if(trend|is.null(trend.node)==FALSE) quiet(search.trend(RRcut,ycut,x1=x1cut,node=trend.node.cut,foldername=tempdir(),cov=covcut,clus=clus)->stcut->STcut[[k]],all=TRUE)
-    if(is.null(shift.node)==FALSE) quiet(search.shift(RRcut,status.type="clade",node=shift.node.cut,foldername=tempdir())->sscut->SScut[[k]],all=TRUE)
-    if(is.null(shift.state)==FALSE) quiet(search.shift(RRcut,status.type="sparse",state=shift.state.cut,foldername=tempdir())->sscut->SScutS[[k]],all=TRUE)
-    if(is.null(conv.node)==FALSE) quiet(search.conv(RR=RRcut,y=ycut,nodes=conv.node.cut,aceV=acescut,clus=clus,foldername=tempdir())->sccut->SCcut[[k]],all=TRUE)
-    if(is.null(conv.state)==FALSE) quiet(search.conv(tree=treecut,y=ycut,state=conv.state.cut,aceV=acescut,declust=conv.declust,clus=clus,foldername=tempdir())->sccut->SCcutS[[k]],all=TRUE)
+    if(trend|is.null(trend.node)==FALSE) ddpcr::quiet(search.trend(RRcut,ycut,x1=x1cut,node=trend.node.cut,foldername=tempdir(),cov=covcut,clus=clus)->stcut->STcut[[k]],all=TRUE)
+    if(is.null(shift.node)==FALSE) ddpcr::quiet(search.shift(RRcut,status.type="clade",node=shift.node.cut,foldername=tempdir())->sscut->SScut[[k]],all=TRUE)
+    if(is.null(shift.state)==FALSE) ddpcr::quiet(search.shift(RRcut,status.type="sparse",state=shift.state.cut,foldername=tempdir())->sscut->SScutS[[k]],all=TRUE)
+    if(is.null(conv.node)==FALSE) ddpcr::quiet(search.conv(RR=RRcut,y=ycut,nodes=conv.node.cut,aceV=acescut,clus=clus,foldername=tempdir())->sccut->SCcut[[k]],all=TRUE)
+    if(is.null(conv.state)==FALSE) ddpcr::quiet(search.conv(tree=treecut,y=ycut,state=conv.state.cut,aceV=acescut,declust=conv.declust,clus=clus,foldername=tempdir())->sccut->SCcutS[[k]],all=TRUE)
 
     RRcut$aces[1,]->rootlist[[k]]
     summary(lm(y.acecut~RRcut$aces))->acefit[[k]]

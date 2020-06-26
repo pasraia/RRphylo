@@ -6,8 +6,6 @@
 #' @param tree a phylogenetic tree. The tree needs not to be ultrametric and fully dichotomous.
 #' @param RR the result of \code{RRphylo} performed on the response variable. If \code{NULL} the function fits Pagel's lambda in the regression for univariate data or uses the tree variance covariance matrix in the multivariate case. If \code{RR} is specified, tree branches are rescaled to the absolute branch-wise rate values calculated by \code{RRphylo} to transform the variance-covariance matrix.
 #' @importFrom ape corPagel
-#' @importFrom nlme varFixed
-#' @importFrom geomorph procD.pgls
 #' @importFrom stats terms
 #' @details With univariate data, the user may want to use either Pagel's lambda or \code{RRphylo} rates to transform the correlation structure. In the former case, the lambda transform is fitted to the data (Revell, 2010). In the latter case, branch lengths are multiplied by absolute rates as computed by \code{RRphylo} to accomodate rate variation across the tree. In the multivariate case, the variance-covariance structure is either left unaltered by keeping \code{RR = NULL} (Adams and Collyer, 2015) or changed according to the norm-2 vector of rates computed for each phenotype by specifying the \code{RR} object.
 #' @export
@@ -44,6 +42,17 @@ PGLS_fossil<-function(modform,data,tree,RR=NULL)
   # require(geomorph)
   # require(geiger)
 
+  if (!requireNamespace("nlme", quietly = TRUE)) {
+    stop("Package \"nlme\" needed for this function to work. Please install it.",
+         call. = FALSE)
+  }
+
+  if (!requireNamespace("geomorph", quietly = TRUE)) {
+    stop("Package \"geomorph\" needed for this function to work. Please install it.",
+         call. = FALSE)
+  }
+
+
   for(k in 1:length(data)){
     data[[k]]->sam
     if(is.null(nrow(sam))) data[[k]] <- treedata(tree, sam, sort = TRUE)[[2]][,1] else data[[k]] <- treedata(tree, sam, sort = TRUE)[[2]]
@@ -62,12 +71,12 @@ PGLS_fossil<-function(modform,data,tree,RR=NULL)
       data->gdf
       class(gdf)<-"geomorph.data.frame"
       cova<- vcv(tree)
-      procD.pgls(modform,data=gdf, Cov=cova)->res
+      geomorph::procD.pgls(modform,data=gdf, Cov=cova)->res
     }else{
       co <- corPagel(1, tree)
       v <- diag(vcv(co))
-      vf <- varFixed(~ offset(v))
-      suppressWarnings(gls(modform, correlation=co, weights=vf)->res)
+      vf <- nlme::varFixed(~ offset(v))
+      suppressWarnings(nlme::gls(modform, correlation=co, weights=vf)->res)
     }
   }else{
     tree->tree1
@@ -80,7 +89,7 @@ PGLS_fossil<-function(modform,data,tree,RR=NULL)
     data->gdf
     class(gdf)<-"geomorph.data.frame"
     cova<- vcv(tree1)
-    procD.pgls(modform,data=gdf, Cov=cova)->res
+    geomorph::procD.pgls(modform,data=gdf, Cov=cova)->res
   }
   return(res)
 }

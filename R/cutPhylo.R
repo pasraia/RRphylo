@@ -26,7 +26,11 @@ cutPhylo<-function(tree,age=NULL,node=NULL){
   # require(geiger)
   # require(phytools)
   # require(picante)
-  # require(RRphylo)
+
+  if (!requireNamespace("picante", quietly = TRUE)) {
+    stop("Package \"picante\" needed for this function to work. Please install it.",
+         call. = FALSE)
+  }
 
   distNodes(tree,(Ntip(tree)+1))->dN
   if(is.null(node)) max(nodeHeights(tree))-age->cutT else dN[match(node,rownames(dN)),2]->cutT

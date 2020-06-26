@@ -8,7 +8,7 @@
 #' @param aces a named vector (or matrix if \code{y} is multivariate) of ancestral character values at nodes. Names correspond to the nodes in the tree.
 #' @param x1 the additional predictor to be indicated to perform the multiple version of \code{RRphylo}. \code{'x1'} vector must be as long as the number of nodes plus the number of tips of the tree, which can be obtained by running \code{RRphylo} on the predictor as well, and taking the vector of ancestral states and tip values to form the \code{x1}.
 #' @param aces.x1 a named vector of ancestral character values at nodes for \code{x1}. It must be indicated if both \code{aces} and \code{x1} are specified. Names correspond to the nodes in the tree.
-#' @param clus the proportion of clusters to be used in parallel computing (only if \code{y} is multivariate).
+#' @param clus the proportion of clusters to be used in parallel computing (only if \code{y} is multivariate). To run the single-threaded version of \code{RRphylo} set \code{clus} = 0.
 #' @export
 #' @importFrom ape multi2di Ntip is.binary.tree Nnode dist.nodes drop.tip subtrees nodelabels
 #' @importFrom stats dist lm residuals weighted.mean
@@ -325,7 +325,7 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
     y.real <- y
     rv.real <- rootV
     res <- list()
-    cl <- makeCluster(round((detectCores() * clus), 0))
+    if(round((detectCores() * clus), 0)==0) cl<-makeCluster(1) else cl <- makeCluster(round((detectCores() * clus), 0))
     registerDoParallel(cl)
     res <- foreach(i = 1:k, .packages = c("stats4", "ape")) %dopar% {
       #for(i in 1:k){
@@ -364,6 +364,8 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
       }
     }
     stopCluster(cl)
+
+
     aceRR <- do.call(cbind, lapply(res, "[[", 1))
     betas <- do.call(cbind, lapply(res, "[[", 2))
     y.hat <- do.call(cbind, lapply(res, "[[", 3))

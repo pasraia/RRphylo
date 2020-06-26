@@ -18,7 +18,6 @@
 #' @export
 #' @importFrom phytools fastBM
 #' @importFrom ape vcv
-#' @importFrom lmtest bptest
 #' @importFrom stats coefficients
 #' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
 #' @examples

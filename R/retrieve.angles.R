@@ -10,8 +10,8 @@
 #' @param node must be indicated if \code{focus = "node"} or \code{"both"}. As for \code{evo.dir}, the node number must refer to the dichotomic version of the original tree, as produced by \code{\link{RRphylo}}.
 #' @param species must be indicated if \code{focus = "species"} or \code{"both"}.
 #' @param write2csv if \code{"yes"} results are saved to a .csv file in your working directory.
-#' @importFrom utils write.csv
 #' @export
+#' @importFrom utils write.csv
 #' @details \code{retrieve.angles} allows to focalize the extraction to a particular node, species, or both. Otherwise it returns the whole dataset.
 #' @return \code{retrieve.angles} outputs an object of class \code{'data.frame'}.
 #' @return If \code{wishlist = "anglesMRCA"}, the data frame includes:
@@ -147,7 +147,6 @@ retrieve.angles<-function(angles.res,
                           species=NULL,
                           write2csv=c("no","yes"))
 {
-
 
   focus.test<-function(r1,focus=c("node","species","both","none"),node=NULL,species=NULL)
   {
