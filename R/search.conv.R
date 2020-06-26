@@ -227,7 +227,7 @@ getMommy->getMommy
       res<-list()
       if(round((detectCores() * clus), 0)==0) cl<-makeCluster(1) else cl <- makeCluster(round((detectCores() * clus), 0))
       registerDoParallel(cl)
-      res <- foreach(i = 1:(length(nod)-1),
+      res <- foreach(i = 1:(length(nod)-1),.export=c("getMommy"),
                      .packages = c("ape", "geiger", "phytools", "doParallel")) %dopar%
         {
           gc()
@@ -368,7 +368,7 @@ getMommy->getMommy
       res.ran <- list()
       cl <- makeCluster(round((detectCores() * clus), 0))
       registerDoParallel(cl)
-      res.ran <- foreach(k = 1:nsim,
+      res.ran <- foreach(k = 1:nsim,.export=c("getMommy"),
                          .packages = c("ape", "geiger", "phytools", "doParallel")) %dopar%
         {
           gc()
@@ -580,7 +580,7 @@ getMommy->getMommy
       res<-list()
       cl <- makeCluster(round((detectCores() * clus), 0))
       registerDoParallel(cl)
-      res <- foreach(i = 1:length(nod),
+      res <- foreach(i = 1:length(nod),.export=c("getMommy"),
                      .packages = c("ape", "geiger", "phytools", "doParallel")) %dopar%
         {
 
@@ -698,7 +698,7 @@ getMommy->getMommy
       res.ran <- list()
       cl <- makeCluster(round((detectCores() * clus), 0))
       registerDoParallel(cl)
-      res.ran <- foreach(k = 1:nsim,
+      res.ran <- foreach(k = 1:nsim,.export=c("getMommy"),
                          .packages = c("ape", "geiger", "phytools", "doParallel")) %dopar%
         {
           gc()
