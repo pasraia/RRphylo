@@ -228,7 +228,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       if(round((detectCores() * clus), 0)==0) cl<-makeCluster(1) else cl <- makeCluster(round((detectCores() * clus), 0))
       registerDoParallel(cl)
       res <- foreach(i = 1:(length(nod)-1),
-                     .packages = c("RRphylo","ape", "geiger", "phytools", "doParallel")) %dopar%
+                     .packages = c("ape", "geiger", "phytools", "doParallel")) %dopar%
         {
           gc()
           nod[i]->sel1
@@ -369,7 +369,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       cl <- makeCluster(round((detectCores() * clus), 0))
       registerDoParallel(cl)
       res.ran <- foreach(k = 1:nsim,
-                         .packages = c("RRphylo","ape", "geiger", "phytools", "doParallel")) %dopar%
+                         .packages = c("ape", "geiger", "phytools", "doParallel")) %dopar%
         {
           gc()
 
@@ -581,7 +581,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       cl <- makeCluster(round((detectCores() * clus), 0))
       registerDoParallel(cl)
       res <- foreach(i = 1:length(nod),
-                     .packages = c("RRphylo","ape", "geiger", "phytools", "doParallel")) %dopar%
+                     .packages = c("ape", "geiger", "phytools", "doParallel")) %dopar%
         {
 
           gc()
@@ -699,7 +699,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       cl <- makeCluster(round((detectCores() * clus), 0))
       registerDoParallel(cl)
       res.ran <- foreach(k = 1:nsim,
-                         .packages = c("RRphylo","ape", "geiger", "phytools", "doParallel")) %dopar%
+                         .packages = c("ape", "geiger", "phytools", "doParallel")) %dopar%
         {
           gc()
 

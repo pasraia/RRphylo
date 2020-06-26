@@ -125,6 +125,8 @@ search.trend<-function (RR, y,x1=NULL, nsim = 100, clus = 0.5, node = NULL, cov 
          call. = FALSE)
   }
 
+  range01 <- function(x, ...){(x - min(x, ...)) / (max(x, ...) - min(x, ...))}
+
   t <- RR$tree
   if(min(diag(vcv(t)))/max(diag(vcv(t)))>=0.9) stop("not enough fossil information")
   rates <- RR$rates
