@@ -1,3 +1,8 @@
+# RRphylo 2.4.6
+What's new in version 2.4.6
+
+html-vignettes are now available for RRphylo main functions!
+
 # RRphylo 2.4.3
 What's new in version 2.4.2
 
