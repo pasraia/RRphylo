@@ -386,7 +386,7 @@ overfitRR<-function(RR,y,
   }
 
   if(is.null(shift.node)==FALSE){
-    if(length(SScut[[1]])>2){
+    if(length(SScut[[1]])>=2){
       unlist(lapply(lapply(SScut,"[[",1),function(x) x[,2]))-> p.ran.whole
       c(length(which(p.ran.whole>=0.975))/nsim,length(which(p.ran.whole<=0.025))/nsim)->p.shift.whole
       do.call(rbind,lapply(lapply(SScut,"[[",2),function(x) x[,2]))-> p.ran
