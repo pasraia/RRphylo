@@ -132,7 +132,7 @@ overfitRR<-function(RR,y,
   if(is.null(nrow(y))) y <- treedata(tree, y, sort = TRUE)[[2]][,1] else y <- treedata(tree, y, sort = TRUE)[[2]]
 
   if (length(y) > Ntip(tree)) {
-    if((Ntip(tree)-round(Ntip(tree)*s))<ncol(y))
+    # if((Ntip(tree)-round(Ntip(tree)*s))<ncol(y))
     # stop(paste("After the sampling there are more variables than observations.
     #            Please consider running your preliminary analyses with",
     #            (Ntip(tree)-round(Ntip(tree)*s)),"variables.",sep=" "))
