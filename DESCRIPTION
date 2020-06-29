@@ -10,10 +10,10 @@ License: GPL-2
 Encoding: UTF-8
 LazyData: true
 Depends: R (>= 3.6.0), emmeans(>= 1.4.3)
-Imports: ape, phytools, geiger, stats4, foreach, doParallel, parallel
+Imports: ape, phytools, geiger, stats4, foreach, doParallel,kableExtra, parallel
 Suggests: phangorn, rlist, scales, R.utils,cluster,
         binr, RColorBrewer, nlme, smatr, car, picante, vegan,  
-        ddpcr, geomorph, rmarkdown, knitr,  kableExtra, 
+        ddpcr, geomorph, rmarkdown, knitr,
         plotrix, pdftools, rgl, mvMORPH, ggplot2, qpdf
 BiocViews: ggtree
 RoxygenNote: 7.1.0
