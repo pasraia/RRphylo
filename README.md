@@ -25,5 +25,5 @@ You can install RRphylo from github by using the R package devtools:
 ``` r
 install.packages("devtools")
 
-devtools::install_github("pasraia/RRphylo",build_vignettes = TRUE)
+devtools::install_github("pasraia/RRphylo",build_vignettes = TRUE,dependencies=TRUE)
 ```
