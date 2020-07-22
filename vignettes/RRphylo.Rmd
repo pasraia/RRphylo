@@ -115,7 +115,7 @@ plot(acey,ace,pch=21,bg="gray80",cex=1.5,mgp=c(1.8,0.5,0),
 
 ```
 
-In Kratch and McHardy (2014), `λ` is estimated through L2 (quadratic) penalization. Within RRphylo (Castiglione et al. 2018), `λ` is fitted by an inner function `optL`, which is written as to minimize the rate variation within clades, thereby acting conservatively in terms of the chance to find rate shifts and introducing phylogenetic autocorrelation in evolutionary rates (Sakamoto & Venditti, Eastmann et al. 2011) . 
+In Kratsch and McHardy (2014), `λ` is estimated through L2 (quadratic) penalization. Within RRphylo (Castiglione et al. 2018), `λ` is fitted by an inner function `optL`, which is written as to minimize the rate variation within clades, thereby acting conservatively in terms of the chance to find rate shifts and introducing phylogenetic autocorrelation in evolutionary rates (Sakamoto & Venditti, Eastmann et al. 2011) . 
 
 ```{r, fig.show="hold",fig.width=8, fig.height=4,fig.align='center',out.width='100%',dpi=220}
 RRphylo(tree,y)->RR
@@ -130,7 +130,7 @@ plot(acey,ace,pch=21,bg="gray80",cex=1.5,mgp=c(1.8,0.5,0),
      xlab="simulated",ylab="estimated by RRphylo",main="phenotype at nodes (aces)")
 ```
 
-In the case of multivariate data, `λ` values are calculated indipendently for each variable. A multivariate rate vector is calculated as the L2-norm of the individual rates computed for each branch.
+In the case of multivariate data, `λ` values are calculated independently for each variable. A multivariate rate vector is calculated as the L2-norm of the individual rates computed for each branch.
 
 ## Accounting for the effect of a covariate {#covariate}
 Since rates are in fact phylogenetic ridge regression coefficients, their magnitude depends on the absolute values of the phenotypes being regressed (Castiglione et al. 2018), that means large phenotypic values will originate large rates even with small phenotypic change. To standardize the rates, in RRphylo it is advisable to use the phenotype itself as a covariate. In this case, the (logged) absolute rates are regressed against the absolute covariate values. The residuals of such regression are used in the place of the original rate values. Since rates are computed for each branch of the tree (i.e. are associated to both nodes and tips), the covariate must be as long as the number of nodes plus the number of tips. This is accomplished by performing `RRphylo` on the covariate itself, deriving phenotypic estimates at nodes, and collating them to the values at tips. The final vector is fed into `RRphylo` as `cov` argument. Whether or not to standardize rates depends on the research question being asked.
@@ -250,16 +250,18 @@ DataCetaceans$masscet->masscet # logged body mass data
 DataCetaceans$brainmasscet->brainmasscet # logged brain mass data
 DataCetaceans$aceMyst->aceMyst # known phenotypic value for the most recent common ancestor of Mysticeti
 
-require(ggtree)
-ggtree(ladderize(treecet))+
-  geom_cladelabel(node=128,label="Mysticeti", align=T, angle=270, hjust='center',
-                  fontsize=6, offset.text=.6, barsize=1.5,color="red")+
-  geom_cladelabel(node=142,label="Odontoceti", align=T, angle=270, hjust='center',
-                  fontsize=6, offset.text=.6, barsize=1.5,color="blue")->p
-  p+geom_point2(aes(subset=(node==128)), size=3, color='red')+
-  geom_text(aes(x=p$data[which(p$data$node==128),]$x,
-                y=p$data[which(p$data$node==128),]$y,
-                label="Mystacodon"),hjust=-0.08)
+require(geiger)
+par(mar=c(0,0,0,1))
+plot(ladderize(treecet,FALSE),show.tip.label = FALSE,edge.color = "gray40",edge.width = 1.5)
+plotinfo<-get("last_plot.phylo",envir =ape::.PlotPhyloEnv)
+nodelabels(text="",node=128,frame="circle",bg="red",cex=0.5)
+nodelabels(text="Mystacodon",node=128,frame="n",bg="w",cex=1,adj=c(-0.1,0.5),font=2)
+range(plotinfo$yy[which(treecet$tip.label%in%tips(treecet,128))])->yran128
+rect(plotinfo$x.lim[2]+0.4,yran128[1],plotinfo$x.lim[2]+0.7,yran128[2],col="red",border="red")
+range(plotinfo$yy[which(treecet$tip.label%in%tips(treecet,142))])->yran142
+rect(plotinfo$x.lim[2]+0.4,yran142[1],plotinfo$x.lim[2]+0.7,yran142[2],col="blue",border="blue")
+mtext(c("Mysticeti","Odontoceti"), side = 4,line=-0.5,at=c(sum(yran128)/2,sum(yran142)/2),
+      cex=1.5,adj=0.5,col=c("red","blue"))
 
 # check the order of your data: best if data vectors
 # are sorted in the same order of the species on the phylogeny
