@@ -101,7 +101,7 @@ What’s new in version 1.1.0
 likelihood within limits (from 0 to 10). This makes the function appreciably faster
 than before
 2. The function setBM still produced desired phenotypic trends (in either mean or
-variance). However, in the new version the user il left to specify the intensity of the
+variance). However, in the new version the user is left to specify the intensity of the
 simulated pattern. For the “trend” type, a scalar es defines the exponential
 relationship between the trait variance and age (distance from the root). Negative es
 values simulate an exponential decrease in variance. The opposite is true for es&gt;0
