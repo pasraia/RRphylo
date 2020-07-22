@@ -7,40 +7,72 @@
 StableTraitsR(tree,y,path,output=NULL,aces=NULL,argST=NULL,argSTS=NULL)
 }
 \arguments{
-\item{tree}{a phylogenetic tree. The tree needs not to be either ultrametric or fully dichotomous.}
+\item{tree}{a phylogenetic tree. The tree needs not to be either ultrametric
+or fully dichotomous.}
 
 \item{y}{a named vector of phenotypic trait.}
 
-\item{path}{the folder path where the StableTraits output will be stored. Notice that the input tree and data (modified automatically if the original tree is not fully dichotomous or if \code{aces} are specified) will be stored in this folder as well.}
+\item{path}{the folder path where the StableTraits output will be stored.
+Notice that the input tree and data (modified automatically if the original
+tree is not fully dichotomous or if \code{aces} are specified) will be
+stored in this folder as well.}
 
-\item{output}{name of the output to be returned, if unspecified it will be named "output".}
+\item{output}{name of the output to be returned, if unspecified it will be
+named "output".}
 
-\item{aces}{a named vector of ancestral character values at nodes specified in advance. Names correspond to the nodes in the tree.}
+\item{aces}{a named vector of ancestral character values at nodes specified
+in advance. Names correspond to the nodes in the tree.}
 
-\item{argST}{a list of further arguments passed to StableTraits. If the argument has no value (for example "brownian") it must be specified as \code{TRUE}.}
+\item{argST}{a list of further arguments passed to StableTraits. If the
+argument has no value (for example "brownian") it must be specified as
+\code{TRUE}.}
 
-\item{argSTS}{list of further arguments passed to StableTraitsSum. If the argument has no value (for example "brownian") it must be specified as \code{TRUE}.}
+\item{argSTS}{list of further arguments passed to StableTraitsSum. If the
+argument has no value (for example "brownian") it must be specified as
+\code{TRUE}.}
 }
 \value{
-The function returns a 'list' containing the output of StableTraits and StableTraitsSum.
+The function returns a 'list' containing the output of StableTraits
+  and StableTraitsSum.
 
 \strong{$progress} a table reporting the DIC and PRSF diagnostics.
 
-\strong{$rates_tree} a copy of the original tree with branch lengths set to the evolutionary rate imputed by the stable reconstruction. Specifically, each branch length is equal to the absolute difference in the stable reconstruction occurring on that branch divided by the square root of the input branch length.
+\strong{$rates_tree} a copy of the original tree with branch lengths
+  set to the evolutionary rate imputed by the stable reconstruction.
+  Specifically, each branch length is equal to the absolute difference in the
+  stable reconstruction occurring on that branch divided by the square root
+  of the input branch length.
 
-\strong{$rates} the original branch lengths, evolutionary rates, node height and (optionally) scaled branch lengths.
+\strong{$rates} the original branch lengths, evolutionary rates, node
+  height and (optionally) scaled branch lengths.
 
-\strong{$aces} the median estimates of ancestral states and stable parameters along with the 95\% credible interval.
+\strong{$aces} the median estimates of ancestral states and stable
+  parameters along with the 95\% credible interval.
 
-\strong{$brownian_tree} if "brownian" is \code{TRUE} in \code{argSTS}, a copy of the original tree with branch lengths set such that the Brownian motion reconstruction of the character on this tree is approximately the same as the stable ancestral reconstruction.
+\strong{$brownian_tree} if "brownian" is \code{TRUE} in
+  \code{argSTS}, a copy of the original tree with branch lengths set such
+  that the Brownian motion reconstruction of the character on this tree is
+  approximately the same as the stable ancestral reconstruction.
 
-\strong{$ace.prior.values} if \code{aces} is specified, the function returns a dataframe containing the corresponding node number on the \code{RRphylo} tree for each node, the original (preset) and the estimated values, and the 95\% credible interval.
+\strong{$ace.prior.values} if \code{aces} is specified, the function
+  returns a dataframe containing the corresponding node number on the
+  \code{RRphylo} tree for each node, the original (preset) and the estimated
+  values, and the 95\% credible interval.
 }
 \description{
-This function runs StableTraits and StableTraitsSum (\cite{Elliot and Mooers 2014}) from within the R environment and returns its output into the workspace.
+This function runs StableTraits and StableTraitsSum
+  (\cite{Elliot and Mooers 2014}) from within the R environment and returns
+  its output into the workspace.
 }
 \details{
-The StableTraits software is available at https://mickelliot.com/, along with instructions for compilation. Once it is installed, the user must set as R working directory the folder where the StableTraits software are installed. Further information about the arguments and outputs of StableTraits and StableTraitsSum can be found at https://mickelliot.com/. \code{StableTraitsR} automatically recognizes which Operating System is running on the computer (it has been tested successfully on MacOS and Windows machines).
+The StableTraits software is available at https://mickelliot.com/,
+  along with instructions for compilation. Once it is installed, the user
+  must set as R working directory the folder where the StableTraits software
+  are installed. Further information about the arguments and outputs of
+  StableTraits and StableTraitsSum can be found at https://mickelliot.com/.
+  \code{StableTraitsR} automatically recognizes which Operating System is
+  running on the computer (it has been tested successfully on MacOS and
+  Windows machines).
 }
 \examples{
 \dontrun{
@@ -60,7 +92,10 @@ argST=list(iterations=500000,chains=4),argSTS=list(brownian=TRUE))->ST
 }
 }
 \references{
-Elliot, M. G., & Mooers, A. Ø. (2014). Inferring ancestral states without assuming neutrality or gradualism using a stable model of continuous character evolution. \emph{BMC evolutionary biology}, 14: 226. doi.org/10.1186/s12862-014-0226-8
+Elliot, M. G., & Mooers, A. Ø. (2014). Inferring ancestral states
+  without assuming neutrality or gradualism using a stable model of
+  continuous character evolution. \emph{BMC evolutionary biology}, 14: 226.
+  doi.org/10.1186/s12862-014-0226-8
 }
 \author{
 Silvia Castiglione, Carmela Serio, Pasquale Raia

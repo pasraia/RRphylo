@@ -7,48 +7,96 @@
 RRphylo(tree,y,cov=NULL,rootV=NULL,aces=NULL,x1=NULL,aces.x1=NULL,clus=0.5)
 }
 \arguments{
-\item{tree}{a phylogenetic tree. The tree needs not to be ultrametric or fully dichotomous.}
+\item{tree}{a phylogenetic tree. The tree needs not to be ultrametric or
+fully dichotomous.}
 
-\item{y}{either a single vector variable or a multivariate dataset of class \sQuote{matrix}. In any case, \code{y} must be named.}
+\item{y}{either a single vector variable or a multivariate dataset of class
+\sQuote{matrix}. In any case, \code{y} must be named.}
 
-\item{cov}{the covariate to be indicated if its effect on the rates must be accounted for. In this case residuals of the covariate versus the rates are used as rates. \code{'cov'} must be as long as the number of nodes plus the number of tips of the tree, which can be obtained by running \code{RRphylo} on the covariate as well, and taking the vector of ancestral states and tip values to form the covariate, as in the example below.}
+\item{cov}{the covariate to be indicated if its effect on the rates must be
+accounted for. In this case residuals of the covariate versus the rates are
+used as rates. \code{'cov'} must be as long as the number of nodes plus the
+number of tips of the tree, which can be obtained by running \code{RRphylo}
+on the covariate as well, and taking the vector of ancestral states and tip
+values to form the covariate, as in the example below.}
 
-\item{rootV}{phenotypic value (values if multivariate) at the tree root. If \code{rootV=NULL} the function 'learns' about the root value from the 10\% tips being closest in time to the tree root, weighted by their temporal distance from the root itself (close tips phenotypes weigh more than more distant tips).}
+\item{rootV}{phenotypic value (values if multivariate) at the tree root. If
+\code{rootV=NULL} the function 'learns' about the root value from the 10\%
+tips being closest in time to the tree root, weighted by their temporal
+distance from the root itself (close tips phenotypes weigh more than more
+distant tips).}
 
-\item{aces}{a named vector (or matrix if \code{y} is multivariate) of ancestral character values at nodes. Names correspond to the nodes in the tree.}
+\item{aces}{a named vector (or matrix if \code{y} is multivariate) of
+ancestral character values at nodes. Names correspond to the nodes in the
+tree.}
 
-\item{x1}{the additional predictor to be indicated to perform the multiple version of \code{RRphylo}. \code{'x1'} vector must be as long as the number of nodes plus the number of tips of the tree, which can be obtained by running \code{RRphylo} on the predictor as well, and taking the vector of ancestral states and tip values to form the \code{x1}.}
+\item{x1}{the additional predictor to be indicated to perform the multiple
+version of \code{RRphylo}. \code{'x1'} vector must be as long as the number
+of nodes plus the number of tips of the tree, which can be obtained by
+running \code{RRphylo} on the predictor as well, and taking the vector of
+ancestral states and tip values to form the \code{x1}.}
 
-\item{aces.x1}{a named vector of ancestral character values at nodes for \code{x1}. It must be indicated if both \code{aces} and \code{x1} are specified. Names correspond to the nodes in the tree.}
+\item{aces.x1}{a named vector of ancestral character values at nodes for
+\code{x1}. It must be indicated if both \code{aces} and \code{x1} are
+specified. Names correspond to the nodes in the tree.}
 
-\item{clus}{the proportion of clusters to be used in parallel computing (only if \code{y} is multivariate). To run the single-threaded version of \code{RRphylo} set \code{clus} = 0.}
+\item{clus}{the proportion of clusters to be used in parallel computing (only
+if \code{y} is multivariate). To run the single-threaded version of
+\code{RRphylo} set \code{clus} = 0.}
 }
 \value{
-\strong{tree} the tree used by \code{RRphylo}. The fully dichotomous version of the tree argument. For trees with polytomies, the tree is resolved by using \code{multi2di} function in the package \pkg{ape}. If the latter is a dichotomous tree, the two trees will be identical.
+\strong{tree} the tree used by \code{RRphylo}. The fully dichotomous
+  version of the tree argument. For trees with polytomies, the tree is
+  resolved by using \code{multi2di} function in the package \pkg{ape}. If the
+  latter is a dichotomous tree, the two trees will be identical.
 
-\strong{tip.path} a \eqn{n * m} matrix, where n=number of tips and m=number of branches (i.e. 2*n-1). Each row represents the branch lengths along a root-to-tip path.
+\strong{tip.path} a \eqn{n * m} matrix, where n=number of tips and
+  m=number of branches (i.e. 2*n-1). Each row represents the branch lengths
+  along a root-to-tip path.
 
-\strong{node.path} a \eqn{n * n} matrix, where n=number of internal branches. Each row represents the branch lengths along a root-to-node path.
+\strong{node.path} a \eqn{n * n} matrix, where n=number of internal
+  branches. Each row represents the branch lengths along a root-to-node path.
 
-\strong{rates} single rate values computed for each branch of the tree. If \code{y} is a single vector variable, rates are equal to multiple.rates. If \code{y} is a multivariate dataset, rates are computed as the square root of the sum of squares of each row of \code{$multiple.rates}.
+\strong{rates} single rate values computed for each branch of the
+  tree. If \code{y} is a single vector variable, rates are equal to
+  multiple.rates. If \code{y} is a multivariate dataset, rates are computed
+  as the square root of the sum of squares of each row of
+  \code{$multiple.rates}.
 
 \strong{aces} the phenotypes reconstructed at nodes.
 
-\strong{predicted.phenotypes} the vector of estimated tip values. It is a matrix in the case of multivariate data.
+\strong{predicted.phenotypes} the vector of estimated tip values. It
+  is a matrix in the case of multivariate data.
 
-\strong{multiple.rates} a \eqn{n * m} matrix, where n= number of branches (i.e. n*2-1) and m = number of variables. For each branch, the column entries represent the evolutionary rate.
+\strong{multiple.rates} a \eqn{n * m} matrix, where n= number of
+  branches (i.e. n*2-1) and m = number of variables. For each branch, the
+  column entries represent the evolutionary rate.
 
-\strong{lambda} the regularization factor fitted within \code{RRphylo} by the inner function \code{optL}. With multivariate data, several \code{optL} runs are performed. Hence, the function provides a single lambda for each individual variable.
+\strong{lambda} the regularization factor fitted within
+  \code{RRphylo} by the inner function \code{optL}. With multivariate data,
+  several \code{optL} runs are performed. Hence, the function provides a
+  single lambda for each individual variable.
 
-\strong{ace.values} if \code{aces} are specified, the function returns a dataframe containing the corresponding node number on the \code{RRphylo} tree  for each node , along with estimated values.
+\strong{ace.values} if \code{aces} are specified, the function
+  returns a dataframe containing the corresponding node number on the
+  \code{RRphylo} tree  for each node , along with estimated values.
 
-\strong{x1.rate} if \code{x1} is specified, the function returns the partial regression coefficient for \code{x1}.
+\strong{x1.rate} if \code{x1} is specified, the function returns the
+  partial regression coefficient for \code{x1}.
 }
 \description{
-The function \code{RRphylo} (\cite{Castiglione et al. 2018}) performs the phylogenetic ridge regression. It takes a tree and a vector of tip data (phenotypes) as entries, calculates the regularization factor, produces the matrices of tip to root (\code{\link{makeL}}), and node to root distances (\code{\link{makeL1}}), the vector of ancestral state estimates, the vector of predicted phenotypes, and the rates vector for all the branches of the tree. For multivariate data, rates are given as both one vector per variable, and as a multivariate vector obtained by computing the Euclidean Norm of individual rate vectors.
+The function \code{RRphylo} (\cite{Castiglione et al. 2018})
+  performs the phylogenetic ridge regression. It takes a tree and a vector of
+  tip data (phenotypes) as entries, calculates the regularization factor,
+  produces the matrices of tip to root (\code{\link{makeL}}), and node to
+  root distances (\code{\link{makeL1}}), the vector of ancestral state
+  estimates, the vector of predicted phenotypes, and the rates vector for all
+  the branches of the tree. For multivariate data, rates are given as both
+  one vector per variable, and as a multivariate vector obtained by computing
+  the Euclidean Norm of individual rate vectors.
 }
 \examples{
- \donttest{
+ \dontrun{
 data("DataOrnithodirans")
 DataOrnithodirans$treedino->treedino
 DataOrnithodirans$massdino->massdino
@@ -85,12 +133,25 @@ RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass)->RR
     }
 }
 \references{
-Castiglione, S., Tesone, G., Piccolo, M., Melchionna, M., Mondanaro, A., Serio, C., Di Febbraro, M., & Raia, P.(2018). A new method for testing evolutionary rate variation and shifts in phenotypic evolution. \emph{Methods in Ecology and Evolution}, 9: 974-983.doi:10.1111/2041-210X.12954
+Castiglione, S., Tesone, G., Piccolo, M., Melchionna, M.,
+  Mondanaro, A., Serio, C., Di Febbraro, M., & Raia, P.(2018). A new method
+  for testing evolutionary rate variation and shifts in phenotypic evolution.
+  \emph{Methods in Ecology and Evolution}, 9:
+  974-983.doi:10.1111/2041-210X.12954
 
-Serio, C., Castiglione, S., Tesone, G., Piccolo, M., Melchionna, M., Mondanaro, A., Di Febbraro, M., & Raia, P.(2019). Macroevolution of toothed whales exceptional relative brain size. \emph{Evolutionary Biology}, 46: 332-342. doi:10.1007/s11692-019-09485-7
+Serio, C., Castiglione, S., Tesone, G., Piccolo, M., Melchionna,
+  M., Mondanaro, A., Di Febbraro, M., & Raia, P.(2019). Macroevolution of
+  toothed whales exceptional relative brain size. \emph{Evolutionary
+  Biology}, 46: 332-342. doi:10.1007/s11692-019-09485-7
 
-Melchionna, M., Mondanaro, A., Serio, C., Castiglione, S., Di Febbraro, M., Rook, L.,Diniz-Filho,J.A.F., Manzi, G., Profico, A., Sansalone, G., & Raia, P.(2020).Macroevolutionary trends of brain mass in Primates. \emph{Biological Journal of the Linnean Society}, 129: 14-25. doi:10.1093/biolinnean/blz161
+Melchionna, M., Mondanaro, A., Serio, C., Castiglione, S., Di
+  Febbraro, M., Rook, L.,Diniz-Filho,J.A.F., Manzi, G., Profico, A.,
+  Sansalone, G., & Raia, P.(2020).Macroevolutionary trends of brain mass in
+  Primates. \emph{Biological Journal of the Linnean Society}, 129: 14-25.
+  doi:10.1093/biolinnean/blz161
 }
 \author{
-Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
+Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro
+  Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
+  Carotenuto
 }

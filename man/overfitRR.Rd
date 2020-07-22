@@ -5,7 +5,7 @@
 \title{Testing RRphylo methods overfit}
 \usage{
 overfitRR(RR,y,s=0.25,swap.args=NULL,trend.args=NULL,shift.args=NULL,conv.args=NULL,
-aces=NULL,x1=NULL,aces.x1=NULL,cov=NULL,rootV=NULL,nsim=100,clus=.5)
+   aces=NULL,x1=NULL,aces.x1=NULL,cov=NULL,rootV=NULL,nsim=100,clus=.5)
 }
 \arguments{
 \item{RR}{an object produced by \code{\link{RRphylo}}.}
@@ -14,48 +14,116 @@ aces=NULL,x1=NULL,aces.x1=NULL,cov=NULL,rootV=NULL,nsim=100,clus=.5)
 
 \item{s}{the percentage of tips to be cut off. It is set at 25\% by default.}
 
-\item{swap.args}{a list of arguments to be passed to the function \code{\link{swapONE}}, including \code{list(si=NULL,si2=NULL,} \code{node=NULL)}. If \code{swap.arg} is unspecified, the function automatically sets both \code{si} and \code{si2} to 0.1.}
+\item{swap.args}{a list of arguments to be passed to the function
+\code{\link{swapONE}}, including \code{list(si=NULL,si2=NULL,}
+\code{node=NULL)}. If \code{swap.arg} is unspecified, the function
+automatically sets both \code{si} and \code{si2} to 0.1.}
 
-\item{trend.args}{a list of arguments specific to the function \code{search.trend}, including \code{list(node=NULL)}. If a trend for the whole tree is to be tested, type \code{trend.args = list()}. No trend is tested if left unspecified.}
+\item{trend.args}{a list of arguments specific to the function
+\code{search.trend}, including \code{list(node=NULL)}. If a trend for the
+whole tree is to be tested, type \code{trend.args = list()}. No trend is
+tested if left unspecified.}
 
-\item{shift.args}{a list of arguments specific to the function \code{search.shift}, including \code{list(node=NULL,} \code{state=NULL)}. Arguments \code{node} and \code{state} can be specified at the same time.}
+\item{shift.args}{a list of arguments specific to the function
+\code{search.shift}, including \code{list(node=NULL,} \code{state=NULL)}.
+Arguments \code{node} and \code{state} can be specified at the same time.}
 
-\item{conv.args}{a list of arguments specific to the function \code{search.conv}, including \code{list(node=NULL,} \code{state=NULL, declust=FALSE)}. Arguments \code{node} and \code{state} can be specified at the same time.}
+\item{conv.args}{a list of arguments specific to the function
+\code{search.conv}, including \code{list(node=NULL,} \code{state=NULL,
+declust=FALSE)}. Arguments \code{node} and \code{state} can be specified at
+the same time.}
 
-\item{aces}{if used to produce the \code{RR} object, the vector of those ancestral character values at nodes known in advance must be specified. Names correspond to the nodes in the tree.}
+\item{aces}{if used to produce the \code{RR} object, the vector of those
+ancestral character values at nodes known in advance must be specified.
+Names correspond to the nodes in the tree.}
 
-\item{x1}{the additional predictor to be specified if the RR object has been created using an additional predictor (i.e. multiple version of \code{RRphylo}). \code{'x1'} vector must be as long as the number of nodes plus the number of tips of the tree, which can be obtained by running \code{RRphylo} on the predictor as well, and taking the vector of ancestral states and tip values to form the \code{x1}.}
+\item{x1}{the additional predictor to be specified if the RR object has been
+created using an additional predictor (i.e. multiple version of
+\code{RRphylo}). \code{'x1'} vector must be as long as the number of nodes
+plus the number of tips of the tree, which can be obtained by running
+\code{RRphylo} on the predictor as well, and taking the vector of ancestral
+states and tip values to form the \code{x1}.}
 
-\item{aces.x1}{a named vector of ancestral character values at nodes for \code{x1}. It must be indicated if the RR object has been created using both \code{aces} and \code{x1}. Names correspond to the nodes in the tree.}
+\item{aces.x1}{a named vector of ancestral character values at nodes for
+\code{x1}. It must be indicated if the RR object has been created using
+both \code{aces} and \code{x1}. Names correspond to the nodes in the tree.}
 
-\item{cov}{if used to produce the \code{RR} object, the covariate must be specified. As in \code{RRphylo}, the covariate vector must be as long as the number of nodes plus the number of tips of the tree, which can be obtained by running \code{RRphylo} on the covariate as well, and taking the vector of ancestral states and tip values to form the covariate.}
+\item{cov}{if used to produce the \code{RR} object, the covariate must be
+specified. As in \code{RRphylo}, the covariate vector must be as long as
+the number of nodes plus the number of tips of the tree, which can be
+obtained by running \code{RRphylo} on the covariate as well, and taking the
+vector of ancestral states and tip values to form the covariate.}
 
-\item{rootV}{if used to produce the \code{RR} object, the phenotypic value at the tree root must be specified.}
+\item{rootV}{if used to produce the \code{RR} object, the phenotypic value at
+the tree root must be specified.}
 
-\item{nsim}{number of simulations to be performed. It is set at 100 by default.}
+\item{nsim}{number of simulations to be performed. It is set at 100 by
+default.}
 
-\item{clus}{the proportion of clusters to be used in parallel computing. To run the single-threaded version of \code{overfitRR} set \code{clus} = 0.}
+\item{clus}{the proportion of clusters to be used in parallel computing. To
+run the single-threaded version of \code{overfitRR} set \code{clus} = 0.}
 }
 \value{
 The function returns a 'list' containing:
 
-\strong{$mean.sampling} the mean proportion of species actually removed from the tree over the iterations.
+\strong{$mean.sampling} the mean proportion of species actually
+  removed from the tree over the iterations.
 
 \strong{$rootCI} the 95\% confidence interval around the root value.
 
-\strong{$ace.regressions} the results of linear regression between ancestral state estimates before and after the subsampling.
+\strong{$ace.regressions} the results of linear regression between
+  ancestral state estimates before and after the subsampling.
 
-\strong{$conv.results} a list including results for \code{search.conv} performed under \code{clade} and \code{state} conditions. If a node pair is specified within \code{conv.args}, the \code{$clade} object contains the percentage of simulations producing significant p-values for convergence between the clades. If a state vector is supplied within \code{conv.args}, the object \code{$state} contains the percentage of simulations producing significant p-values for convergence within (single state) or between states (multiple states).
+\strong{$conv.results} a list including results for
+  \code{search.conv} performed under \code{clade} and \code{state}
+  conditions. If a node pair is specified within \code{conv.args}, the
+  \code{$clade} object contains the percentage of simulations producing
+  significant p-values for convergence between the clades. If a state vector
+  is supplied within \code{conv.args}, the object \code{$state} contains the
+  percentage of simulations producing significant p-values for convergence
+  within (single state) or between states (multiple states).
 
-\strong{$shift.results} a list including results for \code{search.shift} performed under \code{clade} and \code{sparse} conditions. If one or more nodes are specified within \code{shift.args}, the \code{$clade} object contains for each node the percentage of simulations producing significant p-value separated by shift sign, and the same figures by considering all the specified nodes as evolving under a single rate (all.clades).If a state vector is supplied within \code{shift.args}, the object \code{$sparse} contains the percentage of simulations producing significant p-value separated by shift sign ($p.states).
+\strong{$shift.results} a list including results for
+  \code{search.shift} performed under \code{clade} and \code{sparse}
+  conditions. If one or more nodes are specified within \code{shift.args},
+  the \code{$clade} object contains for each node the percentage of
+  simulations producing significant p-value separated by shift sign, and the
+  same figures by considering all the specified nodes as evolving under a
+  single rate (all.clades).If a state vector is supplied within
+  \code{shift.args}, the object \code{$sparse} contains the percentage of
+  simulations producing significant p-value separated by shift sign
+  ($p.states).
 
-\strong{$trend.results} a list including the percentage of simulations showing significant p-values for phenotypes versus age and absolute rates versus age regressions for the entire tree separated by slope sign ($tree). If one or more nodes are specified within \code{trend.args}, the list also includes the same results at nodes ($node) and the results for comparison between nodes ($comparison).
+\strong{$trend.results} a list including the percentage of
+  simulations showing significant p-values for phenotypes versus age and
+  absolute rates versus age regressions for the entire tree separated by
+  slope sign ($tree). If one or more nodes are specified within
+  \code{trend.args}, the list also includes the same results at nodes ($node)
+  and the results for comparison between nodes ($comparison).
 }
 \description{
-Testing the robustness of \code{\link{search.trend}} (\cite{Castiglione et al. 2019a}), \code{\link{search.shift}} (\cite{Castiglione et al. 2018}), and  \code{\link{search.conv}} (\cite{Castiglione et al. 2019b}) results to sampling effects and phylogenetic uncertainty.
+Testing the robustness of \code{\link{search.trend}}
+  (\cite{Castiglione et al. 2019a}), \code{\link{search.shift}}
+  (\cite{Castiglione et al. 2018}), and  \code{\link{search.conv}}
+  (\cite{Castiglione et al. 2019b}) results to sampling effects and
+  phylogenetic uncertainty.
 }
 \details{
-Methods using a large number of parameters risk being overfit. This usually translates in poor fitting with data and trees other than the those originally used. With \code{RRphylo} methods this risk is usually very low. However, the user can assess how robust the results got by applying \code{search.shift}, \code{search.trend} or \code{search.conv} are by running \code{overfitRR}. With the latter, the original tree and data are subsampled by specifying a \code{s} parameter, that is the proportion of tips to be removed from the tree. In some cases, though, removing as many tips as imposed by \code{s} would delete too many tips right in clades and/or states under testing. In these cases, the function maintains no less than 5 species at least in each clade/state under testing (or all species if there is less), reducing the sampling parameter \code{s} if necessary. Internally, \code{overfitRR} further shuffles the tree by using the function \code{\link{swapONE}}. Thereby, both the potential for overfit and phylogenetic uncertainty are accounted for straight away.
+Methods using a large number of parameters risk being overfit. This
+  usually translates in poor fitting with data and trees other than the those
+  originally used. With \code{RRphylo} methods this risk is usually very low.
+  However, the user can assess how robust the results got by applying
+  \code{search.shift}, \code{search.trend} or \code{search.conv} are by
+  running \code{overfitRR}. With the latter, the original tree and data are
+  subsampled by specifying a \code{s} parameter, that is the proportion of
+  tips to be removed from the tree. In some cases, though, removing as many
+  tips as imposed by \code{s} would delete too many tips right in clades
+  and/or states under testing. In these cases, the function maintains no less
+  than 5 species at least in each clade/state under testing (or all species
+  if there is less), reducing the sampling parameter \code{s} if necessary.
+  Internally, \code{overfitRR} further shuffles the tree by using the
+  function \code{\link{swapONE}}. Thereby, both the potential for overfit and
+  phylogenetic uncertainty are accounted for straight away.
 }
 \examples{
 \dontrun{
@@ -135,11 +203,23 @@ list(node=conv.nodes,state=statefel,declust=TRUE),nsim=10,clus=cc)
 }
 }
 \references{
-Castiglione, S., Tesone, G., Piccolo, M., Melchionna, M., Mondanaro, A., Serio, C., Di Febbraro, M., & Raia, P. (2018). A new method for testing evolutionary rate variation and shifts in phenotypic evolution. \emph{Methods in Ecology and Evolution}, 9: 974-983.doi:10.1111/2041-210X.12954
+Castiglione, S., Tesone, G., Piccolo, M., Melchionna, M.,
+  Mondanaro, A., Serio, C., Di Febbraro, M., & Raia, P. (2018). A new method
+  for testing evolutionary rate variation and shifts in phenotypic evolution.
+  \emph{Methods in Ecology and Evolution}, 9:
+  974-983.doi:10.1111/2041-210X.12954
 
-Castiglione, S., Serio, C., Mondanaro, A., Di Febbraro, M., Profico, A., Girardi, G., & Raia, P. (2019a) Simultaneous detection of macroevolutionary patterns in phenotypic means and rate of change with and within phylogenetic trees including extinct species. \emph{PLoS ONE}, 14: e0210101. https://doi.org/10.1371/journal.pone.0210101
+Castiglione, S., Serio, C., Mondanaro, A., Di Febbraro, M.,
+  Profico, A., Girardi, G., & Raia, P. (2019a) Simultaneous detection of
+  macroevolutionary patterns in phenotypic means and rate of change with and
+  within phylogenetic trees including extinct species. \emph{PLoS ONE}, 14:
+  e0210101. https://doi.org/10.1371/journal.pone.0210101
 
-Castiglione, S., Serio, C., Tamagnini, D., Melchionna, M., Mondanaro, A., Di Febbraro, M., Profico, A., Piras, P.,Barattolo, F., & Raia, P. (2019b). A new, fast method to search for morphological convergence with shape data. \emph{PLoS ONE}, 14, e0226949. https://doi.org/10.1371/journal.pone.0226949
+Castiglione, S., Serio, C., Tamagnini, D., Melchionna, M.,
+  Mondanaro, A., Di Febbraro, M., Profico, A., Piras, P.,Barattolo, F., &
+  Raia, P. (2019b). A new, fast method to search for morphological
+  convergence with shape data. \emph{PLoS ONE}, 14, e0226949.
+  https://doi.org/10.1371/journal.pone.0226949
 }
 \author{
 Silvia Castiglione, Carmela Serio, Pasquale Raia

@@ -7,22 +7,34 @@
 phyloclust(tree,state,focal,nsim=100)
 }
 \arguments{
-\item{tree}{a phylogenetic tree. The tree needs not to be ultrametric or fully dichotomous.}
+\item{tree}{a phylogenetic tree. The tree needs not to be ultrametric or
+fully dichotomous.}
 
 \item{state}{the named vector of tip states.}
 
 \item{focal}{the focal state to be tested for phylogenetic clustering.}
 
-\item{nsim}{number of simulations to perform the phylogenetic clustering test.}
+\item{nsim}{number of simulations to perform the phylogenetic clustering
+test.}
 }
 \value{
-The function returns a list including the p-value ($p) for the test of phylogenetic clustering and a $declusterized object containing the declusterized versions of the original tree and state vector (i.e. tips are removed as to make p>0.05) and the vector of removed species.
+The function returns a list including the p-value ($p) for the test
+  of phylogenetic clustering and a $declusterized object containing the
+  declusterized versions of the original tree and state vector (i.e. tips are
+  removed as to make p>0.05) and the vector of removed species.
 }
 \description{
-The function tests the presence of phylogenetic clustering for species within a focal state.
+The function tests the presence of phylogenetic clustering for
+  species within a focal state.
 }
 \details{
-To test for phylogenetic clustering, the function computes the mean cophenetic (i.e. evolutionary time) distance between all the species under the \code{focal} state. Such value is compared to a random distribution of time distances obtained by sampling \code{nsim} times as many random tips as those under the \code{focal} state. In the presence of significant phylogenetic clustering, tips under the \code{focal} state are randomly removed until the \code{p} becomes >0.05 or only 3 tips are left.
+To test for phylogenetic clustering, the function computes the mean
+  cophenetic (i.e. evolutionary time) distance between all the species under
+  the \code{focal} state. Such value is compared to a random distribution of
+  time distances obtained by sampling \code{nsim} times as many random tips
+  as those under the \code{focal} state. In the presence of significant
+  phylogenetic clustering, tips under the \code{focal} state are randomly
+  removed until the \code{p} becomes >0.05 or only 3 tips are left.
 }
 \examples{
 data("DataFelids")

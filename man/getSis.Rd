@@ -7,17 +7,21 @@
 getSis(tree,n,printZoom=TRUE)
 }
 \arguments{
-\item{tree}{a phylogenetic tree. The tree needs not to be ultrametric and fully dichotomous.}
+\item{tree}{a phylogenetic tree. The tree needs not to be ultrametric and
+fully dichotomous.}
 
 \item{n}{number of focal node or name of focal tip.}
 
-\item{printZoom}{if \code{TRUE} the function plots the tree section of interest.}
+\item{printZoom}{if \code{TRUE} the function plots the tree section of
+interest.}
 }
 \value{
-The sister node number or sister tip name. In case of polytomies, the function returns a vector.
+The sister node number or sister tip name. In case of polytomies, the
+  function returns a vector.
 }
 \description{
-The function identifies and returns the sister clade of a given node/tip.
+The function identifies and returns the sister clade of a given
+  node/tip.
 }
 \examples{
 data(DataOrnithodirans)
@@ -26,5 +30,7 @@ getSis(tree=treedino,n=677,printZoom=FALSE)
 getSis(tree=treedino,n="Shenzhoupterus_chaoyangensis",printZoom=FALSE)
 }
 \author{
-Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
+Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro
+  Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
+  Carotenuto
 }

@@ -5,71 +5,137 @@
 \title{Searching for morphological convergence among species and clades}
 \usage{
 search.conv(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
-min.dim=NULL,max.dim=NULL,min.dist=NULL,PGLSf=FALSE,declust=FALSE,nsim=1000,rsim=1000,
-clus=.5,foldername=NULL)
+  min.dim=NULL,max.dim=NULL,min.dist=NULL,PGLSf=FALSE,declust=FALSE,nsim=1000,rsim=1000,
+   clus=.5,foldername=NULL)
 }
 \arguments{
-\item{RR}{an object produced by \code{\link{RRphylo}}. This is not indicated if convergence among states is tested.}
+\item{RR}{an object produced by \code{\link{RRphylo}}. This is not indicated
+if convergence among states is tested.}
 
-\item{tree}{a phylogenetic tree. The tree needs not to be ultrametric or fully dichotomous. This is not indicated if convergence among clades is tested.}
+\item{tree}{a phylogenetic tree. The tree needs not to be ultrametric or
+fully dichotomous. This is not indicated if convergence among clades is
+tested.}
 
-\item{y}{a multivariate phenotype. The object \code{y} should be either a matrix or dataframe with species names as rownames.}
+\item{y}{a multivariate phenotype. The object \code{y} should be either a
+matrix or dataframe with species names as rownames.}
 
-\item{nodes}{node pair to be tested. If unspecified, the function automatically searches for convergence among clades. Notice the node number must refer to the dichotomic version of the original tree, as produced by \code{RRphylo}.}
+\item{nodes}{node pair to be tested. If unspecified, the function
+automatically searches for convergence among clades. Notice the node number
+must refer to the dichotomic version of the original tree, as produced by
+\code{RRphylo}.}
 
-\item{state}{the named vector of tip states. The function tests for convergence within a single state or among different states (this latter case is especially meant to test for iterative evolution as for example the appearance of repeated morphotypes into different clades). In both cases, the state for non-focal species (i.e. not belonging to any convergent group) must be indicated as "nostate".}
+\item{state}{the named vector of tip states. The function tests for
+convergence within a single state or among different states (this latter
+case is especially meant to test for iterative evolution as for example the
+appearance of repeated morphotypes into different clades). In both cases,
+the state for non-focal species (i.e. not belonging to any convergent
+group) must be indicated as "nostate".}
 
-\item{aceV}{phenotypic values at internal nodes. The object \code{aceV} should be either a matrix or dataframe with nodes (referred to the dichotomic version of the original tree, as produced by \code{RRphylo}) as rownames. If \code{aceV} are not indicated, ancestral phenotypes are estimated via \code{RRphylo}.}
+\item{aceV}{phenotypic values at internal nodes. The object \code{aceV}
+should be either a matrix or dataframe with nodes (referred to the
+dichotomic version of the original tree, as produced by \code{RRphylo}) as
+rownames. If \code{aceV} are not indicated, ancestral phenotypes are
+estimated via \code{RRphylo}.}
 
-\item{min.dim}{the minimum size of the clades to be compared. When \code{nodes} is indicated, it is the minimum size of the smallest clades in \code{nodes}, otherwise it is set at one tenth of the tree size.}
+\item{min.dim}{the minimum size of the clades to be compared. When
+\code{nodes} is indicated, it is the minimum size of the smallest clades in
+\code{nodes}, otherwise it is set at one tenth of the tree size.}
 
-\item{max.dim}{the maximum size of the clades to be compared. When \code{nodes} is indicated, it is \code{min.dim}*2 if the largest clade in \code{nodes} is smaller than this value, otherwise it corresponds to the size of the largest clade. Whitout \code{nodes} it is set at one third of the tree size.}
+\item{max.dim}{the maximum size of the clades to be compared. When
+\code{nodes} is indicated, it is \code{min.dim}*2 if the largest clade in
+\code{nodes} is smaller than this value, otherwise it corresponds to the
+size of the largest clade. Without \code{nodes} it is set at one third of
+the tree size.}
 
-\item{min.dist}{the minimum distance between the clades to be compared. When \code{nodes} is indicated, it is the distance between the pair. Under the automatic mode, the user can choose whether time distance or node distance (i.e. the number of nodes intervening between the pair) should be used. If time distance has to be considered, \code{min.dist} should be a character argument containing the word "time" and then the actual time distance to be used. The same is true for node distance, but the word "node" must preceed the node distance to be used. For example, if the user want to test only clades more distant than 10 time units, the argument should be "time10". If clades separated by more than 8 nodes has to be tested, the argument \code{min.dist} should be "node8". If left unspecified, it automatically searches for convergence between clades separated by a number of nodes bigger than one tenth of the tree size.}
+\item{min.dist}{the minimum distance between the clades to be compared. When
+\code{nodes} is indicated, it is the distance between the pair. Under the
+automatic mode, the user can choose whether time distance or node distance
+(i.e. the number of nodes intervening between the pair) should be used. If
+time distance has to be considered, \code{min.dist} should be a character
+argument containing the word "time" and then the actual time distance to be
+used. The same is true for node distance, but the word "node" must precede
+the node distance to be used. For example, if the user want to test only
+clades more distant than 10 time units, the argument should be "time10". If
+clades separated by more than 8 nodes has to be tested, the argument
+\code{min.dist} should be "node8". If left unspecified, it automatically
+searches for convergence between clades separated by a number of nodes
+bigger than one tenth of the tree size.}
 
-\item{PGLSf}{has been deprecated; please see the argument \code{declust} instead.}
+\item{PGLSf}{has been deprecated; please see the argument \code{declust}
+instead.}
 
-\item{declust}{if species under a given state (or a pair of states) to be tested for convergence are phylogenetically closer than expected by chance, trait similarity might depend on proximity rather than true convergence. In this case, by setting \code{declust = TRUE}, tips under the focal state (or states) are removed randomly until clustering disappears. A minimum of 3 species per state is enforced to remain anyway.}
+\item{declust}{if species under a given state (or a pair of states) to be
+tested for convergence are phylogenetically closer than expected by chance,
+trait similarity might depend on proximity rather than true convergence. In
+this case, by setting \code{declust = TRUE}, tips under the focal state (or
+states) are removed randomly until clustering disappears. A minimum of 3
+species per state is enforced to remain anyway.}
 
-\item{nsim}{number of simulations to perform sampling within the theta random distribution. It is set at 1000 by default.}
+\item{nsim}{number of simulations to perform sampling within the theta random
+distribution. It is set at 1000 by default.}
 
-\item{rsim}{number of simulations to be performed to produce the random distribution of theta values. It is set at 1000 by default.}
+\item{rsim}{number of simulations to be performed to produce the random
+distribution of theta values. It is set at 1000 by default.}
 
-\item{clus}{the proportion of clusters to be used in parallel computing. To run the single-threaded version of \code{search.conv} set \code{clus} = 0.}
+\item{clus}{the proportion of clusters to be used in parallel computing. To
+run the single-threaded version of \code{search.conv} set \code{clus} = 0.}
 
 \item{foldername}{the path of the folder where plots are to be found.}
 }
 \value{
-If convergence between clades is tested, the function returns a list including:
+If convergence between clades is tested, the function returns a list
+  including:
 
-\itemize{\item\strong{$node pairs}: a dataframe containing for each pair of nodes:
-\itemize{\item ang.bydist.tip: the mean theta angle between clades divided by the time distance.
-\item ang.conv: the mean theta angle between clades plus the angle between aces, divided by the time distance.
-\item ang.ace: the angle between aces.
-\item ang.tip: the mean theta angle between clades.
-\item nod.dist: the distance intervening between clades in terms of number of nodes.
-\item time.dist: the time distance intervening between the clades.
-\item p.ang.bydist: the p-value computed for ang.bydist.tip.
-\item p.ang.conv: the p-value computed for ang.conv.
-\item clade.size: the size of clades.
-}
-\item\strong{$node pairs comparison}: pairwise comparison between significantly convergent pairs (all pairs if no istance of significance was found) performed on the distance from group centroids (the mean phenotype per clade).
-\item\strong{$average distance from group centroids}: smaller average distances mean less variable phenotypes within the pair.
-}
+\itemize{\item\strong{$node pairs}: a dataframe containing for each
+  pair of nodes: \itemize{\item ang.bydist.tip: the mean theta angle between
+  clades divided by the time distance. \item ang.conv: the mean theta angle
+  between clades plus the angle between aces, divided by the time distance.
+  \item ang.ace: the angle between aces. \item ang.tip: the mean theta angle
+  between clades. \item nod.dist: the distance intervening between clades in
+  terms of number of nodes. \item time.dist: the time distance intervening
+  between the clades. \item p.ang.bydist: the p-value computed for
+  ang.bydist.tip. \item p.ang.conv: the p-value computed for ang.conv. \item
+  clade.size: the size of clades. } \item\strong{$node pairs comparison}:
+  pairwise comparison between significantly convergent pairs (all pairs if no
+  instance of significance was found) performed on the distance from group
+  centroids (the mean phenotype per clade). \item\strong{$average distance
+  from group centroids}: smaller average distances mean less variable
+  phenotypes within the pair. }
 
-If convergence between (or within a single state) states is tested, the function returns a dataframe including for each pair of states (or single state):
-\itemize{
-\item ang.state: the mean theta angle between species belonging to different states (or within a single state).
-\item ang.state.time: the mean of theta angle between species belonging to different states (or within a single state) divided by time distance.
-\item p.ang.state: the p-value computed for ang.state.
-\item p.ang.state.time: the p-value computed for ang.state.time.
-}
+If convergence between (or within a single state) states is tested,
+  the function returns a dataframe including for each pair of states (or
+  single state): \itemize{ \item ang.state: the mean theta angle between
+  species belonging to different states (or within a single state). \item
+  ang.state.time: the mean of theta angle between species belonging to
+  different states (or within a single state) divided by time distance. \item
+  p.ang.state: the p-value computed for ang.state. \item p.ang.state.time:
+  the p-value computed for ang.state.time. }
 }
 \description{
-The function scans a phylogenetic tree looking for morphological convergence between entire clades or species evolving under specific states.
+The function scans a phylogenetic tree looking for morphological
+  convergence between entire clades or species evolving under specific
+  states.
 }
 \details{
-Regardless the case (either 'state' or 'clade'), the function stores a plot into the folder specified by \code{foldername}. If convergence among clades is tested, the clade pair plotted corresponds to those clades with the smallest \code{$average distance from group centroid}. The figure shows the Euclidean distances computed between the MRCAs of the clades and the mean Euclidean distance computed between all the tips belonging to the converging clades, as compared to the distribution of these same figures across the rest of the tree. Furthermore, the function stores the PC1/PC2 plot obtained by PCA of the species phenotypes. Convergent clades are indicated by colored convex hulls. Large colored dots represent the mean phenotypes per clade (i.e. their group centroids). Eventually, a modified traitgram plot is produced, highlighting the branches of the clades found to converge. In both PCA and traitgram, asterisks represent the ancestral phenotypes of the individual clades. If convergence among states is tested, the function produces a PC plot with colored convex hulls enclosing species belonging to different states. Furthermore, it generates circular plots of the mean angle between states (blue lines) and the range of random angles (gray shaded area). The p-value for the convergence test is printed within the circular plots.
+Regardless the case (either 'state' or 'clade'), the function stores
+  a plot into the folder specified by \code{foldername}. If convergence among
+  clades is tested, the clade pair plotted corresponds to those clades with
+  the smallest \code{$average distance from group centroid}. The figure shows
+  the Euclidean distances computed between the MRCAs of the clades and the
+  mean Euclidean distance computed between all the tips belonging to the
+  converging clades, as compared to the distribution of these same figures
+  across the rest of the tree. Furthermore, the function stores the PC1/PC2
+  plot obtained by PCA of the species phenotypes. Convergent clades are
+  indicated by colored convex hulls. Large colored dots represent the mean
+  phenotypes per clade (i.e. their group centroids). Eventually, a modified
+  traitgram plot is produced, highlighting the branches of the clades found
+  to converge. In both PCA and traitgram, asterisks represent the ancestral
+  phenotypes of the individual clades. If convergence among states is tested,
+  the function produces a PC plot with colored convex hulls enclosing species
+  belonging to different states. Furthermore, it generates circular plots of
+  the mean angle between states (blue lines) and the range of random angles
+  (gray shaded area). The p-value for the convergence test is printed within
+  the circular plots.
 }
 \examples{
 \dontrun{
@@ -96,8 +162,14 @@ search.conv(tree=treefel, y=PCscoresfel, state=statefel,declust=TRUE,
   }
 }
 \references{
-Castiglione, S., Serio, C., Tamagnini, D., Melchionna, M., Mondanaro, A., Di Febbraro, M., Profico, A., Piras, P.,Barattolo, F., & Raia, P. (2019). A new, fast method to search for morphological convergence with shape data. \emph{PLoS ONE}, 14, e0226949. https://doi.org/10.1371/journal.pone.0226949
+Castiglione, S., Serio, C., Tamagnini, D., Melchionna, M.,
+  Mondanaro, A., Di Febbraro, M., Profico, A., Piras, P.,Barattolo, F., &
+  Raia, P. (2019). A new, fast method to search for morphological convergence
+  with shape data. \emph{PLoS ONE}, 14, e0226949.
+  https://doi.org/10.1371/journal.pone.0226949
 }
 \author{
-Silvia Castiglione, Carmela Serio, Pasquale Raia, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto, Paolo Piras, Davide Tamagnini
+Silvia Castiglione, Carmela Serio, Pasquale Raia, Alessandro
+  Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
+  Carotenuto, Paolo Piras, Davide Tamagnini
 }

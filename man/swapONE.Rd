@@ -7,24 +7,34 @@
 swapONE(tree,node=NULL,si=0.5,si2=0.5,plot.swap=FALSE)
 }
 \arguments{
-\item{tree}{a phylogenetic tree. The tree needs not to be ultrametric or fully dichotomous.}
+\item{tree}{a phylogenetic tree. The tree needs not to be ultrametric or
+fully dichotomous.}
 
-\item{node}{if specified, the clades subtended by such \code{node(s)} are imposed to be monophyletic. In this case, the function can still swap tips \emph{within} the clade.}
+\item{node}{if specified, the clades subtended by such \code{node(s)} are
+imposed to be monophyletic. In this case, the function can still swap tips
+\emph{within} the clade.}
 
 \item{si}{the proportion of tips whose topologic arrangement will be swapped.}
 
 \item{si2}{the proportion of nodes whose age will be changed.}
 
-\item{plot.swap}{if \code{TRUE}, the function plots the swapped tree. Swapped positions appear in red. Nodes with altered ages appear in green.}
+\item{plot.swap}{if \code{TRUE}, the function plots the swapped tree. Swapped
+positions appear in red. Nodes with altered ages appear in green.}
 }
 \value{
-The function returns a list containing the 'swapped' version of the original tree, and the Kuhner-Felsenstein distance between the trees.
+The function returns a list containing the 'swapped' version of the
+  original tree, and the Kuhner-Felsenstein distance between the trees.
 }
 \description{
-The function produces an alternative phylogeny with altered topology and branch length, and computes the Kuhner-Felsenstein (Kuhner & Felsenstein 1994) distance between original and 'swapped' tree.
+The function produces an alternative phylogeny with altered
+  topology and branch length, and computes the Kuhner-Felsenstein (Kuhner &
+  Felsenstein 1994) distance between original and 'swapped' tree.
 }
 \details{
-\code{swapONE} changes the tree topology and branch lengths. Up to half of the tips, and half of the branch lengths can be changed randomly. Each randomly selected node is allowed to move up to 2 nodes apart from its original position.
+\code{swapONE} changes the tree topology and branch lengths. Up to
+  half of the tips, and half of the branch lengths can be changed randomly.
+  Each randomly selected node is allowed to move up to 2 nodes apart from its
+  original position.
 }
 \examples{
 data("DataOrnithodirans")
@@ -38,8 +48,12 @@ swapONE(tree=treedino,si=0.5,si2=0.5,plot.swap=FALSE)
 swapONE(tree=treedino,node=422,si=0.5,si2=0.5,plot.swap=FALSE)
 }
 \references{
-Kuhner, M. K. & Felsenstein, J. (1994). A simulation comparison of phylogeny algorithms under equal and unequal evolutionary rates, \emph{Molecular Biology and Evolution}, 11: 459-468.
+Kuhner, M. K. & Felsenstein, J. (1994). A simulation comparison
+  of phylogeny algorithms under equal and unequal evolutionary rates,
+  \emph{Molecular Biology and Evolution}, 11: 459-468.
 }
 \author{
-Silvia Castiglione, Pasquale Raia, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
+Silvia Castiglione, Pasquale Raia, Carmela Serio, Alessandro
+  Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
+  Carotenuto
 }

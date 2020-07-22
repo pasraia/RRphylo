@@ -7,13 +7,17 @@
 makeL(tree)
 }
 \arguments{
-\item{tree}{a phylogenetic tree. The tree needs not to be ultrametric and fully dichotomous.}
+\item{tree}{a phylogenetic tree. The tree needs not to be ultrametric and
+fully dichotomous.}
 }
 \value{
-The function returns a \eqn{n * m} matrix of branch lengths for all root-to-tip paths in the tree (one per species).
+The function returns a \eqn{n * m} matrix of branch lengths for all
+  root-to-tip paths in the tree (one per species).
 }
 \description{
-This function produces a \eqn{n * m} matrix, where n=number of tips and m=number of branches (i.e. n + number of nodes). Each row represents the branch lengths aligned along a root-to-tip path.
+This function produces a \eqn{n * m} matrix, where n=number of
+  tips and m=number of branches (i.e. n + number of nodes). Each row
+  represents the branch lengths aligned along a root-to-tip path.
 }
 \examples{
 data("DataApes")
@@ -22,5 +26,7 @@ DataApes$Tstage->Tstage
 makeL(tree=Tstage)
 }
 \author{
-Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
+Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro
+  Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
+  Carotenuto
 }

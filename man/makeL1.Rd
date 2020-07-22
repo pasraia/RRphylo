@@ -7,13 +7,17 @@
 makeL1(tree)
 }
 \arguments{
-\item{tree}{a phylogenetic tree. The tree needs not to be ultrametric and fully dichotomous.}
+\item{tree}{a phylogenetic tree. The tree needs not to be ultrametric and
+fully dichotomous.}
 }
 \value{
-The function returns a \eqn{n * n} matrix of branch lengths for all root-to-node paths (one per each node of the tree).
+The function returns a \eqn{n * n} matrix of branch lengths for all
+  root-to-node paths (one per each node of the tree).
 }
 \description{
-This function produces a \eqn{n * n} matrix, where n=number of internal branches. Each row represents the branch lengths aligned along a root-to-node path.
+This function produces a \eqn{n * n} matrix, where n=number of
+  internal branches. Each row represents the branch lengths aligned along a
+  root-to-node path.
 }
 \examples{
 data("DataApes")
@@ -22,5 +26,7 @@ DataApes$Tstage->Tstage
 makeL1(tree=Tstage)
 }
 \author{
-Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
+Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro
+  Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
+  Carotenuto
 }

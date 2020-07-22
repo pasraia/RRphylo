@@ -7,17 +7,25 @@
 distNodes(tree,node=NULL,clus=0.5)
 }
 \arguments{
-\item{tree}{a phylogenetic tree. The tree needs not to be ultrametric and fully dichotomous.}
+\item{tree}{a phylogenetic tree. The tree needs not to be ultrametric and
+fully dichotomous.}
 
 \item{node}{either a single node/tip or a pair of nodes/tips.}
 
-\item{clus}{the proportion of clusters to be used in parallel computing. To run the single-threaded version of \code{distNodes} set \code{clus} = 0.}
+\item{clus}{the proportion of clusters to be used in parallel computing. To
+run the single-threaded version of \code{distNodes} set \code{clus} = 0.}
 }
 \value{
-If \code{node} is specified, the function returns a data frame with distances between the focal node/tip and the other nodes/tips on the tree (or for the selected pair only). Otherwise, the function returns a matrix containing the number of nodes intervening between each pair of nodes and tips.
+If \code{node} is specified, the function returns a data frame with
+  distances between the focal node/tip and the other nodes/tips on the tree
+  (or for the selected pair only). Otherwise, the function returns a matrix
+  containing the number of nodes intervening between each pair of nodes and
+  tips.
 }
 \description{
-The function computes the distance between pairs of nodes, pairs of tips, or between nodes and tips. The distance is meant as both patristic distance and the number of nodes intervening between the pair.
+The function computes the distance between pairs of nodes, pairs
+  of tips, or between nodes and tips. The distance is meant as both patristic
+  distance and the number of nodes intervening between the pair.
 }
 \examples{
 \donttest{
@@ -33,5 +41,7 @@ distNodes(tree=Tstage,node=c(64,"Tro_2"),clus=cc)
 }
 }
 \author{
-Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
+Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro
+  Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
+  Carotenuto
 }

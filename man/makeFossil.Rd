@@ -7,17 +7,22 @@
 makeFossil(tree,p=0.5,ex=0.5)
 }
 \arguments{
-\item{tree}{a phylogenetic tree. The tree needs not to be ultrametric and fully dichotomous.}
+\item{tree}{a phylogenetic tree. The tree needs not to be ultrametric and
+fully dichotomous.}
 
-\item{p}{the proportion of tips involved. By default it is half of the number of tips.}
+\item{p}{the proportion of tips involved. By default it is half of the number
+of tips.}
 
-\item{ex}{the multiplying parameter to change the leaf lengths. It is set at 0.5 by default.}
+\item{ex}{the multiplying parameter to change the leaf lengths. It is set at
+0.5 by default.}
 }
 \value{
-The function produces a phylogeny having the same backbone of the original one.
+The function produces a phylogeny having the same backbone of the
+  original one.
 }
 \description{
-This function takes an object of class \code{'phylo'} and randomly changes the lengths of the leaves.
+This function takes an object of class \code{'phylo'} and
+  randomly changes the lengths of the leaves.
 }
 \examples{
 data("DataApes")
@@ -26,5 +31,7 @@ DataApes$Tstage->Tstage
 makeFossil(tree=Tstage)
 }
 \author{
-Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
+Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro
+  Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
+  Carotenuto
 }

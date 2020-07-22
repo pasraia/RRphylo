@@ -7,23 +7,28 @@
 cutPhylo(tree,age=NULL,node=NULL)
 }
 \arguments{
-\item{tree}{a phylogenetic tree. The tree needs not to be ultrametric and fully dichotomous.}
+\item{tree}{a phylogenetic tree. The tree needs not to be ultrametric and
+fully dichotomous.}
 
-\item{age}{the age (in terms of time distance from the recent) at which the tree must be cut}
+\item{age}{the age (in terms of time distance from the recent) at which the
+tree must be cut}
 
 \item{node}{the node whose age must be used as cutting limit.}
 }
 \value{
-The function returns the cut phylogeny and plots it into the graphic device. The time axis keeps the root age of the original tree.
+The function returns the cut phylogeny and plots it into the graphic
+  device. The time axis keeps the root age of the original tree.
 }
 \description{
-The function cuts all the branches of the phylogeny which are younger than a specific age or node (i.e. the age of the node).
+The function cuts all the branches of the phylogeny which are
+  younger than a specific age or node (i.e. the age of the node).
 }
 \details{
-When an entire lineage is cut (i.e. one or more nodes along a path), the leaves left are labeled as "l" followed by a number.
+When an entire lineage is cut (i.e. one or more nodes along a path),
+  the leaves left are labeled as "l" followed by a number.
 }
 \examples{
-\donttest{
+\dontrun{
 library(ape)
 library(phytools)
 
@@ -34,5 +39,7 @@ cutPhylo(tree,node=263)->t2
 }
 }
 \author{
-Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
+Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro
+  Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
+  Carotenuto
 }
