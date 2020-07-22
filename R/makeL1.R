@@ -1,10 +1,16 @@
 #' @title Matrix of branch lengths along a root-to-node path
-#' @description This function produces a \eqn{n * n} matrix, where n=number of internal branches. Each row represents the branch lengths aligned along a root-to-node path.
+#' @description This function produces a \eqn{n * n} matrix, where n=number of
+#'   internal branches. Each row represents the branch lengths aligned along a
+#'   root-to-node path.
 #' @usage makeL1(tree)
-#' @param tree a phylogenetic tree. The tree needs not to be ultrametric and fully dichotomous.
+#' @param tree a phylogenetic tree. The tree needs not to be ultrametric and
+#'   fully dichotomous.
 #' @export
-#' @return The function returns a \eqn{n * n} matrix of branch lengths for all root-to-node paths (one per each node of the tree).
-#' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
+#' @return The function returns a \eqn{n * n} matrix of branch lengths for all
+#'   root-to-node paths (one per each node of the tree).
+#' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro
+#'   Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
+#'   Carotenuto
 #' @examples
 #' data("DataApes")
 #' DataApes$Tstage->Tstage

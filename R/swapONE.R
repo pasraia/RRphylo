@@ -1,18 +1,32 @@
 #' @title Create alternative phylogenies from a given tree
 #' @usage swapONE(tree,node=NULL,si=0.5,si2=0.5,plot.swap=FALSE)
-#' @description The function produces an alternative phylogeny with altered topology and branch length, and computes the Kuhner-Felsenstein (Kuhner & Felsenstein 1994) distance between original and 'swapped' tree.
-#' @param tree a phylogenetic tree. The tree needs not to be ultrametric or fully dichotomous.
-#' @param node if specified, the clades subtended by such \code{node(s)} are imposed to be monophyletic. In this case, the function can still swap tips \emph{within} the clade.
+#' @description The function produces an alternative phylogeny with altered
+#'   topology and branch length, and computes the Kuhner-Felsenstein (Kuhner &
+#'   Felsenstein 1994) distance between original and 'swapped' tree.
+#' @param tree a phylogenetic tree. The tree needs not to be ultrametric or
+#'   fully dichotomous.
+#' @param node if specified, the clades subtended by such \code{node(s)} are
+#'   imposed to be monophyletic. In this case, the function can still swap tips
+#'   \emph{within} the clade.
 #' @param si the proportion of tips whose topologic arrangement will be swapped.
 #' @param si2 the proportion of nodes whose age will be changed.
-#' @param plot.swap if \code{TRUE}, the function plots the swapped tree. Swapped positions appear in red. Nodes with altered ages appear in green.
-#' @details \code{swapONE} changes the tree topology and branch lengths. Up to half of the tips, and half of the branch lengths can be changed randomly. Each randomly selected node is allowed to move up to 2 nodes apart from its original position.
+#' @param plot.swap if \code{TRUE}, the function plots the swapped tree. Swapped
+#'   positions appear in red. Nodes with altered ages appear in green.
+#' @details \code{swapONE} changes the tree topology and branch lengths. Up to
+#'   half of the tips, and half of the branch lengths can be changed randomly.
+#'   Each randomly selected node is allowed to move up to 2 nodes apart from its
+#'   original position.
 #' @export
 #' @importFrom stats runif
 #' @importFrom ape cophenetic.phylo
-#' @return The function returns a list containing the 'swapped' version of the original tree, and the Kuhner-Felsenstein distance between the trees.
-#' @author Silvia Castiglione, Pasquale Raia, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
-#' @references Kuhner, M. K. & Felsenstein, J. (1994). A simulation comparison of phylogeny algorithms under equal and unequal evolutionary rates, \emph{Molecular Biology and Evolution}, 11: 459-468.
+#' @return The function returns a list containing the 'swapped' version of the
+#'   original tree, and the Kuhner-Felsenstein distance between the trees.
+#' @author Silvia Castiglione, Pasquale Raia, Carmela Serio, Alessandro
+#'   Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
+#'   Carotenuto
+#' @references Kuhner, M. K. & Felsenstein, J. (1994). A simulation comparison
+#'   of phylogeny algorithms under equal and unequal evolutionary rates,
+#'   \emph{Molecular Biology and Evolution}, 11: 459-468.
 #' @examples
 #' data("DataOrnithodirans")
 #' DataOrnithodirans$treedino->treedino

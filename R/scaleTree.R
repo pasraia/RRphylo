@@ -1,14 +1,26 @@
-#' @title Phylogenetic tree calibration
-#' @description The function is a wrapper around the functions "scalePhylo", "assign.ages", and "assign.brlen" written by Gene Hunt (http://paleobiology.si.edu/staff/individuals/hunt.cfm). It rescales tree branch lengths according to given calibration dates.
-#' @usage scaleTree(tree, tip.ages, node.ages=NULL, min.branch=0.1)
-#' @param tree a phylogenetic tree. The tree needs not to be ultrametric and fully dichotomous.
-#' @param tip.ages a named vector including the ages (i.e. distance from the youngest tip within the tree) of the tips to be changed. If unspecified, the function assumes all the tips are correctly placed with respect to the root.
-#' @param node.ages a named vector including the ages (i.e. distance from the youngest tip within the tree) of the nodes to be changed. If no calibration date for nodes is supplied, the function shifts node position only where needed to fit tip ages.
-#' @param min.branch the minimum branch length that will be imposed for shifted nodes.
-#' @export
-#' @importFrom geiger rescale
-#' @return Rescaled phylogentic tree.
-#' @author Silvia Castiglione, Pasquale Raia, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
+#'@title Phylogenetic tree calibration
+#'@description The function is a wrapper around the functions "scalePhylo",
+#'  "assign.ages", and "assign.brlen" written by Gene Hunt
+#'  (http://paleobiology.si.edu/staff/individuals/hunt.cfm). It rescales tree
+#'  branch lengths according to given calibration dates.
+#'@usage scaleTree(tree, tip.ages, node.ages=NULL, min.branch=0.1)
+#'@param tree a phylogenetic tree. The tree needs not to be ultrametric and
+#'  fully dichotomous.
+#'@param tip.ages a named vector including the ages (i.e. distance from the
+#'  youngest tip within the tree) of the tips to be changed. If unspecified, the
+#'  function assumes all the tips are correctly placed with respect to the root.
+#'@param node.ages a named vector including the ages (i.e. distance from the
+#'  youngest tip within the tree) of the nodes to be changed. If no calibration
+#'  date for nodes is supplied, the function shifts node position only where
+#'  needed to fit tip ages.
+#'@param min.branch the minimum branch length that will be imposed for shifted
+#'  nodes.
+#'@export
+#'@importFrom geiger rescale
+#'@return Rescaled phylogentic tree.
+#'@author Silvia Castiglione, Pasquale Raia, Carmela Serio, Alessandro
+#'  Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
+#'  Carotenuto
 #' @examples
 #' \donttest{
 #' library(ape)

@@ -1,35 +1,130 @@
 #' @title Locating shifts in phenotypic evolutionary rates
 #'
-#' @usage search.shift(RR, status.type = c("clade", "sparse"),node = NULL,
-#' state = NULL, cov = NULL, nrep = 1000, f = NULL,foldername)
-#' @description The function \code{search.shift} (\cite{Castiglione et al. 2018}) tests whether individual clades or isolated tips dispersed through the phylogeny evolve at different \code{\link{RRphylo}} rates as compared to the rest of the tree. Instances of rate shifts may be automatically found.
+#' @usage search.shift(RR, status.type = c("clade", "sparse"),node = NULL, state
+#'   = NULL, cov = NULL, nrep = 1000, f = NULL,foldername)
+#' @description The function \code{search.shift} (\cite{Castiglione et al.
+#'   2018}) tests whether individual clades or isolated tips dispersed through
+#'   the phylogeny evolve at different \code{\link{RRphylo}} rates as compared
+#'   to the rest of the tree. Instances of rate shifts may be automatically
+#'   found.
 #' @param RR an object fitted by the function \code{\link{RRphylo}}.
-#' @param status.type whether the \code{"clade"} or \code{"sparse"} condition must be tested.
-#' @param node under the \code{"clade"} condition, the node (clade) to be tested for the rate shift. When multiple nodes are tested, they need to be written as in the example below. If \code{node} is left unspecified, the function performs under the 'auto-recognize' feature, meaning it will automatically test individual clades for deviation of their rates from the background rate of the rest of the tree (see details).
-#' @param state the state of the tips specified under the \code{"sparse"} condition.
-#' @param cov the covariate to be indicated if its effect on rate values must be accounted for. Contrary to \code{RRphylo}, \code{cov} needs to be as long as the number of tips of the tree.
-#' @param nrep the number of simulations to be performed for the rate shift test, by default \code{nrep} is set at 1000.
-#' @param f the size of the smallest clade to be tested. By default, nodes subtending to one tenth of the tree tips are tested.
+#' @param status.type whether the \code{"clade"} or \code{"sparse"} condition
+#'   must be tested.
+#' @param node under the \code{"clade"} condition, the node (clade) to be tested
+#'   for the rate shift. When multiple nodes are tested, they need to be written
+#'   as in the example below. If \code{node} is left unspecified, the function
+#'   performs under the 'auto-recognize' feature, meaning it will automatically
+#'   test individual clades for deviation of their rates from the background
+#'   rate of the rest of the tree (see details).
+#' @param state the state of the tips specified under the \code{"sparse"}
+#'   condition.
+#' @param cov the covariate to be indicated if its effect on rate values must be
+#'   accounted for. Contrary to \code{RRphylo}, \code{cov} needs to be as long
+#'   as the number of tips of the tree.
+#' @param nrep the number of simulations to be performed for the rate shift
+#'   test, by default \code{nrep} is set at 1000.
+#' @param f the size of the smallest clade to be tested. By default, nodes
+#'   subtending to one tenth of the tree tips are tested.
 #' @param foldername the path of the folder where plots are to be found.
 #' @importFrom graphics symbols mtext
 #' @importFrom stats sd
 #' @importFrom utils globalVariables
 #' @export
-#' @details The function \code{search.shift} takes the object produced by \code{\link{RRphylo}}. Two different conditions of rate change can be investigated. Under the \code{"clade"} condition the vector of node or nodes subjected to the shift must be provided. Alternatively, under the \code{"sparse"} case the (named) vector of states (indicating which tips are or are not evolving under the rate shift according to the tested hypothesis) must be indicated. In the \code{"clade"} case, the function may perform an 'auto-recognize' feature. Under such specification, the function automatically tests individual clades (from clades as large as one half of the tree down to a specified clade size) for deviation of their rates from the background rate of the rest of the tree, which is identical to the \code{"clade"} case. An inclusive clade with significantly high rates is likely to include descending clades with similarly significantly high rates. Hence, with 'auto-recognize' the \code{search.shift} function is written as to scan clades individually and to select only the node subtending to the highest difference in mean absolute rates as compared to the rest of the tree. A plot of the tree highlighting nodes subtending to significantly different rates is automatically produced. Caution must be put into interpreting the 'auto-recognize' results. For instance, a clade with small rates and another with large rates could be individuated even under BM. This does not mean these clades are actual instances for rate shifts. Clades must be tested on their own without the 'auto-recognize' feature, which serves as guidance to the investigator, when no strong a priori hypothesis to be tested is advanced. The 'auto-recognize' feature is not meant to provide a test for a specific hypothesis. It serves as an optional guidance to understand whether and which clades show significantly large or small rates as compared to the rest of the tree. Individual clades are tested at once, meaning that significant instances of rate variation elsewhere on the tree are ignored. Conversely, running the \code{"clade"} condition without including the 'auto-recognize' feature, multiple clades presumed to evolve under the same shift are tested together, meaning that their rates are collectively contrasted to the rest of the tree, albeit they can additionally be compared to each other upon request. Under both the \code{"clade"} and \code{"sparse"} conditions, multiple clades could be specified at once, and optionally tested individually (for deviation of rates) against the rates of the rest of the tree and against each other. The histogram of random differences of mean rates distribution along with the position of the real difference of means is automatically generated by \code{search.shift}. Regardless of which condition is specified, the function output produces the real difference of means, and their significance value.
-#' @return Under all circumstances, \code{search.shift} provides a vector of \code{$rates}. If \code{'cov'} values are provided, rates are regressed against the covariate and the residuals of such regression form the vector \strong{\code{$rates}}. Otherwise, \strong{\code{$rates}} are the same rates as with the \code{RR} argument.
-#' @return Under \code{"clade"} case without specifying nodes (i.e. 'auto-recognize') a list including:
-#' @return \strong{$all.clades} for each detected node, the data-frame includes the average rate difference (computed as the mean rate over all branches subtended by the node minus the average rate for the rest of the tree) and the probability that it do represent a real shift. Probabilities are contrasted to simulations shuffling the rates across the tree branches for a number of replicates specified by the argument \code{nrep}. Note that the p-values refer to the number of times the real average rates are larger (or smaller) than the rates averaged over the rest of the tree, divided by the number of simulations. Hence, large rates are significantly larger than the rest of the tree (at alpha = 0.05), when the probability is > 0.975; and small rates are significantly small for p < 0.025.
-#' @return \strong{$single.clades} the same as with 'all.clades' but restricted to the largest/smallest rate values along a single clade (i.e. nested clades with smaller rate shifts are excluded). Large rates are significantly larger than the rest of the tree (at alpha = 0.05), when the probability is > 0.975; and small rates are significantly small for p < 0.025.
-#' @return Under \code{"clade"} condition by specifying the \code{node} argument:
-#' @return \strong{$all.clades.together} if more than one node is tested, this specifies the average rate difference and the significance of the rate shift, by considering all the specified nodes as evolving under a single rate. As with the 'auto-recognize' feature, large rates are significantly larger than the rest of the tree (at alpha = 0.05), when the probability is > 0.975; and small rates are significantly small for p < 0.025.
-#' @return \strong{$single.clades} this gives the significance for individual clades, tested separately. As previously, large rates are significantly larger than the rest of the tree (at alpha = 0.05), when the probability is > 0.975; and small rates are significantly small for p < 0.025.
+#' @details The function \code{search.shift} takes the object produced by
+#'   \code{\link{RRphylo}}. Two different conditions of rate change can be
+#'   investigated. Under the \code{"clade"} condition the vector of node or
+#'   nodes subjected to the shift must be provided. Alternatively, under the
+#'   \code{"sparse"} case the (named) vector of states (indicating which tips
+#'   are or are not evolving under the rate shift according to the tested
+#'   hypothesis) must be indicated. In the \code{"clade"} case, the function may
+#'   perform an 'auto-recognize' feature. Under such specification, the function
+#'   automatically tests individual clades (from clades as large as one half of
+#'   the tree down to a specified clade size) for deviation of their rates from
+#'   the background rate of the rest of the tree, which is identical to the
+#'   \code{"clade"} case. An inclusive clade with significantly high rates is
+#'   likely to include descending clades with similarly significantly high
+#'   rates. Hence, with 'auto-recognize' the \code{search.shift} function is
+#'   written as to scan clades individually and to select only the node
+#'   subtending to the highest difference in mean absolute rates as compared to
+#'   the rest of the tree. A plot of the tree highlighting nodes subtending to
+#'   significantly different rates is automatically produced. Caution must be
+#'   put into interpreting the 'auto-recognize' results. For instance, a clade
+#'   with small rates and another with large rates could be individuated even
+#'   under BM. This does not mean these clades are actual instances for rate
+#'   shifts. Clades must be tested on their own without the 'auto-recognize'
+#'   feature, which serves as guidance to the investigator, when no strong a
+#'   priori hypothesis to be tested is advanced. The 'auto-recognize' feature is
+#'   not meant to provide a test for a specific hypothesis. It serves as an
+#'   optional guidance to understand whether and which clades show significantly
+#'   large or small rates as compared to the rest of the tree. Individual clades
+#'   are tested at once, meaning that significant instances of rate variation
+#'   elsewhere on the tree are ignored. Conversely, running the \code{"clade"}
+#'   condition without including the 'auto-recognize' feature, multiple clades
+#'   presumed to evolve under the same shift are tested together, meaning that
+#'   their rates are collectively contrasted to the rest of the tree, albeit
+#'   they can additionally be compared to each other upon request. Under both
+#'   the \code{"clade"} and \code{"sparse"} conditions, multiple clades could be
+#'   specified at once, and optionally tested individually (for deviation of
+#'   rates) against the rates of the rest of the tree and against each other.
+#'   The histogram of random differences of mean rates distribution along with
+#'   the position of the real difference of means is automatically generated by
+#'   \code{search.shift}. Regardless of which condition is specified, the
+#'   function output produces the real difference of means, and their
+#'   significance value.
+#' @return Under all circumstances, \code{search.shift} provides a vector of
+#'   \code{$rates}. If \code{'cov'} values are provided, rates are regressed
+#'   against the covariate and the residuals of such regression form the vector
+#'   \strong{\code{$rates}}. Otherwise, \strong{\code{$rates}} are the same
+#'   rates as with the \code{RR} argument.
+#' @return Under \code{"clade"} case without specifying nodes (i.e.
+#'   'auto-recognize') a list including:
+#' @return \strong{$all.clades} for each detected node, the data-frame includes
+#'   the average rate difference (computed as the mean rate over all branches
+#'   subtended by the node minus the average rate for the rest of the tree) and
+#'   the probability that it do represent a real shift. Probabilities are
+#'   contrasted to simulations shuffling the rates across the tree branches for
+#'   a number of replicates specified by the argument \code{nrep}. Note that the
+#'   p-values refer to the number of times the real average rates are larger (or
+#'   smaller) than the rates averaged over the rest of the tree, divided by the
+#'   number of simulations. Hence, large rates are significantly larger than the
+#'   rest of the tree (at alpha = 0.05), when the probability is > 0.975; and
+#'   small rates are significantly small for p < 0.025.
+#' @return \strong{$single.clades} the same as with 'all.clades' but restricted
+#'   to the largest/smallest rate values along a single clade (i.e. nested
+#'   clades with smaller rate shifts are excluded). Large rates are
+#'   significantly larger than the rest of the tree (at alpha = 0.05), when the
+#'   probability is > 0.975; and small rates are significantly small for p <
+#'   0.025.
+#' @return Under \code{"clade"} condition by specifying the \code{node}
+#'   argument:
+#' @return \strong{$all.clades.together} if more than one node is tested, this
+#'   specifies the average rate difference and the significance of the rate
+#'   shift, by considering all the specified nodes as evolving under a single
+#'   rate. As with the 'auto-recognize' feature, large rates are significantly
+#'   larger than the rest of the tree (at alpha = 0.05), when the probability is
+#'   > 0.975; and small rates are significantly small for p < 0.025.
+#' @return \strong{$single.clades} this gives the significance for individual
+#'   clades, tested separately. As previously, large rates are significantly
+#'   larger than the rest of the tree (at alpha = 0.05), when the probability is
+#'   > 0.975; and small rates are significantly small for p < 0.025.
 #' @return Under the \code{"sparse"} condition:
-#' @return   \strong{$state.results} for each state, the data-frame includes the average rate difference (computed as the mean rate over all leaves evolving under a given state, minus the average rate for each other state or the rest of the tree) and the probability that the shift is real. Large rates are significantly larger (at alpha = 0.05), when the probability is > 0.975; and small rates are significantly small for p < 0.025. States are compared pairwise.
-#' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
-#' @references
-#' Castiglione, S., Tesone, G., Piccolo, M., Melchionna, M., Mondanaro, A., Serio, C., Di Febbraro, M., & Raia, P.(2018). A new method for testing evolutionary rate variation and shifts in phenotypic evolution. \emph{Methods in Ecology and Evolution}, 9: 974-983.doi:10.1111/2041-210X.12954
+#' @return   \strong{$state.results} for each state, the data-frame includes the
+#'   average rate difference (computed as the mean rate over all leaves evolving
+#'   under a given state, minus the average rate for each other state or the
+#'   rest of the tree) and the probability that the shift is real. Large rates
+#'   are significantly larger (at alpha = 0.05), when the probability is >
+#'   0.975; and small rates are significantly small for p < 0.025. States are
+#'   compared pairwise.
+#' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro
+#'   Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
+#'   Carotenuto
+#' @references Castiglione, S., Tesone, G., Piccolo, M., Melchionna, M.,
+#' Mondanaro, A., Serio, C., Di Febbraro, M., & Raia, P.(2018). A new method for
+#' testing evolutionary rate variation and shifts in phenotypic evolution.
+#' \emph{Methods in Ecology and Evolution}, 9:
+#' 974-983.doi:10.1111/2041-210X.12954
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' data("DataOrnithodirans")
 #' DataOrnithodirans$treedino->treedino
 #' DataOrnithodirans$massdino->massdino

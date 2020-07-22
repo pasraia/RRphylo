@@ -1,23 +1,44 @@
-#' @title Test the effect of phylogenetic uncertainty on rate shifts found at a particular node
-#' @description The function uses a number of alternative phylogenies with altered (as compared to the reference tree) topology and branch lengths tests whether the tips descending from the specified node (\code{node}) have statistically different rates from the rest of the tree. A phenotypic vector \code{y} must be supplied. Eventually, the effect of a covariate could be included.
+#' @title Test the effect of phylogenetic uncertainty on rate shifts found at a
+#'   particular node
+#' @description The function uses a number of alternative phylogenies with
+#'   altered (as compared to the reference tree) topology and branch lengths
+#'   tests whether the tips descending from the specified node (\code{node})
+#'   have statistically different rates from the rest of the tree. A phenotypic
+#'   vector \code{y} must be supplied. Eventually, the effect of a covariate
+#'   could be included.
 #' @usage swap.phylo(tree,si=0.5,si2=0.5,node,y,rts,nrep=100,cov=NULL,clus=0.5)
-#' @param tree a phylogenetic tree. The tree needs not to be ultrametric or fully dichotomous.
+#' @param tree a phylogenetic tree. The tree needs not to be ultrametric or
+#'   fully dichotomous.
 #' @param si the proportion of tips whose topologic arrangement will be swapped.
 #' @param si2 the proportion of nodes whose age will be changed.
 #' @param node the focal node to be tested.
 #' @param y the phenotype under testing.
 #' @param rts the rates found by \code{\link{RRphylo}} on the original tree.
 #' @param nrep the number of simulated trees to be produced.
-#' @param cov the covariate to be indicated if its effect on rate values must be accounted for. Contrary to \code{RRphylo}, \code{cov} needs to be as long as the number of tips of the tree.
-#' @param clus the proportion of clusters to be used in parallel computing (only if \code{y} is multivariate). To run the single-threaded version of \code{swap.phylo} set \code{clus} = 0.
+#' @param cov the covariate to be indicated if its effect on rate values must be
+#'   accounted for. Contrary to \code{RRphylo}, \code{cov} needs to be as long
+#'   as the number of tips of the tree.
+#' @param clus the proportion of clusters to be used in parallel computing (only
+#'   if \code{y} is multivariate). To run the single-threaded version of
+#'   \code{swap.phylo} set \code{clus} = 0.
 #' @importFrom graphics hist par
 #' @importFrom grDevices rgb
 #' @importFrom stats t.test
-#' @details \code{swap.phylo} changes the tree topology and branch lengths to a level specified by the user. Up to half of the tips, and half of the branch lengths can be changed randomly. The function provides a 'swapped' tree, yet, importantly, once a shift in the rate of evolution has been found by \code{\link{RRphylo}}, this function can be used to test whether the shift depends on the tree topology and branch lengths. It runs \code{RRphylo} on swapped trees (default is 100) and then calculates the absolute rate difference between all the branches of the shifted node and the rest of the tree. A t-test is eventually performed to assess significance.
+#' @details \code{swap.phylo} changes the tree topology and branch lengths to a
+#'   level specified by the user. Up to half of the tips, and half of the branch
+#'   lengths can be changed randomly. The function provides a 'swapped' tree,
+#'   yet, importantly, once a shift in the rate of evolution has been found by
+#'   \code{\link{RRphylo}}, this function can be used to test whether the shift
+#'   depends on the tree topology and branch lengths. It runs \code{RRphylo} on
+#'   swapped trees (default is 100) and then calculates the absolute rate
+#'   difference between all the branches of the shifted node and the rest of the
+#'   tree. A t-test is eventually performed to assess significance.
 #' @export
 #' @return The function returns a 'list' object containing:
-#' @return \strong{$p.swap} the probability that the rates at \code{node} are different from rates at the rest of the tree.
-#' @return \strong{$rates} the distribution of rates per branch as calculated by \code{RRphylo} on 'swapped' phylogenies.
+#' @return \strong{$p.swap} the probability that the rates at \code{node} are
+#'   different from rates at the rest of the tree.
+#' @return \strong{$rates} the distribution of rates per branch as calculated by
+#'   \code{RRphylo} on 'swapped' phylogenies.
 #' @examples
 #' \dontrun{
 #'   data("DataApes")

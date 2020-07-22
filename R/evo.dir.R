@@ -1,39 +1,92 @@
 #' @title Phylogenetic vector analysis of phenotypic change
 #'
-#' @description This function quantifies direction, size and rate of evolutionary change of multivariate traits along node-to-tip paths and between species.
+#' @description This function quantifies direction, size and rate of
+#'   evolutionary change of multivariate traits along node-to-tip paths and
+#'   between species.
 #' @usage evo.dir(RR,angle.dimension=c("rates","phenotypes"),
-#' y.type=c("original","RR"),y=NULL,pair.type=c("node","tips"),pair=NULL,
-#' node=NULL,random=c("yes","no"),nrep=100)
+#'   y.type=c("original","RR"),y=NULL,pair.type=c("node","tips"),pair=NULL,
+#'   node=NULL,random=c("yes","no"),nrep=100)
 #' @param RR an object produced by \code{\link{RRphylo}}.
-#' @param angle.dimension specifies whether vectors of \code{"rates"} or \code{"phenotypes"} are used.
-#' @param y.type must be indicated when \code{angle.dimension = "phenotypes"}. If \code{"original"}, it uses the phenotypes as provided by the user, if \code{"RR"} it uses \code{RR$predicted.phenotypes}.
-#' @param y specifies the phenotypes to be provided if \code{y.type = "original"}.
-#' @param pair.type either \code{"node"} or \code{"tips"}. Angles are computed between each possible couple of species descending from a specified node (\code{"node"}), or between a given couple of species (\code{"tips"}).
-#' @param pair species pair to be specified if \code{pair.type = "tips"}. It needs to be written as in the example below.
-#' @param node node number to be specified if \code{pair.type = "node"}. Notice the node number must refer to the dichotomic version of the original tree, as produced by \code{RRphylo}.
-#' @param random whether to perform randomization test (\code{"yes"}/\code{"no"}).
-#' @param nrep number of replications must be indicated if \code{random = "yes"}. It is set at 100 by default.
+#' @param angle.dimension specifies whether vectors of \code{"rates"} or
+#'   \code{"phenotypes"} are used.
+#' @param y.type must be indicated when \code{angle.dimension = "phenotypes"}.
+#'   If \code{"original"}, it uses the phenotypes as provided by the user, if
+#'   \code{"RR"} it uses \code{RR$predicted.phenotypes}.
+#' @param y specifies the phenotypes to be provided if \code{y.type =
+#'   "original"}.
+#' @param pair.type either \code{"node"} or \code{"tips"}. Angles are computed
+#'   between each possible couple of species descending from a specified node
+#'   (\code{"node"}), or between a given couple of species (\code{"tips"}).
+#' @param pair species pair to be specified if \code{pair.type = "tips"}. It
+#'   needs to be written as in the example below.
+#' @param node node number to be specified if \code{pair.type = "node"}. Notice
+#'   the node number must refer to the dichotomic version of the original tree,
+#'   as produced by \code{RRphylo}.
+#' @param random whether to perform randomization test
+#'   (\code{"yes"}/\code{"no"}).
+#' @param nrep number of replications must be indicated if \code{random =
+#'   "yes"}. It is set at 100 by default.
 #' @importFrom ape extract.clade getMRCA
 #' @importFrom stats quantile
 #' @importFrom phytools getDescendants
 #' @export
-#' @details The way \code{evo.dir} computes vectors depends on whether phenotypes or rates are used as variables. \code{\link{RRphylo}} rates along a path are aligned along a chain of ancestor/descendant relationships. As such, each rate vector origin coincides to the tip of its ancestor, and the resultant of the path is given by vector addition. In contrast, phenotypic vectors are computed with reference to a common origin (i.e. the consensus shape in a geometric morphometrics). In this latter case, vector subtraction (rather than addition) will define the resultant of the evolutionary direction.  It is important to realize that resultants could be at any angle even if the species (the terminal vectors) have similar phenotypes, because path resultants, rather than individual phenotypes, are being contrasted. However, the function also provides the angle between individual phenotypes as 'angle.between.species'. To perform randomization test (\code{random = "yes"}), the evolutionary directions of the two species are collapsed together. Then, for each variable, the median is found, and random paths of the same size as the original paths are produced sampling at random from the 47.5th to the 52.5th percentile around the medians. This way, a random distribution of angles is obtained under the hypothesis that the two directions are actually parallel. The 'angle.direction' represents the angle formed by the species phenotype and a vector of 1s (as long as the number of variables representing the phenotype). This way, each species phenotype is contrasted to the same vector. The 'angle.direction' values could be inspected to test whether individual species phenotypes evolve towards similar directions.
-#' @return Under all specs, \code{evo.dir} returns a 'list' object. The length of the list is one if \code{pair.type = "tips"}.  If \code{pair.type = "node"}, the list is as long as the number of all possible species pairs descending from the node. Each element of the list contains:
-#' @return \strong{angle.path.A} angle of the resultant vector of species A to MRCA
-#' @return \strong{vector.size.species.A} size of the resultant vector of species A to MRCA
-#' @return \strong{angle.path.B} angle of the resultant vector of species B to MRCA
-#' @return \strong{vector.size.species.B} size of the resultant vector of species B to MRCA
-#' @return \strong{angle.between.species.to.mrca} angle between the species paths resultant vectors to the MRCA
-#' @return \strong{angle.between.species} angle between species vectors (as they are, without computing the path)
-#' @return \strong{MRCA} the node identifying the most recent common ancestor of A and B
-#' @return \strong{angle.direction.A} angle of the vector of species A (as it is, without computing the path) to a fixed reference vector (the same for all species)
+#' @details The way \code{evo.dir} computes vectors depends on whether
+#'   phenotypes or rates are used as variables. \code{\link{RRphylo}} rates
+#'   along a path are aligned along a chain of ancestor/descendant
+#'   relationships. As such, each rate vector origin coincides to the tip of its
+#'   ancestor, and the resultant of the path is given by vector addition. In
+#'   contrast, phenotypic vectors are computed with reference to a common origin
+#'   (i.e. the consensus shape in a geometric morphometrics). In this latter
+#'   case, vector subtraction (rather than addition) will define the resultant
+#'   of the evolutionary direction.  It is important to realize that resultants
+#'   could be at any angle even if the species (the terminal vectors) have
+#'   similar phenotypes, because path resultants, rather than individual
+#'   phenotypes, are being contrasted. However, the function also provides the
+#'   angle between individual phenotypes as 'angle.between.species'. To perform
+#'   randomization test (\code{random = "yes"}), the evolutionary directions of
+#'   the two species are collapsed together. Then, for each variable, the median
+#'   is found, and random paths of the same size as the original paths are
+#'   produced sampling at random from the 47.5th to the 52.5th percentile around
+#'   the medians. This way, a random distribution of angles is obtained under
+#'   the hypothesis that the two directions are actually parallel. The
+#'   'angle.direction' represents the angle formed by the species phenotype and
+#'   a vector of 1s (as long as the number of variables representing the
+#'   phenotype). This way, each species phenotype is contrasted to the same
+#'   vector. The 'angle.direction' values could be inspected to test whether
+#'   individual species phenotypes evolve towards similar directions.
+#' @return Under all specs, \code{evo.dir} returns a 'list' object. The length
+#'   of the list is one if \code{pair.type = "tips"}.  If \code{pair.type =
+#'   "node"}, the list is as long as the number of all possible species pairs
+#'   descending from the node. Each element of the list contains:
+#' @return \strong{angle.path.A} angle of the resultant vector of species A to
+#'   MRCA
+#' @return \strong{vector.size.species.A} size of the resultant vector of
+#'   species A to MRCA
+#' @return \strong{angle.path.B} angle of the resultant vector of species B to
+#'   MRCA
+#' @return \strong{vector.size.species.B} size of the resultant vector of
+#'   species B to MRCA
+#' @return \strong{angle.between.species.to.mrca} angle between the species
+#'   paths resultant vectors to the MRCA
+#' @return \strong{angle.between.species} angle between species vectors (as they
+#'   are, without computing the path)
+#' @return \strong{MRCA} the node identifying the most recent common ancestor of
+#'   A and B
+#' @return \strong{angle.direction.A} angle of the vector of species A (as it
+#'   is, without computing the path) to a fixed reference vector (the same for
+#'   all species)
 #' @return \strong{vec.size.direction.A} size of the vector of species A
-#' @return \strong{angle.direction.B} angle of the vector of species B (as it is, without computing the path) to a fixed reference vector (the same for all species)
+#' @return \strong{angle.direction.B} angle of the vector of species B (as it
+#'   is, without computing the path) to a fixed reference vector (the same for
+#'   all species)
 #' @return \strong{vec.size.direction.B} size of the vector of species B
-#' @return If \code{random = "yes"}, results also include p-values for the angles.
-#' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
+#' @return If \code{random = "yes"}, results also include p-values for the
+#'   angles.
+#' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro
+#'   Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
+#'   Carotenuto
 #' @examples
-#' \donttest{
+#' \dontrun{
 #'   data("DataApes")
 #'   DataApes$PCstage->PCstage
 #'   DataApes$Tstage->Tstage

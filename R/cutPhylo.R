@@ -1,17 +1,24 @@
 #' @title Cut the phylogeny at a given age or node
-#' @description The function cuts all the branches of the phylogeny which are younger than a specific age or node (i.e. the age of the node).
+#' @description The function cuts all the branches of the phylogeny which are
+#'   younger than a specific age or node (i.e. the age of the node).
 #' @usage cutPhylo(tree,age=NULL,node=NULL)
-#' @param tree a phylogenetic tree. The tree needs not to be ultrametric and fully dichotomous.
-#' @param age the age (in terms of time distance from the recent) at which the tree must be cut
+#' @param tree a phylogenetic tree. The tree needs not to be ultrametric and
+#'   fully dichotomous.
+#' @param age the age (in terms of time distance from the recent) at which the
+#'   tree must be cut
 #' @param node the node whose age must be used as cutting limit.
 #' @export
 #' @importFrom phytools drop.clade
 #' @importFrom ape axisPhylo
-#' @details When an entire lineage is cut (i.e. one or more nodes along a path), the leaves left are labeled as "l" followed by a number.
-#' @return The function returns the cut phylogeny and plots it into the graphic device. The time axis keeps the root age of the original tree.
-#' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
+#' @details When an entire lineage is cut (i.e. one or more nodes along a path),
+#'   the leaves left are labeled as "l" followed by a number.
+#' @return The function returns the cut phylogeny and plots it into the graphic
+#'   device. The time axis keeps the root age of the original tree.
+#' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro
+#'   Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
+#'   Carotenuto
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' library(ape)
 #' library(phytools)
 #'

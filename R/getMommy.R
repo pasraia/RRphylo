@@ -1,15 +1,24 @@
 #' @title Upward tip or node to root path
-#' @description This function is a wrapper around \pkg{phytools} \code{getDescendants} (\cite{Revell 2012}). It returns the node path from a given node or species to the root of the phylogeny.
+#' @description This function is a wrapper around \pkg{phytools}
+#'   \code{getDescendants} (\cite{Revell 2012}). It returns the node path from a
+#'   given node or species to the root of the phylogeny.
 #' @usage getMommy(tree,N,curr=NULL)
-#' @param tree a phylogenetic tree. The tree needs not to be ultrametric and fully dichotomous.
-#' @param N the number of node or tip to perform the function on. Notice the function only works with number, not tip labels.
+#' @param tree a phylogenetic tree. The tree needs not to be ultrametric and
+#'   fully dichotomous.
+#' @param N the number of node or tip to perform the function on. Notice the
+#'   function only works with number, not tip labels.
 #' @param curr has not to be provided by the user.
 #' @export
-#' @details The object \code{'curr'} is created inside the function in order to produce an array of nodes on the path.
-#' @return The function produces a vector of node numbers as integers, collated from a node or a tip towards the tree root.
-#' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
-#' @references
-#' Revell, L. J. (2012). phytools: An R package for phylogenetic comparative biology (and other things). \emph{Methods in Ecology and Evolution}, 3: 217-223.doi:10.1111/j.2041-210X.2011.00169.x
+#' @details The object \code{'curr'} is created inside the function in order to
+#'   produce an array of nodes on the path.
+#' @return The function produces a vector of node numbers as integers, collated
+#'   from a node or a tip towards the tree root.
+#' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro
+#'   Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
+#'   Carotenuto
+#' @references Revell, L. J. (2012). phytools: An R package for phylogenetic
+#' comparative biology (and other things). \emph{Methods in Ecology and
+#' Evolution}, 3: 217-223.doi:10.1111/j.2041-210X.2011.00169.x
 #' @examples
 #' data("DataApes")
 #' DataApes$Tstage->Tstage

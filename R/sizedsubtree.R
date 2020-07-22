@@ -1,15 +1,24 @@
 #' @title Find a node subtending to a clade of desired size
 #'
-#' @description The function \code{sizedsubtree} scans a phylogentic tree to randomly find nodes subtending to a subtree of desired minimum size, up to one half of the tree size (number of tips).
+#' @description The function \code{sizedsubtree} scans a phylogentic tree to
+#'   randomly find nodes subtending to a subtree of desired minimum size, up to
+#'   one half of the tree size (number of tips).
 #' @usage sizedsubtree(tree,Size=NULL,time.limit=10)
 #' @param tree a phylogenetic tree.
-#' @param Size the desired size of the tree subtending to the extracted node. By default, the minimum tree size is set at one tenth of the tree size (i.e. number of tips).
-#' @param time.limit specifies a limit to the searching time, a warning message is thrown if the limit is reached.
+#' @param Size the desired size of the tree subtending to the extracted node. By
+#'   default, the minimum tree size is set at one tenth of the tree size (i.e.
+#'   number of tips).
+#' @param time.limit specifies a limit to the searching time, a warning message
+#'   is thrown if the limit is reached.
 #' @export
 #' @importFrom stats na.omit
-#' @details The argument \code{time.limit} sets the searching time. The algorithm stops if that limit is reached, avoiding recursive search when no solution is in fact possible.
+#' @details The argument \code{time.limit} sets the searching time. The
+#'   algorithm stops if that limit is reached, avoiding recursive search when no
+#'   solution is in fact possible.
 #' @return A node subtending to a subtree of desired minimum size.
-#' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
+#' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro
+#'   Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
+#'   Carotenuto
 #' @examples
 #' data("DataOrnithodirans")
 #' DataOrnithodirans$treedino->treedino

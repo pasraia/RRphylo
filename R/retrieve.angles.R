@@ -1,38 +1,56 @@
-#' @title Extracting a user-specified subset of the evo.dir results
-#' @description This function takes the result list produced by \code{\link{evo.dir}} as the input, and extracts a specific subset of it. The user may specify whether to extract the set of angles between species resultant vectors and the MRCA, the size of resultant vectors, or the set of angles between species.
-#' @usage retrieve.angles(angles.res,wishlist=c("anglesMRCA","angleDir","angles.between.species"),
-#' random=c("yes","no"),focus=c("node","species","both","none"),
-#' node=NULL,species=NULL,write2csv=c("no","yes"))
-#' @param angles.res the object resulting from \code{\link{evo.dir}} function.
-#' @param wishlist specifies whether to extract angles and sizes (\code{"anglesMRCA"}) of resultant vectors between individual species and the MRCA, angles and sizes (\code{"angleDir"}) of vectors between individual species and a fixed reference vector (the same for all species), or angles between species resultant vectors (\code{"angles.between.species"}).
-#' @param random it needs to be \code{"yes"} if \code{'angles.res'} object contains randomization results.
-#' @param focus it can be \code{"node"}, \code{"species"}, \code{"both"}, or \code{"none"}, whether the user wants the results for a focal node, or for a given species, for both, or just wants to visualize everything.
-#' @param node must be indicated if \code{focus = "node"} or \code{"both"}. As for \code{evo.dir}, the node number must refer to the dichotomic version of the original tree, as produced by \code{\link{RRphylo}}.
-#' @param species must be indicated if \code{focus = "species"} or \code{"both"}.
-#' @param write2csv if \code{"yes"} results are saved to a .csv file in your working directory.
-#' @export
-#' @importFrom utils write.csv
-#' @details \code{retrieve.angles} allows to focalize the extraction to a particular node, species, or both. Otherwise it returns the whole dataset.
-#' @return \code{retrieve.angles} outputs an object of class \code{'data.frame'}.
-#' @return If \code{wishlist = "anglesMRCA"}, the data frame includes:
-#' \itemize{\item\strong{MRCA} the most recent common ancestor the angle is computed to
-#' \item\strong{species} species ID
-#' \item\strong{angle} the angle between the resultant vector of species and the MRCA
-#' \item\strong{vector.size} the size of the resultant vector computed from species to MRCA
-#' }
-#' @return If \code{wishlist = "angleDir"}, the data frame includes:
-#' \itemize{\item\strong{MRCA} the most recent common ancestor the vector is computed to
-#' \item\strong{species} species ID
-#' \item\strong{angle.direction} the angle between the vector of species and a fixed reference
-#' \item\strong{vector.size} the size of the vector of species
-#' }
-#' @return If \code{wishlist = "angles.between.species"}, the data frame includes:
-#' \itemize{\item\strong{MRCA} the most recent common ancestor the vector is computed from
-#' \item\strong{species} pair IDs of the species pair the "angle between species" is computed for
-#' \item\strong{angleBTWspecies2MRCA} angle between species resultant vectors to MRCA
-#' \item\strong{anglesBTWspecies} angle between species resultant vectors
-#' }
-#' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
+#'@title Extracting a user-specified subset of the evo.dir results
+#'@description This function takes the result list produced by
+#'  \code{\link{evo.dir}} as the input, and extracts a specific subset of it.
+#'  The user may specify whether to extract the set of angles between species
+#'  resultant vectors and the MRCA, the size of resultant vectors, or the set of
+#'  angles between species.
+#'@usage
+#'  retrieve.angles(angles.res,wishlist=c("anglesMRCA","angleDir","angles.between.species"),
+#'   random=c("yes","no"),focus=c("node","species","both","none"),
+#'  node=NULL,species=NULL,write2csv=c("no","yes"))
+#'@param angles.res the object resulting from \code{\link{evo.dir}} function.
+#'@param wishlist specifies whether to extract angles and sizes
+#'  (\code{"anglesMRCA"}) of resultant vectors between individual species and
+#'  the MRCA, angles and sizes (\code{"angleDir"}) of vectors between individual
+#'  species and a fixed reference vector (the same for all species), or angles
+#'  between species resultant vectors (\code{"angles.between.species"}).
+#'@param random it needs to be \code{"yes"} if \code{'angles.res'} object
+#'  contains randomization results.
+#'@param focus it can be \code{"node"}, \code{"species"}, \code{"both"}, or
+#'  \code{"none"}, whether the user wants the results for a focal node, or for a
+#'  given species, for both, or just wants to visualize everything.
+#'@param node must be indicated if \code{focus = "node"} or \code{"both"}. As
+#'  for \code{evo.dir}, the node number must refer to the dichotomic version of
+#'  the original tree, as produced by \code{\link{RRphylo}}.
+#'@param species must be indicated if \code{focus = "species"} or \code{"both"}.
+#'@param write2csv if \code{"yes"} results are saved to a .csv file in your
+#'  working directory.
+#'@export
+#'@importFrom utils write.csv
+#'@details \code{retrieve.angles} allows to focalize the extraction to a
+#'  particular node, species, or both. Otherwise it returns the whole dataset.
+#'@return \code{retrieve.angles} outputs an object of class \code{'data.frame'}.
+#'@return If \code{wishlist = "anglesMRCA"}, the data frame includes:
+#'  \itemize{\item\strong{MRCA} the most recent common ancestor the angle is
+#'  computed to \item\strong{species} species ID \item\strong{angle} the angle
+#'  between the resultant vector of species and the MRCA
+#'  \item\strong{vector.size} the size of the resultant vector computed from
+#'  species to MRCA }
+#'@return If \code{wishlist = "angleDir"}, the data frame includes:
+#'  \itemize{\item\strong{MRCA} the most recent common ancestor the vector is
+#'  computed to \item\strong{species} species ID \item\strong{angle.direction}
+#'  the angle between the vector of species and a fixed reference
+#'  \item\strong{vector.size} the size of the vector of species }
+#'@return If \code{wishlist = "angles.between.species"}, the data frame
+#'  includes: \itemize{\item\strong{MRCA} the most recent common ancestor the
+#'  vector is computed from \item\strong{species} pair IDs of the species pair
+#'  the "angle between species" is computed for
+#'  \item\strong{angleBTWspecies2MRCA} angle between species resultant vectors
+#'  to MRCA \item\strong{anglesBTWspecies} angle between species resultant
+#'  vectors }
+#'@author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro
+#'  Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
+#'  Carotenuto
 #' @examples
 #'\dontrun{
 #'     data("DataApes")
