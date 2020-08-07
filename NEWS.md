@@ -1,3 +1,17 @@
+# RRphylo 2.4.9
+What's new in version 2.4.9
+
+New functions added!
+
+The function random.evolvability.test assesses the importance of phylogenetic 
+structuring (signal) on Respondability Evolvability, and Flexibility, by means of randomization.
+
+The function conv.map selects RW(PC) axes which best account for convergence and maps convergent areas on the corresponding 3D surfaces.
+
+RRphylo is now able to deal with categorical variables and incorporate more than one predictor (x1 argument) at the same time.
+
+RRphylo now deals consistently with both newick and nexus tree format files.
+
 # RRphylo 2.4.6
 What's new in version 2.4.6
 
