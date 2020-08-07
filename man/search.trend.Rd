@@ -16,7 +16,7 @@ created using an additional predictor (i.e. multiple version of
 \code{RRphylo}). \code{'x1'} vector must be as long as the number of nodes
 plus the number of tips of the tree, which can be obtained by running
 \code{RRphylo} on the predictor as well, and taking the vector of ancestral
-states and tip values to form the \code{x1}.}
+states and tip values to form the \code{x1}. Note: only one predictor at once can be specified.}
 
 \item{nsim}{number of simulations to be performed. It is set at 100 by
 default.}

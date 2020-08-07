@@ -37,6 +37,7 @@ The function produces an alternative phylogeny with altered
   original position.
 }
 \examples{
+\dontrun{
 data("DataOrnithodirans")
 DataOrnithodirans$treedino->treedino
 
@@ -46,6 +47,7 @@ swapONE(tree=treedino,si=0.5,si2=0.5,plot.swap=FALSE)
 ## Case 2. change the topology and the branch lengths of the
 ##         tree by keeping the monophyly of a specific clade
 swapONE(tree=treedino,node=422,si=0.5,si2=0.5,plot.swap=FALSE)
+}
 }
 \references{
 Kuhner, M. K. & Felsenstein, J. (1994). A simulation comparison

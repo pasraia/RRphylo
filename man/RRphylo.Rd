@@ -11,7 +11,9 @@ RRphylo(tree,y,cov=NULL,rootV=NULL,aces=NULL,x1=NULL,aces.x1=NULL,clus=0.5)
 fully dichotomous.}
 
 \item{y}{either a single vector variable or a multivariate dataset of class
-\sQuote{matrix}. In any case, \code{y} must be named.}
+\sQuote{matrix}. In any case, \code{y} must be named. In case of
+categorical variable, this sholud be supplied to the function as a numeric
+vector.}
 
 \item{cov}{the covariate to be indicated if its effect on the rates must be
 accounted for. In this case residuals of the covariate versus the rates are
@@ -30,15 +32,16 @@ distant tips).}
 ancestral character values at nodes. Names correspond to the nodes in the
 tree.}
 
-\item{x1}{the additional predictor to be indicated to perform the multiple
-version of \code{RRphylo}. \code{'x1'} vector must be as long as the number
-of nodes plus the number of tips of the tree, which can be obtained by
-running \code{RRphylo} on the predictor as well, and taking the vector of
-ancestral states and tip values to form the \code{x1}.}
+\item{x1}{the additional predictor(s) to be indicated to perform the multiple
+version of \code{RRphylo}. \code{'x1'} vector/matrix must be as long as the
+number of nodes plus the number of tips of the tree, which can be obtained
+by running \code{RRphylo} on the predictors (separately for each predictor)
+as well, and taking the vector of ancestral states and tip values to form
+the \code{x1}.}
 
-\item{aces.x1}{a named vector of ancestral character values at nodes for
-\code{x1}. It must be indicated if both \code{aces} and \code{x1} are
-specified. Names correspond to the nodes in the tree.}
+\item{aces.x1}{a named vector/matrix of ancestral character values at nodes
+for \code{x1}. It must be indicated if both \code{aces} and \code{x1} are
+specified. Names/rownames correspond to the nodes in the tree.}
 
 \item{clus}{the proportion of clusters to be used in parallel computing (only
 if \code{y} is multivariate). To run the single-threaded version of
@@ -130,6 +133,31 @@ RRmass.multi$aces[,1]->acemass.multi
 c(acemass.multi,masscet.multi)->x1.mass
 
 RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass)->RR
+
+# Case 5. Categorical and multiple "RRphylo" with 2 additional predictors
+library(phytools)
+library(geiger)
+
+set.seed(1458)
+rtree(50)->tree
+fastBM(tree)->y
+jitter(y)*10->y1
+rep(1,length(y))->y2
+y2[sample(1:50,20)]<-2
+names(y2)<-names(y)
+
+c(RRphylo(tree,y1)$aces[,1],y1)->x1
+
+RRphylo(tree,y2)->RRcat ### this is the RRphylo on the categorical variable
+c(RRcat$aces[,1],y2)->x2
+
+cbind(c(jitter(mean(y1[tips(tree,83)])),1),
+      c(jitter(mean(y1[tips(tree,53)])),2))->acex
+c(jitter(mean(y[tips(tree,83)])),jitter(mean(y[tips(tree,53)])))->acesy
+names(acesy)<-rownames(acex)<-c(83,53)
+
+RRphylo(tree,y,aces=acesy,x1=cbind(x1,x2),aces.x1 = acex)
+
     }
 }
 \references{
