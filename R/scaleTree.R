@@ -83,6 +83,13 @@ scaleTree<- function(tree, tip.ages=NULL, node.ages=NULL, min.branch=0.1)
   # require(ape)
   # require(phytools)
 
+  if(!identical(tree$tip.label,tips(tree,(Ntip(tree)+1)))){
+    data.frame(tree$tip.label,N=seq(1,Ntip(tree)))->dftips
+    tree$tip.label<-tips(tree,(Ntip(tree)+1))
+    data.frame(dftips,Nor=match(dftips[,1],tree$tip.label))->dftips
+    tree$edge[match(dftips[,2],tree$edge[,2]),2]<-dftips[,3]
+  }
+
   abs(min.branch)->min.diff
 
   if(is.null(tip.ages)) max(diag(vcv(tree)))-diag(vcv(tree))->tip.ages else{

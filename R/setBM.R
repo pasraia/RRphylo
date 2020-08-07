@@ -78,6 +78,14 @@ setBM<-function (tree, nY = 1, s2 = 1, a = 0,
                  trend.type = c("linear", "stepwise"),
                  tr = 10, t.shift = 0.5, es = 2, ds = 1)
 {
+
+  if(!identical(tree$tip.label,tips(tree,(Ntip(tree)+1)))){
+    data.frame(tree$tip.label,N=seq(1,Ntip(tree)))->dftips
+    tree$tip.label<-tips(tree,(Ntip(tree)+1))
+    data.frame(dftips,Nor=match(dftips[,1],tree$tip.label))->dftips
+    tree$edge[match(dftips[,2],tree$edge[,2]),2]<-dftips[,3]
+  }
+
   if (type == "")
     stop("argument 'type' must be defined")
   switch(type, brown = {

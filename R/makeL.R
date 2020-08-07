@@ -20,6 +20,13 @@
 
 makeL<-function(tree){
 
+  if(!identical(tree$tip.label,tips(tree,(Ntip(tree)+1)))){
+    data.frame(tree$tip.label,N=seq(1,Ntip(tree)))->dftips
+    tree$tip.label<-tips(tree,(Ntip(tree)+1))
+    data.frame(dftips,Nor=match(dftips[,1],tree$tip.label))->dftips
+    tree$edge[match(dftips[,2],tree$edge[,2]),2]<-dftips[,3]
+  }
+
   internals <- unique(c(tree$edge[, 1], tree$edge[, 2][which(tree$edge[,
                                                                        2] > Ntip(tree))]))
 

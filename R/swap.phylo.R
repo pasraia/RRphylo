@@ -75,6 +75,13 @@ swap.phylo<-function(tree,si=0.5,si2=0.5,node,y,rts,nrep=100,cov=NULL,clus=0.5){
       sort(x,partial=len-N+1)[len-N+1]
     }
 
+    if(!identical(tree$tip.label,tips(tree,(Ntip(tree)+1)))){
+      data.frame(tree$tip.label,N=seq(1,Ntip(tree)))->dftips
+      tree$tip.label<-tips(tree,(Ntip(tree)+1))
+      data.frame(dftips,Nor=match(dftips[,1],tree$tip.label))->dftips
+      tree$edge[match(dftips[,2],tree$edge[,2]),2]<-dftips[,3]
+    }
+
     tree->tree1
     #if(inherits(y,"data.frame")) treedata(tree,y,sort=TRUE)[[2]]->y
     if(is.null(nrow(y))) y <- treedata(tree, y, sort = TRUE)[[2]][,1] else y <- treedata(tree, y, sort = TRUE)[[2]]

@@ -34,8 +34,15 @@ sizedsubtree <-function(tree,Size=NULL,time.limit=10)
          call. = FALSE)
   }
 
-  szs<-function(tree,size=Size)
-  {
+
+  if(!identical(tree$tip.label,tips(tree,(Ntip(tree)+1)))){
+    data.frame(tree$tip.label,N=seq(1,Ntip(tree)))->dftips
+    tree$tip.label<-tips(tree,(Ntip(tree)+1))
+    data.frame(dftips,Nor=match(dftips[,1],tree$tip.label))->dftips
+    tree$edge[match(dftips[,2],tree$edge[,2]),2]<-dftips[,3]
+  }
+
+  szs<-function(tree,size=Size){
     #require(ape)
     #require(geiger)
     if(is.null(size)) size<-Ntip(tree)/10

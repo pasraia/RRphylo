@@ -28,6 +28,7 @@
 #'   of phylogeny algorithms under equal and unequal evolutionary rates,
 #'   \emph{Molecular Biology and Evolution}, 11: 459-468.
 #' @examples
+#' \dontrun{
 #' data("DataOrnithodirans")
 #' DataOrnithodirans$treedino->treedino
 #'
@@ -37,6 +38,7 @@
 #' ## Case 2. change the topology and the branch lengths of the
 #' ##         tree by keeping the monophyly of a specific clade
 #' swapONE(tree=treedino,node=422,si=0.5,si2=0.5,plot.swap=FALSE)
+#' }
 
 
 swapONE<-function(tree,
@@ -46,6 +48,13 @@ swapONE<-function(tree,
                   plot.swap=FALSE){
 
   #require(phangorn)
+
+  if(!identical(tree$tip.label,tips(tree,(Ntip(tree)+1)))){
+    data.frame(tree$tip.label,N=seq(1,Ntip(tree)))->dftips
+    tree$tip.label<-tips(tree,(Ntip(tree)+1))
+    data.frame(dftips,Nor=match(dftips[,1],tree$tip.label))->dftips
+    tree$edge[match(dftips[,2],tree$edge[,2]),2]<-dftips[,3]
+  }
 
   tree1<-tree
   maxN <- function(x, N=2){

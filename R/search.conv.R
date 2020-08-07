@@ -1025,6 +1025,14 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
     dev.off()
 
   }else{
+
+    if(!identical(tree$tip.label,tips(tree,(Ntip(tree)+1)))){
+      data.frame(tree$tip.label,N=seq(1,Ntip(tree)))->dftips
+      tree$tip.label<-tips(tree,(Ntip(tree)+1))
+      data.frame(dftips,Nor=match(dftips[,1],tree$tip.label))->dftips
+      tree$edge[match(dftips[,2],tree$edge[,2]),2]<-dftips[,3]
+    }
+
     tree->tree1
     #if (inherits(y,"data.frame"))
     y <- treedata(tree1, y, sort = TRUE)[[2]]

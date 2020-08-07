@@ -9,11 +9,13 @@
 #'   one vector per variable, and as a multivariate vector obtained by computing
 #'   the Euclidean Norm of individual rate vectors.
 #' @usage
-#'   RRphylo(tree,y,cov=NULL,rootV=NULL,aces=NULL,x1=NULL,aces.x1=NULL,clus=0.5)
+#' RRphylo(tree,y,cov=NULL,rootV=NULL,aces=NULL,x1=NULL,aces.x1=NULL,clus=0.5)
 #' @param tree a phylogenetic tree. The tree needs not to be ultrametric or
 #'   fully dichotomous.
 #' @param y either a single vector variable or a multivariate dataset of class
-#'   \sQuote{matrix}. In any case, \code{y} must be named.
+#'   \sQuote{matrix}. In any case, \code{y} must be named. In case of
+#'   categorical variable, this sholud be supplied to the function as a numeric
+#'   vector.
 #' @param cov the covariate to be indicated if its effect on the rates must be
 #'   accounted for. In this case residuals of the covariate versus the rates are
 #'   used as rates. \code{'cov'} must be as long as the number of nodes plus the
@@ -28,14 +30,15 @@
 #' @param aces a named vector (or matrix if \code{y} is multivariate) of
 #'   ancestral character values at nodes. Names correspond to the nodes in the
 #'   tree.
-#' @param x1 the additional predictor to be indicated to perform the multiple
-#'   version of \code{RRphylo}. \code{'x1'} vector must be as long as the number
-#'   of nodes plus the number of tips of the tree, which can be obtained by
-#'   running \code{RRphylo} on the predictor as well, and taking the vector of
-#'   ancestral states and tip values to form the \code{x1}.
-#' @param aces.x1 a named vector of ancestral character values at nodes for
-#'   \code{x1}. It must be indicated if both \code{aces} and \code{x1} are
-#'   specified. Names correspond to the nodes in the tree.
+#' @param x1 the additional predictor(s) to be indicated to perform the multiple
+#'   version of \code{RRphylo}. \code{'x1'} vector/matrix must be as long as the
+#'   number of nodes plus the number of tips of the tree, which can be obtained
+#'   by running \code{RRphylo} on the predictors (separately for each predictor)
+#'   as well, and taking the vector of ancestral states and tip values to form
+#'   the \code{x1}.
+#' @param aces.x1 a named vector/matrix of ancestral character values at nodes
+#'   for \code{x1}. It must be indicated if both \code{aces} and \code{x1} are
+#'   specified. Names/rownames correspond to the nodes in the tree.
 #' @param clus the proportion of clusters to be used in parallel computing (only
 #'   if \code{y} is multivariate). To run the single-threaded version of
 #'   \code{RRphylo} set \code{clus} = 0.
@@ -127,18 +130,44 @@
 #' c(acemass.multi,masscet.multi)->x1.mass
 #'
 #' RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass)->RR
+#'
+#' # Case 5. Categorical and multiple "RRphylo" with 2 additional predictors
+#' library(phytools)
+#' library(geiger)
+#'
+#' set.seed(1458)
+#' rtree(50)->tree
+#' fastBM(tree)->y
+#' jitter(y)*10->y1
+#' rep(1,length(y))->y2
+#' y2[sample(1:50,20)]<-2
+#' names(y2)<-names(y)
+#'
+#' c(RRphylo(tree,y1)$aces[,1],y1)->x1
+#'
+#' RRphylo(tree,y2)->RRcat ### this is the RRphylo on the categorical variable
+#' c(RRcat$aces[,1],y2)->x2
+#'
+#' cbind(c(jitter(mean(y1[tips(tree,83)])),1),
+#'       c(jitter(mean(y1[tips(tree,53)])),2))->acex
+#' c(jitter(mean(y[tips(tree,83)])),jitter(mean(y[tips(tree,53)])))->acesy
+#' names(acesy)<-rownames(acex)<-c(83,53)
+#'
+#' RRphylo(tree,y,aces=acesy,x1=cbind(x1,x2),aces.x1 = acex)
+#'
 #'     }
 
 
 
 
-RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x1=NULL, clus = 0.5)
-{
+RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x1=NULL, clus = 0.5){
   # library(phytools)
   # library(stats4)
   # library(ape)
   # library(parallel)
   # library(doParallel)
+  # library(geiger)
+  # library(phytools)
 
   insert.at <- function(a, pos, ...) {
     dots <- list(...)
@@ -169,30 +198,36 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
     yx[1]->rv
     yx[-1]->y
 
-    scale(y1)->y1
-    scale(ace1)->ace1
-    ace1[1]->acex
+    apply(y1,2,scale)->y1
+    apply(ace1,2,scale)->ace1
+    ace1[1,]->acex
 
     y-rv->yy
-    y1-acex->y1
+    sweep(y1,2,acex)->y1
     cbind(L,y1)->L
 
-    ace1-acex->ace1
+    sweep(ace1,2,acex)->ace1
     cbind(L1,ace1)->L1
 
 
     betas <- (solve(t(L) %*% L + lambda * diag(ncol(L))) %*%
                 t(L)) %*% (as.matrix(yy))
     y.hat <- (L %*% betas)+rootV
-    aceRR <- ((L1 %*% betas[c(1:Nnode(t),length(betas)), ]))+rootV
+    aceRR <- ((L1 %*% betas[c(1:Nnode(t),(length(betas)+1-ncol(y1)):length(betas)), ]))+rootV
 
     abs(1-summary(lm(c(aceRR[1],y.hat)~c(rootV,y)))$coef[2])
   }
 
+  if(!identical(tree$tip.label,tips(tree,(Ntip(tree)+1)))){
+    data.frame(tree$tip.label,N=seq(1,Ntip(tree)))->dftips
+    tree$tip.label<-tips(tree,(Ntip(tree)+1))
+    data.frame(dftips,Nor=match(dftips[,1],tree$tip.label))->dftips
+    tree$edge[match(dftips[,2],tree$edge[,2]),2]<-dftips[,3]
+  }
+
   if (is.binary.tree(tree))
     t <- tree else t <- multi2di(tree, random = FALSE)
-  # if (inherits(y,"data.frame"))
-  #   y <- treedata(tree, y, sort = TRUE)[[2]]
+
   if(is.null(nrow(y))) y <- treedata(tree, y, sort = TRUE)[[2]][,1] else y <- treedata(tree, y, sort = TRUE)[[2]]
 
   Loriginal <-L<-makeL(t)
@@ -210,11 +245,10 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
                                                                      u1[, dim(u1)[2]]))
     }else { #### rootV uni ####
       if (is.binary.tree(tree) == FALSE)
-        u <- data.frame(y, (1/diag(vcv(tree))^2))
-      else u <- data.frame(y, (1/diag(vcv(t))^2))
-      u <- u[order(u[, 2], decreasing = TRUE), ]
-      u1 <- u[1:(dim(u)[1] * 0.1), ]
-      rootV <- weighted.mean(u1[, 1], u1[, 2])
+        u <- data.frame(y, (1/diag(vcv(tree))^2)) else u <- data.frame(y, (1/diag(vcv(t))^2))
+        u <- u[order(u[, 2], decreasing = TRUE), ]
+        u1 <- u[1:(dim(u)[1] * 0.1), ]
+        rootV <- weighted.mean(u1[, 1], u1[, 2])
     }
   }else {
     if (inherits(rootV,"data.frame")) as.matrix(rootV)->rootV  else  rootV <- rootV
@@ -222,13 +256,16 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
   }
 
   if(is.null(x1)==FALSE){ #### multiple Ridge Regression ####
-    x1[-match(t$tip.label,names(x1))]->ace1
-    x1[match(t$tip.label,names(x1))]->y1
+    # x1[-match(t$tip.label,names(x1))]->ace1
+    # x1[match(t$tip.label,names(x1))]->y1
+    if(is.null(nrow(x1))) x1<-as.matrix(x1)
+    x1[-match(t$tip.label,rownames(x1)),,drop=FALSE]->ace1
+    x1[match(t$tip.label,rownames(x1)),,drop=FALSE]->y1
   }
 
 
 
-  if (is.null(aces) == FALSE) { #### phenotypes at internal nodes ####
+  if (!is.null(aces)) { #### phenotypes at internal nodes ####
     L <- makeL(t)
     aceV <- aces
     if (length(y) > Ntip(t)) { #### aces multi ####
@@ -250,8 +287,8 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
       treeN <- t
       ynew <- y
 
-      if(is.null(x1)==FALSE){
-        Px1<-aces.x1
+      if(!is.null(x1)){
+        if(is.vector(aces.x1)) t(as.matrix(aces.x1))->Px1 else t(aces.x1)->Px1
         y1new <- y1
         ace1new<-ace1
       }
@@ -270,33 +307,32 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
         }
 
         if(is.null(x1)==FALSE){
-          if (npos == 1) y1new <- c(Px1[i], y1new)
+          if (npos == 1) y1new <- rbind(Px1[,i], y1new)
 
-          if (npos == length(y1new) + 1)  y1new <- c(y1new, Px1[i])
-          else {
-            if (npos > 1 & npos < (length(y1new) + 1)) y1new <- insert.at(y1new, npos - 1, Px1[i])
+          if (npos == length(ynew) + 1)  y1new <- rbind(y1new, Px1[,i]) else {
+            if (npos > 1 & npos < (length(ynew) + 1)) y1new <- rbind(y1new[1:(npos - 1), ,drop=FALSE], unname(Px1[,i]), y1new[npos:nrow(y1new),,drop=FALSE])
           }
         }
         rownames(ynew)[npos] <- paste("nod", N[i], sep = "")
-        if(is.null(x1)==FALSE) names(y1new)[npos] <- paste("nod", N[i], sep = "")
+        if(is.null(x1)==FALSE) rownames(y1new)[npos] <- paste("nod", N[i], sep = "")
         i = i + 1
       }
 
       if(is.null(x1)==FALSE){
         sort(N)->Ns
-        Px1[match(Ns,names(Px1))]->Px1
+        Px1[,match(Ns,colnames(Px1)),drop=FALSE]->Px1
 
         h=1
         while(h<=length(Ns)){
           np<-which(treeN$tip.label ==
                       paste("nod",Ns[h], sep = ""))
           (getMommy(treeN,np)[1]-(Ntip(treeN)))->npos
-          #match(getMommy(treeN,np)[1],names(ace1new))->npos
-          if(npos== Nnode(treeN)) c(ace1new,Px1[h])->ace1new else
-            insert.at(ace1new,(npos-1),Px1[h])->ace1new
+          if(npos== Nnode(treeN)) rbind(ace1new,Px1[,h])->ace1new else
+            rbind(ace1new[1:(npos - 1), ,drop=FALSE], unname(Px1[,h]), ace1new[npos:nrow(ace1new),,drop=FALSE])->ace1new
+
           h=h+1
         }
-        names(ace1new)<-seq((Ntip(treeN)+1),(Ntip(treeN)+Nnode(treeN)))
+        rownames(ace1new)<-seq((Ntip(treeN)+1),(Ntip(treeN)+Nnode(treeN)))
         ace1<-ace1new
         y1<-y1new
       }
@@ -320,8 +356,8 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
       treeN <- t
       ynew <- y
 
-      if(is.null(x1)==FALSE){
-        Px1<-aces.x1
+      if(!is.null(x1)){
+        if(is.vector(aces.x1)) t(as.matrix(aces.x1))->Px1 else t(aces.x1)->Px1
         y1new <- y1
         ace1new<-ace1
       }
@@ -341,32 +377,33 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
         }
 
         if(is.null(x1)==FALSE){
-          if (npos == 1) y1new <- c(Px1[i], y1new)
+          if (npos == 1) y1new <- rbind(Px1[,i], y1new)
 
-          if (npos == length(ynew) + 1)  y1new <- c(y1new, Px1[i])
-          else {
-            if (npos > 1 & npos < (length(ynew) + 1)) y1new <- insert.at(y1new, npos - 1, Px1[i])
+          if (npos == length(ynew) + 1)  y1new <- rbind(y1new, Px1[,i]) else {
+            if (npos > 1 & npos < (length(ynew) + 1)) y1new <- rbind(y1new[1:(npos - 1), ,drop=FALSE], unname(Px1[,i]), y1new[npos:nrow(y1new),,drop=FALSE])
           }
         }
         names(ynew)[npos] <- paste("nod", N[i], sep = "")
-        if(is.null(x1)==FALSE) names(y1new)[npos] <- paste("nod", N[i], sep = "")
+        if(is.null(x1)==FALSE) rownames(y1new)[npos] <- paste("nod", N[i], sep = "")
         i = i + 1
       }
 
       if(is.null(x1)==FALSE){
         sort(N)->Ns
-        Px1[match(Ns,names(Px1))]->Px1
+        Px1[,match(Ns,colnames(Px1)),drop=FALSE]->Px1
 
         h=1
         while(h<=length(Ns)){
           np<-which(treeN$tip.label ==
                       paste("nod",Ns[h], sep = ""))
           (getMommy(treeN,np)[1]-(Ntip(treeN)))->npos
-          if(npos== Nnode(treeN)) c(ace1new,Px1[h])->ace1new else
-            insert.at(ace1new,(npos-1),Px1[h])->ace1new
+          if(npos== Nnode(treeN)) rbind(ace1new,Px1[,h])->ace1new else
+            rbind(ace1new[1:(npos - 1), ,drop=FALSE], unname(Px1[,h]), ace1new[npos:nrow(ace1new),,drop=FALSE])->ace1new
+
+
           h=h+1
         }
-        names(ace1new)<-seq((Ntip(treeN)+1),(Ntip(treeN)+Nnode(treeN)))
+        rownames(ace1new)<-seq((Ntip(treeN)+1),(Ntip(treeN)+Nnode(treeN)))
         ace1<-ace1new
         y1<-y1new
       }
@@ -400,17 +437,22 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
         h <- mle(optLmultiple, start = list(lambda = 1), method = "L-BFGS-B",
                  upper = 10, lower = 0.001)
         h@coef->lambda
-        cbind(L,y1-ace1[1])->LX
-        cbind(L1,ace1-mean(ace1))->LX1
+
+        h <- mle(optLmultiple, start = list(lambda = 1), method = "L-BFGS-B",
+                 upper = 10, lower = 0.001)
+        h@coef->lambda
+
+        cbind(L,sweep(y1,2,ace1[1,]))->LX
+        apply(ace1,2,mean)->mean.ace1
+        cbind(L1,sweep(ace1,2,mean.ace1))->LX1
 
         betas <- (solve(t(LX) %*% LX + lambda * diag(ncol(LX))) %*%
                     t(LX)) %*% (as.matrix(y)-rootV)
 
-        aceRR <- ((LX1 %*% betas[c(1:Nnode(t),length(betas)), ]))+rootV
+        aceRR <- ((LX1 %*% betas[c(1:Nnode(t),(length(betas)+1-ncol(y1)):length(betas)), ]))+rootV
         y.hat <- (LX %*% betas)+rootV
-
-        betas[length(betas)]->x1.rate
-        as.matrix(betas[-length(betas),])->betas
+        betas[(length(betas)+1-ncol(y1)):length(betas)]->x1.rate
+        betas[1:(length(betas)-ncol(y1)),,drop=FALSE]->betas
         colnames(betas)<-NULL
         res[[i]] <- list(aceRR, betas, y.hat, lambda,x1.rate)
 
@@ -433,7 +475,10 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
     betas <- do.call(cbind, lapply(res, "[[", 2))
     y.hat <- do.call(cbind, lapply(res, "[[", 3))
     lambda <- unname(sapply(res, "[[", 4))
-    if(is.null(x1)==FALSE) x1.rate <- unname(sapply(res, "[[", 5))
+    if(is.null(x1)==FALSE){
+      x1.rate <- sapply(res,"[[",5)
+      if(!is.null(nrow(x1.rate))) colnames(x1.rate)<-colnames(y) else names(x1.rate)<-colnames(y)
+    }
     rootV <- rv.real
     y <- y.real
     rownames(betas) <- colnames(L)
@@ -448,16 +493,18 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
       h <- mle(optLmultiple, start = list(lambda = 1), method = "L-BFGS-B",
                upper = 10, lower = 0.001)
       h@coef->lambda
-      cbind(L,y1-ace1[1])->LX
-      cbind(L1,ace1-mean(ace1))->LX1
+
+      cbind(L,sweep(y1,2,ace1[1,]))->LX
+      apply(ace1,2,mean)->mean.ace1
+      cbind(L1,sweep(ace1,2,mean.ace1))->LX1
 
       betas <- (solve(t(LX) %*% LX + lambda * diag(ncol(LX))) %*%
                   t(LX)) %*% (as.matrix(y)-rootV)
 
-      aceRR <- ((LX1 %*% betas[c(1:Nnode(t),length(betas)), ]))+rootV
+      aceRR <- (LX1 %*% betas[c(1:Nnode(t),(length(betas)+1-ncol(y1)):length(betas)), ])+rootV
       y.hat <- (LX %*% betas)+rootV
-      betas[length(betas)]->x1.rate
-      as.matrix(betas[-length(betas),])->betas
+      betas[(length(betas)+1-ncol(y1)):length(betas)]->x1.rate
+      betas[1:(length(betas)-ncol(y1)),,drop=FALSE]->betas
       colnames(betas)<-NULL
     }else{
 
@@ -578,7 +625,3 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
 
   return(res)
 }
-
-
-
-

@@ -30,6 +30,14 @@
 
 phyloclust<-function(tree,state,focal,nsim=100){
 
+
+  if(!identical(tree$tip.label,tips(tree,(Ntip(tree)+1)))){
+    data.frame(tree$tip.label,N=seq(1,Ntip(tree)))->dftips
+    tree$tip.label<-tips(tree,(Ntip(tree)+1))
+    data.frame(dftips,Nor=match(dftips[,1],tree$tip.label))->dftips
+    tree$edge[match(dftips[,2],tree$edge[,2]),2]<-dftips[,3]
+  }
+
   state <- treedata(tree, state, sort = TRUE)[[2]][,1]
   focal->st
   cophenetic.phylo(tree)->cop
