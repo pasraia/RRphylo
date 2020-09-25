@@ -9,6 +9,7 @@
 #'  inside the working directory. It is \code{TRUE} by default.
 #'@param foldername the path of the folder where plots are to be found.
 #'@export
+#' @seealso \href{../doc/RRphylo.html}{\code{RRphylo} vignette}
 #'@importFrom grDevices tiff
 #'@importFrom graphics abline barplot legend
 #'@return The function produces two barplots. On the left side, the rates (in

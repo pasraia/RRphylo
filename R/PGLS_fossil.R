@@ -26,6 +26,7 @@
 #'   according to the norm-2 vector of rates computed for each phenotype by
 #'   specifying the \code{RR} object.
 #' @export
+#' @seealso \href{../doc/RRphylo.html}{\code{RRphylo} vignette}
 #' @return Fitted pgls parameters and significance.
 #' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro
 #'   Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco

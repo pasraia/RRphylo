@@ -30,6 +30,7 @@
 #' @importFrom stats sd
 #' @importFrom utils globalVariables
 #' @export
+#' @seealso \href{../doc/search.shift.html}{\code{search.shift} vignette}
 #' @details The function \code{search.shift} takes the object produced by
 #'   \code{\link{RRphylo}}. Two different conditions of rate change can be
 #'   investigated. Under the \code{"clade"} condition the vector of node or

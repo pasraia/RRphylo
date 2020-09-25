@@ -1,9 +1,8 @@
 #' @title Searching for evolutionary trends in phenotypes and rates
 #' @description This function searches for evolutionary trends in the phenotypic
 #'   mean and the evolutionary rates for the entire tree and individual clades.
-#' @usage
-#'   search.trend(RR,y,x1=NULL,nsim=100,clus=0.5,node=NULL,cov=NULL,foldername,ConfInt=FALSE)
-#'
+#' @usage search.trend(RR,y,x1=NULL,x1.residuals =
+#'   FALSE,nsim=100,clus=0.5,node=NULL,cov=NULL, foldername,ConfInt=FALSE)
 #' @param RR an object produced by \code{\link{RRphylo}}.
 #' @param y the named vector (or matrix if multivariate) of phenotypes.
 #' @param x1 the additional predictor to be specified if the RR object has been
@@ -11,7 +10,11 @@
 #'   \code{RRphylo}). \code{'x1'} vector must be as long as the number of nodes
 #'   plus the number of tips of the tree, which can be obtained by running
 #'   \code{RRphylo} on the predictor as well, and taking the vector of ancestral
-#'   states and tip values to form the \code{x1}. Note: only one predictor at once can be specified.
+#'   states and tip values to form the \code{x1}. Note: only one predictor at
+#'   once can be specified.
+#' @param x1.residuals logical specifying whether the residuals of regression
+#'   between \code{y} and \code{x1} should be inspected for a phenotypic trend
+#'   (see details and examples below). Default is \code{FALSE}.
 #' @param node the node number of individual clades to be specifically tested
 #'   and contrasted to each other. It is \code{NULL} by default. Notice the node
 #'   number must refer to the dichotomic version of the original tree, as
@@ -36,16 +39,18 @@
 #'   multivariate, it also includes the multiple rates for each y vector. If
 #'   \code{node} is specified, each branch is classified as belonging or not to
 #'   the indicated clades.
-#' @return \strong{$pbt} a data frame of phenotypic values and their distance
-#'   from the tree root for each node (i.e. ancestral states) and tip of the
-#'   tree.
-#' @return \strong{$phenotypic.regression} results of phenotype versus age
-#'   regression. It reports a p-value for the regression slope between the
-#'   variables (p.real), a p-value computed contrasting the real slope to
-#'   Brownian motion simulations (p.random), and a parameter indicating the
-#'   deviation of the phenotypic mean from the root value in terms of the number
-#'   of standard deviations of the trait distribution (dev). dev is 0 under
-#'   Brownian Motion. Only p.random should be inspected to assess significance.
+#' @return \strong{$pbt} a data frame of phenotypic values (or \code{y} versus
+#'   \code{x1} regression residuals if \code{x1.residuals=TRUE}) and their
+#'   distance from the tree root for each node (i.e. ancestral states) and tip
+#'   of the tree.
+#' @return \strong{$phenotypic.regression} results of phenotype (\code{y} versus
+#'   \code{x1} regression residuals) versus age regression. It reports a p-value
+#'   for the regression slope between the variables (p.real), a p-value computed
+#'   contrasting the real slope to Brownian motion simulations (p.random), and a
+#'   parameter indicating the deviation of the phenotypic mean from the root
+#'   value in terms of the number of standard deviations of the trait
+#'   distribution (dev). dev is 0 under Brownian Motion. Only p.random should be
+#'   inspected to assess significance.
 #' @return \strong{$rate.regression} results of the rates (absolute values)
 #'   versus age regression. It reports a p-value for the regression between the
 #'   variables (p.real), a p-value computed contrasting the real slope to
@@ -58,12 +63,13 @@
 #'   and rates produced according to the Brownian motion model of evolution.
 #' @return If specified, individual nodes are tested as the whole tree, the
 #'   results are summarized in the objects:
-#' @return \strong{$node.phenotypic.regression} results of phenotype versus age
-#'   regression through node. It reports the slope for the regression between
-#'   the variables at node (slope), a p-value computed contrasting the real
-#'   slope to Brownian motion simulations (p.random), the difference between
-#'   estimated marginal means predictions for the group and for the rest of the
-#'   tree (emm.difference), and a p-value for the emm.difference (p.emm).
+#' @return \strong{$node.phenotypic.regression} results of phenotype (or
+#'   \code{y} versus \code{x1} regression residuals) versus age regression
+#'   through node. It reports the slope for the regression between the variables
+#'   at node (slope), a p-value computed contrasting the real slope to Brownian
+#'   motion simulations (p.random), the difference between estimated marginal
+#'   means predictions for the group and for the rest of the tree
+#'   (emm.difference), and a p-value for the emm.difference (p.emm).
 #' @return \strong{$node.rate.regression} results of the rates (absolute values)
 #'   versus age regression through node. It reports the difference between
 #'   estimated marginal means predictions for the group and for the rest of the
@@ -72,8 +78,8 @@
 #'   tree (slope.difference), and a p-value for the slope.difference (p.slope).
 #' @return If more than one node is specified, the object
 #'   \strong{$group.comparison} reports the same results as
-#'   $node.phenotypic.regression and $node.rate.regression obtained by
-#'   comparing individual clades to each other.
+#'   $node.phenotypic.regression and $node.rate.regression obtained by comparing
+#'   individual clades to each other.
 #' @author Silvia Castiglione, Carmela Serio, Pasquale Raia, Alessandro
 #'   Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
 #'   Carotenuto
@@ -95,6 +101,17 @@
 #'   regression models are tested and contrasted to each other referring to
 #'   estimated marginal means, by using the \code{emmeans} function in the
 #'   package \pkg{emmeans}.
+#'
+#'   The \href{../doc/RRphylo.html#predictor}{multiple regression version of RRphylo} allows
+#'   to incorporate the effect of an additional predictor in the computation of
+#'   evolutionary rates without altering the ancestral character estimation.
+#'   Thus, when a multiple \code{RRphylo} output is fed to \code{search.trend}, the
+#'   predictor effect is accounted for on the absolute evolutionary rates, but
+#'   not on the phenotype. However, in some situations the user might want to
+#'   ‘factor out’ the predictor effect on phenotypes as well. Under the latter
+#'   circumstance, by setting the argument \code{x1.residuals = TRUE}, the residuals
+#'   of the response to predictor regression are used as to represent the
+#'   phenotype.
 #' @importFrom graphics points text title polygon pairs plot
 #' @importFrom stats as.formula coef resid density predict cor
 #' @importFrom phytools nodeHeights
@@ -105,6 +122,7 @@
 #' @importFrom utils combn
 #' @importFrom emmeans emmeans emtrends
 #' @export
+#' @seealso \href{../doc/search.trend.html}{\code{search.trend} vignette}
 #' @references Castiglione, S., Serio, C., Mondanaro, A., Di Febbraro, M.,
 #'   Profico, A., Girardi, G., & Raia, P. (2019) Simultaneous detection of
 #'   macroevolutionary patterns in phenotypic means and rate of change with and
@@ -167,10 +185,15 @@
 #'
 #' RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass)->RRmulti
 #'
+#' # incorporating the effect of body size at inspecting trends in absolute evolutionary rates
 #' search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,clus=cc,foldername=tempdir())
+#'
+#' # incorporating the effect of body size at inspecting trends in both absolute evolutionary
+#' # rates and phenotypic values (by using brain versus body mass regression residuals)
+#' search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,x1.residuals=TRUE,clus=cc,foldername=tempdir())
 #'    }
 
-search.trend<-function (RR, y,x1=NULL, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
+search.trend<-function (RR, y,x1=NULL,x1.residuals=FALSE, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
                         foldername, ConfInt = FALSE)
 {
   # require(ape)
@@ -357,7 +380,7 @@ search.trend<-function (RR, y,x1=NULL, nsim = 100, clus = 0.5, node = NULL, cov 
     nodes <- cbind(aceRR[1:Nnode(t), ],aceRR.multi[1:Nnode(t), ])
     colnames(nodes)<- c(paste("y", seq(1, dim(y)[2]),sep = ""),"y.multi")
     P <- rbind(nodes, cbind(y,y.multi))
-    if(!is.null(x1)) apply(P,2,function(x) residuals(lm(x~x1)))->P
+    if(isTRUE(x1.residuals)) apply(P,2,function(x) residuals(lm(x~x1)))->P
     #PP <- data.frame(P[match(rbi[, 1], rownames(P)), ],rbi$age)
     PP <- data.frame(P[match(rownames(data), rownames(P)), ],data$age)
     colnames(PP)[dim(PP)[2]] <- "age"
@@ -373,7 +396,7 @@ search.trend<-function (RR, y,x1=NULL, nsim = 100, clus = 0.5, node = NULL, cov 
 
   }else {##### Phenotypic Trend Real Uni #####
     P <- c(nodes, y)
-    if(!is.null(x1)) P<-residuals(lm(P~x1))
+    if(isTRUE(x1.residuals)) P<-residuals(lm(P~x1))
     # PP <- data.frame(P[match(rbi[, 1], names(P))], rbi$age)
     PP <- data.frame(P[match(rownames(data), names(P))], data$age)
     colnames(PP) <- c("phenotype", "age")
@@ -534,12 +557,12 @@ search.trend<-function (RR, y,x1=NULL, nsim = 100, clus = 0.5, node = NULL, cov 
           data.frame(do.call(rbind,strsplit(as.character(mmeans[,1])," - ")),mmeans[,-c(1,3,4,5)],mtrends[,c(2,6)])->nn.ot[[w]]
 
           data.frame(yPP,age=PP.sma$age,group=PP.sma[,(w+ncol(y)+3)])->PPemdat
-          # if(is.null(x1)==FALSE){ #### emmeans multiple ####
-          #   data.frame(PPemdat,x1=x1[match(rownames(PPemdat),names(x1))])->PPemdat
-          #   suppressMessages(PPmeans<-as.data.frame(pairs(emmeans::emmeans(lm(range01(yPP)~age+x1+group,data=PPemdat),specs="group"))))
-          # }else{
-          suppressMessages(PPmeans<-as.data.frame(pairs(emmeans::emmeans(lm(range01(yPP)~age+group,data=PPemdat),specs="group"))))
-          #}
+          if((!is.null(x1))&isFALSE(x1.residuals)){ #### emmeans multiple ####
+            data.frame(PPemdat,x1=x1[match(rownames(PPemdat),names(x1))])->PPemdat
+            suppressMessages(PPmeans<-as.data.frame(pairs(emmeans::emmeans(lm(range01(yPP)~age+x1+group,data=PPemdat),specs="group"))))
+          }else{
+            suppressMessages(PPmeans<-as.data.frame(pairs(emmeans::emmeans(lm(range01(yPP)~age+group,data=PPemdat),specs="group"))))
+          }
           data.frame(do.call(rbind,strsplit(as.character(PPmeans[,1])," - ")),PPmeans[,-c(1,3,4,5)])->PPn.ot[[w]]
 
         }
@@ -557,12 +580,12 @@ search.trend<-function (RR, y,x1=NULL, nsim = 100, clus = 0.5, node = NULL, cov 
         sma.resA[[i]][-which(sma.resA[[i]]$group_2=="others"),]->sma.resA[[i]]
 
         dat <- data.frame(yPP, age=PP.sma$age, group=PP.sma$group)
-        # if(is.null(x1)==FALSE){ #### emmeans multiple ####
-        #   data.frame(dat,x1=x1[match(rownames(dat),names(x1))])->dat
-        #   suppressMessages(PPpairs<-as.data.frame(pairs(emmeans::emmeans(lm(range01(yPP)~age+x1+group,data=dat),specs="group"))))
-        # }else{
-        suppressMessages(PPpairs<-as.data.frame(pairs(emmeans::emmeans(lm(range01(yPP)~age+group,data=dat),specs="group"))))
-        # }
+        if((!is.null(x1))&isFALSE(x1.residuals)){ #### emmeans multiple ####
+          data.frame(dat,x1=x1[match(rownames(dat),names(x1))])->dat
+          suppressMessages(PPpairs<-as.data.frame(pairs(emmeans::emmeans(lm(range01(yPP)~age+x1+group,data=dat),specs="group"))))
+        }else{
+          suppressMessages(PPpairs<-as.data.frame(pairs(emmeans::emmeans(lm(range01(yPP)~age+group,data=dat),specs="group"))))
+        }
 
         data.frame(do.call(rbind,strsplit(as.character(PPpairs[,1])," - ")),PPpairs[,-c(1,3,4,5)])->sma.resPPemt
         colnames(sma.resPPemt)<-c("group_1","group_2","mean","p.mean")
@@ -623,12 +646,13 @@ search.trend<-function (RR, y,x1=NULL, nsim = 100, clus = 0.5, node = NULL, cov 
         data.frame(do.call(rbind,strsplit(as.character(mmeans[,1])," - ")),mmeans[,-c(1,3,4,5)],mtrends[,c(2,6)])->n.ot[[w]]
 
         data.frame(y=PP.sma$y,age=PP.sma$age,group=PP.sma[,(w+3)])->PPemdat
-        # if(is.null(x1)==FALSE){ #### emmeans multiple ####
-        #   data.frame(PPemdat,x1=x1[match(rownames(PP.sma),names(x1))])->PPemdat
-        #   suppressMessages(PPmeans<-as.data.frame(pairs(emmeans::emmeans(lm(range01(y)~age+x1+group,data=PPemdat),specs="group"))))
-        # }else{
-        suppressMessages(PPmeans<-as.data.frame(pairs(emmeans::emmeans(lm(range01(y)~age+group,data=PPemdat),specs="group"))))
-        #}
+        if((!is.null(x1))&isFALSE(x1.residuals)){ #### emmeans multiple ####
+          #data.frame(PPemdat,x1=x1[match(rownames(PPemdat),names(x1))])->PPemdat
+          data.frame(PPemdat,x1=x1[match(rownames(PP.sma),names(x1))])->PPemdat
+          suppressMessages(PPmeans<-as.data.frame(pairs(emmeans::emmeans(lm(range01(y)~age+x1+group,data=PPemdat),specs="group"))))
+        }else{
+          suppressMessages(PPmeans<-as.data.frame(pairs(emmeans::emmeans(lm(range01(y)~age+group,data=PPemdat),specs="group"))))
+        }
         data.frame(do.call(rbind,strsplit(as.character(PPmeans[,1])," - ")),PPmeans[,-c(1,3,4,5)])->PPn.ot[[w]]
       }
 
@@ -655,12 +679,12 @@ search.trend<-function (RR, y,x1=NULL, nsim = 100, clus = 0.5, node = NULL, cov 
       }
 
 
-      # if(is.null(x1)==FALSE){ #### emmeans multiple ####
-      #   data.frame(PP.sma,x1=x1[match(rownames(PP.sma),names(x1))])->PP.sma
-      #   suppressMessages(PPmeans<-as.data.frame(pairs(emmeans::emmeans(lm(range01(y)~age+x1+group,data=PP.sma),specs="group"))))
-      # }else{
-      suppressMessages(PPmeans<-as.data.frame(pairs(emmeans::emmeans(lm(range01(y)~age+group,data=PP.sma),specs="group"))))
-      # }
+      if((!is.null(x1))&isFALSE(x1.residuals)){ #### emmeans multiple ####
+        data.frame(PP.sma,x1=x1[match(rownames(PP.sma),names(x1))])->PP.sma
+        suppressMessages(PPmeans<-as.data.frame(pairs(emmeans::emmeans(lm(range01(y)~age+x1+group,data=PP.sma),specs="group"))))
+      }else{
+        suppressMessages(PPmeans<-as.data.frame(pairs(emmeans::emmeans(lm(range01(y)~age+group,data=PP.sma),specs="group"))))
+      }
 
       data.frame(do.call(rbind,strsplit(as.character(PPmeans[,1])," - ")),PPmeans[,-c(1,3,4,5)])->sma.resPPemm
       colnames(sma.resPPemm)<-c("group_1","group_2","mean","p.mean")
@@ -707,7 +731,7 @@ search.trend<-function (RR, y,x1=NULL, nsim = 100, clus = 0.5, node = NULL, cov 
 
   #### Random ####
   RR$aces[1,]->a
-  if(is.null(x1)==FALSE) x1[1:Ntip(t)]->y1
+  if(!is.null(x1)) x1[1:Ntip(t)]->y1
   if (length(y) > Ntip(t)) {
     yyD <- list()
     yyT <- list()
@@ -718,9 +742,15 @@ search.trend<-function (RR, y,x1=NULL, nsim = 100, clus = 0.5, node = NULL, cov 
         yyT[[i]] <- replicate(nsim,fastBM(t, sig2 = 1, a = mean(y[,i]), bounds=c(min(y[,i]),max(y[,i]))))
       }
     }else{
-      PP[which(rownames(PP)==(Ntip(t)+1)),]->ares
-      PP[which(rownames(PP)%in%t$tip.label),]->yres
-      for (i in 1:dim(y)[2]) yyD[[i]] <- suppressWarnings(replicate(nsim,fastBM(t, sig2 = 1, a = ares[1,i], bounds=c(min(yres[,i]),max(yres[,i])))))
+      if(isFALSE(x1.residuals)){
+        for (i in 1:dim(y)[2])
+          yyD[[i]] <- suppressWarnings(replicate(nsim,fastBM(t, sig2 = 1, a = a[i], bounds=c(min(y[,i]),max(y[,i])))))
+      }else{
+        PP[which(rownames(PP)==(Ntip(t)+1)),]->ares
+        PP[which(rownames(PP)%in%t$tip.label),]->yres
+        for (i in 1:dim(y)[2])
+          yyD[[i]] <- suppressWarnings(replicate(nsim,fastBM(t, sig2 = 1, a = ares[1,i], bounds=c(min(yres[,i]),max(yres[,i])))))
+      }
 
       matrix(ncol=nsim,nrow=Ntip(t))->yy1T
       matrix(ncol=nsim,nrow=Nnode(t))->ace1T
@@ -750,10 +780,12 @@ search.trend<-function (RR, y,x1=NULL, nsim = 100, clus = 0.5, node = NULL, cov 
       suppressWarnings(yyD<-replicate(nsim,fastBM(t,sig2=1,a=a,bounds=c(min(y),max(y)))))
       yyT<-replicate(nsim,fastBM(t,sig2=1,a=mean(y),bounds=c(min(y),max(y))))
     } else {
+      if(isFALSE(x1.residuals)) suppressWarnings(yyD<-replicate(nsim,fastBM(t,sig2=1,a=a,bounds=c(min(y),max(y))))) else{
+        PP[which(rownames(PP)%in%t$tip.label),1]->yres
+        PP[which(rownames(PP)==(Ntip(t)+1)),1]->ares
+        suppressWarnings(yyD<-replicate(nsim,fastBM(t,sig2=1,a=ares,bounds=c(min(yres),max(yres)))))
+      }
 
-      PP[which(rownames(PP)%in%t$tip.label),1]->yres
-      PP[which(rownames(PP)==(Ntip(t)+1)),1]->ares
-      suppressWarnings(yyD<-replicate(nsim,fastBM(t,sig2=1,a=ares,bounds=c(min(yres),max(yres)))))
 
       matrix(ncol=nsim,nrow=Ntip(t))->yyT
       matrix(ncol=nsim,nrow=Ntip(t))->yy1T
@@ -816,7 +848,7 @@ search.trend<-function (RR, y,x1=NULL, nsim = 100, clus = 0.5, node = NULL, cov 
         rootV<-a[s]
         lambda <- RR$lambda[s]
 
-        if(is.null(x1)==FALSE){
+        if(!is.null(x1)){
 
           m.betasT <- (solve(t(LX) %*% LX + lambda * diag(ncol(LX))) %*%
                          t(LX)) %*% (as.matrix(yT[,s]) - rootV)
@@ -833,7 +865,7 @@ search.trend<-function (RR, y,x1=NULL, nsim = 100, clus = 0.5, node = NULL, cov 
         }
 
 
-        if(!is.null(x1)) rootVD<-ares[,s] else rootVD<-a[s]
+        if(isTRUE(x1.residuals)) rootVD<-ares[,s] else rootVD<-a[s]
         m.betasD <- (solve(t(L) %*% L + lambda * diag(ncol(L))) %*%
                        t(L)) %*% (as.matrix(yD[,s]) - rootVD)
         aceRRD[,s] <- (L1 %*% m.betasD[1:Nnode(t), ]) + rootVD
@@ -879,7 +911,7 @@ search.trend<-function (RR, y,x1=NULL, nsim = 100, clus = 0.5, node = NULL, cov 
         aceRRT <- (L1 %*% betasT[1:Nnode(t), ]) + rootV
       }
 
-      if(!is.null(x1)) rootVD<-ares else rootVD<-a
+      if(isTRUE(x1.residuals)) rootVD<-ares else rootVD<-a
       betasD <- (solve(t(L) %*% L + lambda * diag(ncol(L))) %*%
                    t(L)) %*% (as.matrix(yD) - rootVD)
       aceRRD <- (L1 %*% betasD[1:Nnode(t), ]) + rootVD
@@ -1053,7 +1085,7 @@ search.trend<-function (RR, y,x1=NULL, nsim = 100, clus = 0.5, node = NULL, cov 
       P <- rbind(nodesD, cbind(yD,yDmulti))
       # PP <- data.frame(P[match(rbi[, 1], rownames(P)),
       #                    ], rbi$age)
-      if(!is.null(x1)) apply(P,2,function(x) residuals(lm(x~x1)))->P
+      if(isTRUE(x1.residuals)) apply(P,2,function(x) residuals(lm(x~x1)))->P
       PP <- data.frame(P[match(rownames(data), rownames(P)), ],data$age)
       colnames(PP)[dim(PP)[2]] <- "age"
       trend.regR <- apply(PP[1:(dim(PP)[2] - 1)], 2, function(x)
@@ -1065,7 +1097,7 @@ search.trend<-function (RR, y,x1=NULL, nsim = 100, clus = 0.5, node = NULL, cov 
 
     }else { #### Phenotypic Trend Random Uni ####
       P <- c(nodesD, yD)
-      if(!is.null(x1)) P<-residuals(lm(P~x1))
+      if(isTRUE(x1.residuals)) P<-residuals(lm(P~x1))
       PP <- data.frame(P[match(rownames(data), names(P))], data$age)
       colnames(PP) <- c("phenotype", "age")
       trend.regS <- summary(lm(range01(PP[,1])~PP[,2]))$coef

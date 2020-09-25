@@ -30,6 +30,7 @@
 #' @param clus the proportion of clusters to be used in parallel computing. To
 #'   run the single-threaded version of \code{NOME} set \code{clus} = 0.
 #' @export
+#' @seealso \href{../doc/RRphylo.html}{\code{RRphylo} vignette}
 #' @importFrom stats cov
 #' @importFrom phytools fastAnc
 #' @return The function returns a list object including (\code{$means}) the mean

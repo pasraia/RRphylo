@@ -16,6 +16,7 @@
 #'@param min.branch the minimum branch length that will be imposed for shifted
 #'  nodes.
 #'@export
+#'@seealso \href{../doc/Tree-Manipulation.html#scaleTree}{\code{scaleTree} vignette}
 #'@importFrom geiger rescale
 #'@return Rescaled phylogentic tree.
 #'@author Silvia Castiglione, Pasquale Raia, Carmela Serio, Alessandro

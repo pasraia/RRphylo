@@ -1,5 +1,5 @@
 #' @title Evolutionary rates computation along phylogenies
-#' @description The function \code{RRphylo} (\cite{Castiglione et al. 2018})
+#' @description The function \code{\link{RRphylo}} (\cite{Castiglione et al. 2018})
 #'   performs the phylogenetic ridge regression. It takes a tree and a vector of
 #'   tip data (phenotypes) as entries, calculates the regularization factor,
 #'   produces the matrices of tip to root (\code{\link{makeL}}), and node to
@@ -21,7 +21,7 @@
 #'   used as rates. \code{'cov'} must be as long as the number of nodes plus the
 #'   number of tips of the tree, which can be obtained by running \code{RRphylo}
 #'   on the covariate as well, and taking the vector of ancestral states and tip
-#'   values to form the covariate, as in the example below.
+#'   values to form the covariate, as in the example below. See \href{../doc/RRphylo.html#covariate}{RRphylo vignette - covariate} for details.
 #' @param rootV phenotypic value (values if multivariate) at the tree root. If
 #'   \code{rootV=NULL} the function 'learns' about the root value from the 10\%
 #'   tips being closest in time to the tree root, weighted by their temporal
@@ -29,13 +29,13 @@
 #'   distant tips).
 #' @param aces a named vector (or matrix if \code{y} is multivariate) of
 #'   ancestral character values at nodes. Names correspond to the nodes in the
-#'   tree.
+#'   tree. See \href{../doc/RRphylo.html#aces}{RRphylo vignette - aces} for details.
 #' @param x1 the additional predictor(s) to be indicated to perform the multiple
 #'   version of \code{RRphylo}. \code{'x1'} vector/matrix must be as long as the
 #'   number of nodes plus the number of tips of the tree, which can be obtained
 #'   by running \code{RRphylo} on the predictors (separately for each predictor)
 #'   as well, and taking the vector of ancestral states and tip values to form
-#'   the \code{x1}.
+#'   the \code{x1}. See \href{../doc/RRphylo.html#predictor}{RRphylo vignette - predictor} for details.
 #' @param aces.x1 a named vector/matrix of ancestral character values at nodes
 #'   for \code{x1}. It must be indicated if both \code{aces} and \code{x1} are
 #'   specified. Names/rownames correspond to the nodes in the tree.

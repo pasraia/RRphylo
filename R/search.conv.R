@@ -64,6 +64,7 @@
 #'   run the single-threaded version of \code{search.conv} set \code{clus} = 0.
 #' @param foldername the path of the folder where plots are to be found.
 #' @export
+#' @seealso \href{../doc/search.conv.html}{\code{search.conv} vignette}
 #' @importFrom grDevices chull
 #' @importFrom graphics axis layout lines segments
 #' @importFrom stats TukeyHSD aov princomp

@@ -42,7 +42,7 @@
 #'   suggest considering this possibility if the mesh may contain degenerate
 #'   facets.
 #' @export
-#' @seealso \code{\link{search.conv}} \code{\link[Morpho]{relWarps}}
+#' @seealso \href{../doc/search.conv.html}{\code{search.conv} vignette} ; \code{\link[Morpho]{relWarps}} ;
 #'   \code{\link[Morpho]{procSym}}
 #' @importFrom grDevices colorRampPalette rainbow
 #' @return The function returns a list including:
@@ -332,7 +332,7 @@ conv.map<-function(dataset,pcs,mshape,conv=NULL,exclude=NULL,out.rem=TRUE,show.c
     names(j.ang)<-names(v.vec1)
     inflection::ede(seq(1:length(j.ang)),j.ang[order(j.ang,decreasing=TRUE)],0)[1]->cutter
     if(cutter==1){
-      inflection::ede(seq(1:length(j.ang[-1])),j.ang[order(j.ang[-1],decreasing=TRUE)],0)[1]->cutter2
+      inflection::ede(seq(1:length(j.ang[-1])),j.ang[order(j.ang,decreasing=TRUE)][-1],0)[1]->cutter2 ### CHANGED IN V.2.4.10
       cutter2+1->cutter
     }
     if(cutter>.5*length(j.ang)) cutter=round(0.5*(length(j.ang)),0)

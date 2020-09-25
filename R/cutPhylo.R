@@ -1,16 +1,18 @@
 #' @title Cut the phylogeny at a given age or node
 #' @description The function cuts all the branches of the phylogeny which are
 #'   younger than a specific age or node (i.e. the age of the node).
-#' @usage cutPhylo(tree,age=NULL,node=NULL)
+#' @usage cutPhylo(tree,age=NULL,node=NULL,keep.lineage=TRUE)
 #' @param tree a phylogenetic tree. The tree needs not to be ultrametric and
 #'   fully dichotomous.
 #' @param age the age (in terms of time distance from the recent) at which the
 #'   tree must be cut
 #' @param node the node whose age must be used as cutting limit.
+#' @param keep.lineage logical specifying whether lineages with no descendant tip must be retained (see example below). Default is \code{TRUE}.
 #' @export
+#' @seealso \href{../doc/Tree-Manipulation.html#cutPhylo}{\code{cutPhylo} vignette}
 #' @importFrom phytools drop.clade
 #' @importFrom ape axisPhylo
-#' @details When an entire lineage is cut (i.e. one or more nodes along a path),
+#' @details When an entire lineage is cut (i.e. one or more nodes along a path) and \code{keep.lineages = TRUE},
 #'   the leaves left are labeled as "l" followed by a number.
 #' @return The function returns the cut phylogeny and plots it into the graphic
 #'   device. The time axis keeps the root age of the original tree.
@@ -20,15 +22,18 @@
 #' @examples
 #' \dontrun{
 #' library(ape)
-#' library(phytools)
 #'
-#' rtree(200)->tree
-#' round(max(nodeHeights(tree))/4)->age
+#' set.seed(22)
+#' rtree(100)->tree
+#' 3->age
+#'
 #' cutPhylo(tree,age=age)->t1
-#' cutPhylo(tree,node=263)->t2
+#' cutPhylo(tree,age=age,keep.lineage=FALSE)->t1
+#' cutPhylo(tree,node=151)->t2
+#' cutPhylo(tree,node=151,keep.lineage=FALSE)->t2
 #' }
 
-cutPhylo<-function(tree,age=NULL,node=NULL){
+cutPhylo<-function(tree,age=NULL,node=NULL,keep.lineage=TRUE){
   # require(ape)
   # require(geiger)
   # require(phytools)
@@ -86,7 +91,16 @@ cutPhylo<-function(tree,age=NULL,node=NULL){
 
   }
 
-  if(Ntip(tt)<=100) plot(tt,cex=.8) else plot(tt,cex=.5 )
+  if(isFALSE(keep.lineage)){
+    drop.tip(tt,which(!tt$tip.label%in%tree$tip.label))->tt
+    if(Ntip(tt)<=100) plot(tt,cex=.8) else plot(tt,cex=.5 )
+  }else{
+    tip.col<-rep("black",Ntip(tt))
+    tip.col[which(!tt$tip.label%in%tree$tip.label)]<-"red"
+    if(Ntip(tt)<=100) plot(tt,cex=.8,tip.color=tip.col) else plot(tt,cex=.5,tip.color=tip.col)
+  }
+
   axisPhylo(root.time = max(nodeHeights(tree)))
+
   return(tt)
 }

@@ -5,8 +5,8 @@
 #'   (\cite{Castiglione et al. 2019b}) results to sampling effects and
 #'   phylogenetic uncertainty.
 #' @usage
-#'   overfitRR(RR,y,s=0.25,swap.args=NULL,trend.args=NULL,shift.args=NULL,conv.args=NULL,
-#'    aces=NULL,x1=NULL,aces.x1=NULL,cov=NULL,rootV=NULL,nsim=100,clus=.5)
+#' overfitRR(RR,y,s=0.25,swap.args=NULL,trend.args=NULL,shift.args=NULL,conv.args=NULL,
+#' aces=NULL,x1=NULL,aces.x1=NULL,cov=NULL,rootV=NULL,nsim=100,clus=.5)
 #' @param RR an object produced by \code{\link{RRphylo}}.
 #' @param y a named vector of phenotypes.
 #' @param s the percentage of tips to be cut off. It is set at 25\% by default.
@@ -15,7 +15,7 @@
 #'   \code{node=NULL)}. If \code{swap.arg} is unspecified, the function
 #'   automatically sets both \code{si} and \code{si2} to 0.1.
 #' @param trend.args a list of arguments specific to the function
-#'   \code{search.trend}, including \code{list(node=NULL)}. If a trend for the
+#'   \code{search.trend}, including \code{list(node=NULL,x1.residuals=FALSE)}. If a trend for the
 #'   whole tree is to be tested, type \code{trend.args = list()}. No trend is
 #'   tested if left unspecified.
 #' @param shift.args a list of arguments specific to the function
@@ -95,6 +95,10 @@
 #'   function \code{\link{swapONE}}. Thereby, both the potential for overfit and
 #'   phylogenetic uncertainty are accounted for straight away.
 #' @export
+#' @seealso \href{../doc/overfitRR.html}{\code{overfitRR} vignette} ;
+#'   \href{../doc/search.trend.html}{\code{search.trend} vignette} ;
+#'   \href{../doc/search.shift.html}{\code{search.shift} vignette} ;
+#'   \href{../doc/search.conv.html}{\code{search.conv} vignette} ;
 #' @importFrom utils setTxtProgressBar txtProgressBar
 #' @references Castiglione, S., Tesone, G., Piccolo, M., Melchionna, M.,
 #'   Mondanaro, A., Serio, C., Di Febbraro, M., & Raia, P. (2018). A new method
@@ -168,8 +172,12 @@
 #'
 #' RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass)->RRmulti
 #' search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,clus=cc,foldername=tempdir())->STcet
-#'
 #' overfitRR(RR=RRmulti,y=brainmasscet,trend.args = list(),x1=x1.mass,nsim=10,clus=cc)
+#'
+#' search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,x1.residuals=TRUE,
+#'              clus=cc,foldername=tempdir())->STcet.resi
+#' overfitRR(RR=RRmulti,y=brainmasscet,trend.args = list(x1.residuals=TRUE),
+#'           x1=x1.mass,nsim=10,clus=cc)
 #'
 #' # Case 5 searching convergence between clades and within a single state
 #' data("DataFelids")
@@ -238,10 +246,12 @@ overfitRR<-function(RR,y,
 
   if(is.null(trend.args)==FALSE){
     trend<-TRUE
-    if(is.null(trend.args$node)==FALSE) trend.node<-trend.args$node else trend.node<-NULL
+    if(!is.null(trend.args$node)) trend.node<-trend.args$node else trend.node<-NULL
+    if(!is.null(trend.args$x1.residuals)) trend.x1.residuals<-trend.args$x1.residuals else trend.x1.residuals<-FALSE
   } else {
     trend<-FALSE
     trend.node<-NULL
+    trend.x1.residuals<-FALSE
   }
 
   if(is.null(shift.args)==FALSE){
@@ -440,7 +450,7 @@ overfitRR<-function(RR,y,
     if(is.null(rootV)==FALSE) rootV->rootVcut else rootVcut<-NULL
 
     RRphylo(treecut,ycut,aces=acescut,x1=x1cut,aces.x1=aces.x1cut,cov=covcut,rootV = rootVcut,clus=clus)->RRcut
-    if(trend|is.null(trend.node)==FALSE) ddpcr::quiet(search.trend(RRcut,ycut,x1=x1cut,node=trend.node.cut,foldername=tempdir(),cov=covcut,clus=clus)->stcut->STcut[[k]],all=TRUE)
+    if(trend|is.null(trend.node)==FALSE) ddpcr::quiet(search.trend(RRcut,ycut,x1=x1cut,x1.residuals = trend.x1.residuals,node=trend.node.cut,foldername=tempdir(),cov=covcut,clus=clus)->stcut->STcut[[k]],all=TRUE)
     if(is.null(shift.node)==FALSE) ddpcr::quiet(search.shift(RRcut,status.type="clade",node=shift.node.cut,foldername=tempdir())->sscut->SScut[[k]],all=TRUE)
     if(is.null(shift.state)==FALSE) ddpcr::quiet(search.shift(RRcut,status.type="sparse",state=shift.state.cut,foldername=tempdir())->sscut->SScutS[[k]],all=TRUE)
     if(is.null(conv.node)==FALSE) ddpcr::quiet(search.conv(RR=RRcut,y=ycut,nodes=conv.node.cut,aceV=acescut,clus=clus,foldername=tempdir())->sccut->SCcut[[k]],all=TRUE)
