@@ -1,3 +1,10 @@
+# RRphylo 2.4.11
+What's new in version 2.4.11
+
+In search.trend it is possible to factor out the effect of a predictor (x1.residuals argument) on the response variable in the evaluation of trends in phenotypes.
+
+The vignette now includes the illustration of fuction cutPhylo application.
+
 # RRphylo 2.4.9
 What's new in version 2.4.9
 
