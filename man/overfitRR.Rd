@@ -5,7 +5,7 @@
 \title{Testing RRphylo methods overfit}
 \usage{
 overfitRR(RR,y,s=0.25,swap.args=NULL,trend.args=NULL,shift.args=NULL,conv.args=NULL,
-   aces=NULL,x1=NULL,aces.x1=NULL,cov=NULL,rootV=NULL,nsim=100,clus=.5)
+aces=NULL,x1=NULL,aces.x1=NULL,cov=NULL,rootV=NULL,nsim=100,clus=.5)
 }
 \arguments{
 \item{RR}{an object produced by \code{\link{RRphylo}}.}
@@ -20,7 +20,7 @@ overfitRR(RR,y,s=0.25,swap.args=NULL,trend.args=NULL,shift.args=NULL,conv.args=N
 automatically sets both \code{si} and \code{si2} to 0.1.}
 
 \item{trend.args}{a list of arguments specific to the function
-\code{search.trend}, including \code{list(node=NULL)}. If a trend for the
+\code{search.trend}, including \code{list(node=NULL,x1.residuals=FALSE)}. If a trend for the
 whole tree is to be tested, type \code{trend.args = list()}. No trend is
 tested if left unspecified.}
 
@@ -182,8 +182,12 @@ c(acemass.multi,masscet.multi)->x1.mass
 
 RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass)->RRmulti
 search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,clus=cc,foldername=tempdir())->STcet
-
 overfitRR(RR=RRmulti,y=brainmasscet,trend.args = list(),x1=x1.mass,nsim=10,clus=cc)
+
+search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,x1.residuals=TRUE,
+             clus=cc,foldername=tempdir())->STcet.resi
+overfitRR(RR=RRmulti,y=brainmasscet,trend.args = list(x1.residuals=TRUE),
+          x1=x1.mass,nsim=10,clus=cc)
 
 # Case 5 searching convergence between clades and within a single state
 data("DataFelids")
@@ -220,6 +224,12 @@ Castiglione, S., Serio, C., Tamagnini, D., Melchionna, M.,
   Raia, P. (2019b). A new, fast method to search for morphological
   convergence with shape data. \emph{PLoS ONE}, 14, e0226949.
   https://doi.org/10.1371/journal.pone.0226949
+}
+\seealso{
+\href{../doc/overfitRR.html}{\code{overfitRR} vignette} ;
+  \href{../doc/search.trend.html}{\code{search.trend} vignette} ;
+  \href{../doc/search.shift.html}{\code{search.shift} vignette} ;
+  \href{../doc/search.conv.html}{\code{search.conv} vignette} ;
 }
 \author{
 Silvia Castiglione, Carmela Serio, Pasquale Raia

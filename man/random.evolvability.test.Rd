@@ -72,6 +72,9 @@ Revell, L. J. (2012) phytools: An R package for phylogenetic
   comparative biology (and other things).
   \emph{Methods in Ecology and Evolution}, 3, 217-223.
 }
+\seealso{
+\href{../doc/RRphylo.html}{\code{RRphylo} vignette}
+}
 \author{
 Silvia Castiglione, Gabriele Sansalone, Pasquale Raia
 }

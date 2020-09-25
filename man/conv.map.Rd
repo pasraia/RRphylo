@@ -110,7 +110,7 @@ Schlager, S. (2017). \emph{Morpho and Rvcg–Shape Analysis in R:
   Press.
 }
 \seealso{
-\code{\link{search.conv}} \code{\link[Morpho]{relWarps}}
+\href{../doc/search.conv.html}{\code{search.conv} vignette} ; \code{\link[Morpho]{relWarps}} ;
   \code{\link[Morpho]{procSym}}
 }
 \author{

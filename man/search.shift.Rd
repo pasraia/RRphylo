@@ -179,6 +179,9 @@ testing evolutionary rate variation and shifts in phenotypic evolution.
 \emph{Methods in Ecology and Evolution}, 9:
 974-983.doi:10.1111/2041-210X.12954
 }
+\seealso{
+\href{../doc/search.shift.html}{\code{search.shift} vignette}
+}
 \author{
 Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro
   Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco

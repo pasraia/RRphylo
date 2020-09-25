@@ -42,3 +42,6 @@ RRphylo(tree=Tstage,y=PCstage,clus=cc)->RR
 plotRates(RR,node=72,foldername=tempdir(),export.tiff = TRUE)
 }
 }
+\seealso{
+\href{../doc/RRphylo.html}{\code{RRphylo} vignette}
+}

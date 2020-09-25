@@ -168,6 +168,9 @@ Castiglione, S., Serio, C., Tamagnini, D., Melchionna, M.,
   with shape data. \emph{PLoS ONE}, 14, e0226949.
   https://doi.org/10.1371/journal.pone.0226949
 }
+\seealso{
+\href{../doc/search.conv.html}{\code{search.conv} vignette}
+}
 \author{
 Silvia Castiglione, Carmela Serio, Pasquale Raia, Alessandro
   Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco

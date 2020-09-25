@@ -72,6 +72,9 @@ Adams, D.C., & Collyer, M. L. (2017). Multivariate phylogenetic
   comparative methods: evaluations, comparisons, and recommendations.
   \emph{Systematic Biology}, 67, 14-31. https://doi.org/10.1093/sysbio/syx055
 }
+\seealso{
+\href{../doc/RRphylo.html}{\code{RRphylo} vignette}
+}
 \author{
 Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro
   Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco

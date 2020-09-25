@@ -4,7 +4,7 @@
 \alias{cutPhylo}
 \title{Cut the phylogeny at a given age or node}
 \usage{
-cutPhylo(tree,age=NULL,node=NULL)
+cutPhylo(tree,age=NULL,node=NULL,keep.lineage=TRUE)
 }
 \arguments{
 \item{tree}{a phylogenetic tree. The tree needs not to be ultrametric and
@@ -14,6 +14,8 @@ fully dichotomous.}
 tree must be cut}
 
 \item{node}{the node whose age must be used as cutting limit.}
+
+\item{keep.lineage}{logical specifying whether lineages with no descendant tip must be retained (see example below). Default is \code{TRUE}.}
 }
 \value{
 The function returns the cut phylogeny and plots it into the graphic
@@ -24,19 +26,25 @@ The function cuts all the branches of the phylogeny which are
   younger than a specific age or node (i.e. the age of the node).
 }
 \details{
-When an entire lineage is cut (i.e. one or more nodes along a path),
+When an entire lineage is cut (i.e. one or more nodes along a path) and \code{keep.lineages = TRUE},
   the leaves left are labeled as "l" followed by a number.
 }
 \examples{
 \dontrun{
 library(ape)
-library(phytools)
 
-rtree(200)->tree
-round(max(nodeHeights(tree))/4)->age
+set.seed(22)
+rtree(100)->tree
+3->age
+
 cutPhylo(tree,age=age)->t1
-cutPhylo(tree,node=263)->t2
+cutPhylo(tree,age=age,keep.lineage=FALSE)->t1
+cutPhylo(tree,node=151)->t2
+cutPhylo(tree,node=151,keep.lineage=FALSE)->t2
 }
+}
+\seealso{
+\href{../doc/Tree-Manipulation.html#cutPhylo}{\code{cutPhylo} vignette}
 }
 \author{
 Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro

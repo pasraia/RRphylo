@@ -87,6 +87,9 @@ plot(treeS3,edge.color = edge.col,show.tip.label=FALSE)
 nodelabels(bg="w",frame="n",node=145,col="green")
 }
 }
+\seealso{
+\href{../doc/Tree-Manipulation.html#scaleTree}{\code{scaleTree} vignette}
+}
 \author{
 Silvia Castiglione, Pasquale Raia, Carmela Serio, Alessandro
  Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
