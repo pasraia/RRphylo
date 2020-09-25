@@ -399,9 +399,13 @@ In the example above, the comparison of trends in absolute rates at nodes 275 an
 
 The function stores plots of phenotype versus age and absolute rate versus age regression (similar to those in the figures above) as pdf files within the folder indicated by the argument `foldername`.
 
-## Multivariate data {#multi}
+## Multivariate data and multiple RRphylo output{#multi}
 When applied on multivariate data, `search.trend` treats each phenotypic and rate (derived by `RRphylo`) component independently. Also, it performs the whole set of analyses on a multivariate vector of phenotypes (rates), derived by computing the L2-norm of the individual phenotypes (rates) at each branch (the same as in multivariate RRphylo).
 
+When applying `search.trend` on a [multiple RRphylo](RRphylo.html#predictor) output, the possible effect of an additional predictor is incorporated in the computation
+
+The [multiple regression version of RRphylo](RRphylo.html#predictor) allows to incorporate the effect of an additional predictor in the computation of evolutionary rates without altering the ancestral character estimation. Thus, when a multiple `RRphylo` output is fed to `search.trend`, the predictor effect is accounted for on the absolute evolutionary rates, but not on the phenotype. However, in some situations the user might want to ‘factor out’ the predictor effect on phenotypes as well. Under the latter circumstance, by setting the argument `x1.residuals = TRUE`, the residuals of the response to predictor regression are used as to represent the phenotype.
+ 
 ## Guided examples {#examples}
 
 ```{r,out.width='100%',fig.dim=c(8,7),message=FALSE,dpi=220}
@@ -410,7 +414,8 @@ data("DataCetaceans")
 DataCetaceans$treecet->treecet # phylogenetic tree
 DataCetaceans$masscet->masscet # logged body mass data
 DataCetaceans$brainmasscet->brainmasscet # logged brain mass data
-DataCetaceans$aceMyst->aceMyst # known phenotypic value for the most recent common ancestor of Mysticeti
+DataCetaceans$aceMyst->aceMyst # known phenotypic value for the most recent 
+                               # common ancestor of Mysticeti
 
 require(geiger)
 par(mar=c(0,0,0,1))
@@ -431,12 +436,48 @@ mtext(c("Mysticeti","Odontoceti"), side = 4,line=-0.5,at=c(sum(yran128)/2,sum(yr
 # are sorted in the same order of the species on the phylogeny
 masscet[match(treecet$tip.label,names(masscet))]->masscet
 
+## Example 1: search.trend by setting values at internal nodes
 # Set the body mass of Mysticetes ancestor (Mystacodon selenensis) 
 # as known value at node and perform RRphylo on the vector of (log) body mass
 RRphylo(tree=treecet,y=masscet,aces=aceMyst)->RR
 
 # Perform search.trend on the RR object and (log) body mass by indicating Mysticeti as focal clade
 search.trend(RR=RR,y=masscet,node=as.numeric(names(aceMyst)),foldername=tempdir())
+
+
+## Example 2: search.trend on multiple regression version of RRphylo
+# cross-reference the phylogenetic tree and body and brain mass data. Remove from both the tree and
+# vector of body sizes the species whose brain size is missing
+drop.tip(treecet,treecet$tip.label[-match(names(brainmasscet),treecet$tip.label)])->treecet.multi
+masscet[match(treecet.multi$tip.label,names(masscet))]->masscet.multi
+
+# check the order of your data: best if
+# data vectors (i.e. masscet and brainmasscet) are sorted
+# in the same order of the species on the phylogeny
+masscet.multi[match(treecet.multi$tip.label,names(masscet.multi))]->masscet.multi
+brainmasscet[match(treecet.multi$tip.label,names(brainmasscet))]->brainmasscet
+
+# perform RRphylo on tree and body mass data
+RRphylo(tree=treecet.multi,y=masscet.multi)->RRmass.multi
+
+# create the predictor vector: retrieve the ancestral character estimates 
+# of body size at internal nodes from the RR object ($aces) and collate them
+# to the vector of species' body sizes to create
+c(RRmass.multi$aces[,1],masscet.multi)->x1.mass
+
+# perform the multiple regression version of RRphylo by using
+# the brain size as variable and the body size as predictor
+RRphylo(treecet.multi,y=brainmasscet,x1=x1.mass)->RRmulti
+
+# Perform search.trend on the multiple RR object to inspect the effect of body 
+# size on absolute rates temporal trend only
+search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,clus=cc,foldername=tempdir())
+
+# Perform search.trend on the multiple RR object to inspect the effect of body
+# size on trends in both absolute evolutionary rates and phenotypic values 
+# (by using brain versus body mass regression residuals)
+search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,x1.residuals=TRUE,
+             clus=cc,foldername=tempdir())
 
 ```
 
