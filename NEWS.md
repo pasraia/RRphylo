@@ -1,3 +1,12 @@
+# RRphylo 2.5.0
+What's new in version 2.5.0
+
+New functions added!
+
+The function tree.merger allows to merge phylogenetic information from different sources to create a single supertree.
+The function fix.poly either collapses individual clades under a polytomy or resolves polytomous clades to non-zero length branches, dichotomous clades.
+Check the "Tree-Manipulation"" vignette for details.
+
 # RRphylo 2.4.11
 What's new in version 2.4.11
 
