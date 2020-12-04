@@ -1,4 +1,4 @@
-citHeader("To cite RRphylo, search.shift, search.trend and auxilliary functions in publications use:")
+citHeader("To cite RRphylo implementations and auxilliary functions in publications use:")
 
 citEntry(entry        = "Article",
          header       = "RRphylo package, search.shift, and auxilliary functions",
@@ -20,30 +20,6 @@ citEntry(entry        = "Article",
                         "A new method for testing evolutionary rate variation and shifts in phenotypic evolution.",
                         "Methods in Ecology and Evolution, 9: 974-983.",
                         "doi:10.1111/2041-210X.12954")
-)
-
-
-
-citEntry(entry = "Article",
-         title        = "Simultaneous detection of macroevolutionary patterns in phenotypic means and rate of change                          with and within phylogenetic trees including extinct species.",
-         header       = "search.trend",
-         author       = personList(as.person("Silvia Castiglione"),
-                                   as.person("Carmela Serio"),
-                                   as.person("Alessandro Mondanaro"),
-                                   as.person("Mirko Di Febbraro"),
-                                   as.person("Antponio Profico"),
-                                   as.person("Giorgia Girardi"),
-                                   as.person("Pasquale Raia")),
-         journal      = "PLoS ONE",
-         year         = "2019",
-         volume       = "14",
-         pages        = "e0210101",
-         url          = "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0210101",
-         textVersion  = paste("Castiglione, S., Serio, C., Mondanaro, A., Di Febbraro, M., Profico, A., Girardi, G.,                         & Raia, P.(2019).",
-                        "Simultaneous detection of macroevolutionary patterns in phenotypic means and rate of change                          with and within phylogenetic trees including extinct species.",
-                        "PLoS ONE, 14: e0210101.",
-                        "doi.org/10.1371/journal.pone.0210101")
-
 )
 
 
@@ -99,6 +75,55 @@ citEntry(entry        = "Article",
 
 
 citEntry(entry        = "Article",
+         header       = "Ancestral state integration in RRphylo (RRphylo-noder)",
+         title        = "Macroevolution of toothed whales exceptional relative brain size.",
+         author       = personList(as.person("Silvia Castiglione"),
+                                   as.person("Carmela Serio"),
+                                   as.person("Alessandro Mondanaro"),
+                                   as.person("Marina Melchionna"),
+                                   as.person("Francesco Carotenuto"),
+                                   as.person("Mirko Di Febbraro"),
+                                   as.person("Antonio Profico"),
+                                   as.person("Davide Tamagnini"),
+                                   as.person("Pasquale Raia")),
+         journal      = "Evolutionary Biology",
+         year         = "2020",
+         volume       = "47",
+         pages        = "220-232",
+         url          = "https://link.springer.com/article/10.1007/s11692-020-09505-x",
+         textVersion  = paste("Castiglione, S., Serio, C., Mondanaro, A., Melchionna, M., Carotenuto, F., Di Febbraro, M., Profico, A., Tamagnini, D., & Raia, P. (2020).",
+                        "Ancestral State Estimation with Phylogenetic Ridge Regression.",
+                        "Evolutionary Biology, 47: 220-232.",
+                        "doi:10.1007/s11692-020-09505-x")
+)
+
+
+
+citEntry(entry = "Article",
+         title        = "Simultaneous detection of macroevolutionary patterns in phenotypic means and rate of change                          with and within phylogenetic trees including extinct species.",
+         header       = "search.trend",
+         author       = personList(as.person("Silvia Castiglione"),
+                                   as.person("Carmela Serio"),
+                                   as.person("Alessandro Mondanaro"),
+                                   as.person("Mirko Di Febbraro"),
+                                   as.person("Antponio Profico"),
+                                   as.person("Giorgia Girardi"),
+                                   as.person("Pasquale Raia")),
+         journal      = "PLoS ONE",
+         year         = "2019",
+         volume       = "14",
+         pages        = "e0210101",
+         url          = "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0210101",
+         textVersion  = paste("Castiglione, S., Serio, C., Mondanaro, A., Di Febbraro, M., Profico, A., Girardi, G.,                         & Raia, P.(2019).",
+                        "Simultaneous detection of macroevolutionary patterns in phenotypic means and rate of change                          with and within phylogenetic trees including extinct species.",
+                        "PLoS ONE, 14: e0210101.",
+                        "doi.org/10.1371/journal.pone.0210101")
+
+)
+
+
+
+citEntry(entry        = "Article",
          header       = "search.conv",
          title        = "A new, fast method to search for morphological convergence with shape data.",
          author       = personList(as.person("Silvia Castiglione"),
@@ -122,3 +147,27 @@ citEntry(entry        = "Article",
                         "doi:10.1371/journal.pone.0226949")
 )
 
+
+
+citEntry(entry        = "Article",
+         header       = "fix.poly",
+         title        = "The influence of domestication, insularity and sociality on the tempo and mode of brain size evolution in mammals.",
+         author       = personList(as.person("Silvia Castiglione"),
+                                   as.person("Carmela Serio"),
+                                   as.person("Martina Piccolo"),
+                                   as.person("Alessandro Mondanaro"),
+                                   as.person("Marina Melchionna"),
+                                   as.person("Mirko Di Febbraro"),
+                                   as.person("Gabriele Sansalone"),
+                                   as.person("Stephen Wroe"),
+                                   as.person("Pasquale Raia")),
+         journal      = "Biological Journal of the Linnean Society",
+         year         = "2020",
+         volume       = "in press",
+         pages        = "",
+         url          = "https://doi.org/10.1093/biolinnean/blaa186",
+         textVersion  = paste("Castiglione, S., Serio, C., Piccolo, M., Mondanaro, A., Melchionna, M., Di Febbraro, M., Sansalone, G., Wroe, S.,& Raia, P. (2020).",
+                        "The influence of domestication, insularity and sociality on the tempo and mode of brain size evolution in mammals.",
+                        "Biological Journal of the Linnean Society, in press.",
+                        "doi:10.1093/biolinnean/blaa186")
+)
