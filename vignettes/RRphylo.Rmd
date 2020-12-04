@@ -28,7 +28,7 @@ options(rmarkdown.html_vignette.check_title = FALSE)
 5. [Guided examples](#examples)
 
 ## RRphylo Basics {#basics}
-RRphylo is a full-fledged phylogenetic comparative method, based on RidgeRace regression (Kratsch and McHardy, 2014). It provides the rate of phenotypic change per branch and the vector of phenotypic estimates at nodes, with either univariate or multivariate data. As compared to classic, model-based approaches, RRphylo makes no a priori assumption about the tempo and mode of phenotypic evolution. However, rates are presumed to change more between than within clades (see below) and the rate of change is calculated as proportional to time (branch lengths). 
+RRphylo is a full-fledged phylogenetic comparative method, based on RidgeRace regression (Kratsch and McHardy, 2014). It provides the rate of phenotypic change per branch and the vector of phenotypic estimates at nodes, with either continuous or discrete, univariate or multivariate data (Castiglione et al. 2018, 2020a). As compared to classic, model-based approaches, RRphylo makes no a priori assumption about the tempo and mode of phenotypic evolution. However, rates are presumed to change more between than within clades (see below) and the rate of change is calculated as proportional to time (branch lengths). 
 
 ### RRphylo phylogenetic ridge regression {#RidgeRace}
 The RRphylo method is based on RidgeRace regression from Kratsch and McHardy (2014). Under both methods, the phenotypic change between a node and a daughter tip along a phyletic line is described by the sum of individual contributions at each consecutive branch according to the equation: $$Δy = β_{1}*l_{1} + β_{2}*l_{2} + ... β_{n}*l_{n}$$ where $n$ equals the number of branches intervening between the node and the tip, $β_{1...n}$ are the vectors of regression coefficients (the evolutionary rates) at each branch, and $l_{1...n}$ are the branch lengths. Extending this calculation simultaneously for the entire phylogeny, the  $\hat{β}$ vector is calculated as:
@@ -165,7 +165,7 @@ abline(lm(res~Y),lwd=2,col="red")
 ```
 
 ## Multiple regression framework {#predictor}
-The multiple regression version of RRphylo is meant to evaluate the combined effect of phylogeny (basic predictor within RRphylo) and one to multiple additional predictors (e.g. phenotypic variables, ecological factors) on the evolution of a given phenotypic trait. Such additional predictor/s is/are included into the phylogenetic ridge regression equation as supplemental column/s within the `L` and `L1` matrices. To associate predictor values to the `L1` matrix (i.e. matrix of root-to-node paths), predictor values at nodes must be reconstructed. This is accomplished by performing `RRphylo` on the individual predictor/s, deriving their phenotypic estimates at nodes, and collating them to the values at tips. The final vector/matrix is fed into the RRphylo as the `x1` argument.
+The multiple regression version of RRphylo is meant to evaluate the combined effect of phylogeny (basic predictor within RRphylo) and one to multiple additional predictors, either continuous or discrete (Castiglione et al. 2020a),  on the evolution of a given phenotypic trait. Such additional predictor/s is/are included into the phylogenetic ridge regression equation as supplemental column/s within the `L` and `L1` matrices. To associate predictor values to the `L1` matrix (i.e. matrix of root-to-node paths), predictor values at nodes must be reconstructed. This is accomplished by performing `RRphylo` on the individual predictor/s, deriving their phenotypic estimates at nodes, and collating them to the values at tips. The final vector/matrix is fed into the RRphylo as the `x1` argument.
 
 ```{r,message = FALSE,fig.show='asis',fig.align="center",fig.dim=c(4,4),out.width='60%',echo=FALSE,dpi=220}
 require(ape)
@@ -201,7 +201,7 @@ This way, the vector $\hat{β}$ of rates is calculated for all the branches in t
 The multiple regression version of RRphylo is useful when a trait or ecological factor (i.e. the predictor) is presumed to influence the response variable and hence its evolutionary rates. One example is the effect of body size on brain size (Serio et al. 2019, Melchionna et al. 2020, see example [below](#examples)). 
 
 ## Setting values at internal nodes {#aces}
-There is widespread acknowledgement that the inclusion of fossil information in analyses of phenotypic and taxonomic diversification increases both the power and reliability of inference about the tempo and mode of evolution. RRphylo allows to integrate the phenotypic information at internal nodes in the estimation of evolutionary rates and ancestral character states. 
+There is widespread acknowledgement that the inclusion of fossil information in analyses of phenotypic and taxonomic diversification increases both the power and reliability of inference about the tempo and mode of evolution. RRphylo allows to integrate the phenotypic information at internal nodes in the estimation of evolutionary rates and ancestral character states (Castiglione et al. 2020b). 
 
 Given a vector (or matrix in case of multivariate data) of $n$ known phenotypic values to be placed at internal nodes (`aces` argument within the function), a vector of false tips $ftips$ of length $n$ is added to the tree. Each $i_{th}$ element of $ftips$ is phenotypically identical to the corresponding $aces_{i}$ and is attached to the tree at the position of $aces_{i}$ with a branch of length = 0. Then, the vector $\hat{β}$ of regression coefficients is estimated by means of RRphylo by using the modified tree and phenotype (which include both $ftips$ and the real tips). Since the branch lengths of $ftips$ are equal to zero, the phenotypic rate between each $ftips_{i}$ and the corresponding node is zero, which means the $aces$ and their corresponding $ftips$ will have the same phenotypic estimates. After $β$ coefficients are estimated, the vector of phenotypic values at nodes is calculated as usual as `L1 %*% betas[1:Nnode(tree),]`. The final step of the algorithm consists in removing $ftips$ from the tree, and from the rate and phenotypic vectors.
 
@@ -355,6 +355,10 @@ RRphylo(tree,y,aces=acesy,x1=x1mat,aces.x1 = acex)->RRcat.multi
 ## References
 
 Castiglione, S., Tesone, G., Piccolo, M., Melchionna, M., Mondanaro, A., Serio, C., Di Febbraro, M., & Raia, P.(2018). A new method for testing evolutionary rate variation and shifts in phenotypic evolution. Methods in Ecology and Evolution, 9, 974-983.
+
+Castiglione, S., Serio, C., Piccolo, M., Mondanaro, A., Melchionna, M., Di Febbraro, M., Sansalone, G., Wroe, S.,& Raia, P. (2020a). The influence of domestication, insularity and sociality on the tempo and mode of brain size evolution in mammals. Biological Journal of the Linnean Society, in press.
+        
+Castiglione, S., Serio, C., Mondanaro, A., Melchionna, M., Carotenuto, F., Di Febbraro, M., Profico, A., Tamagnini, D., & Raia, P. (2020b). Ancestral State Estimation with Phylogenetic Ridge Regression. Evolutionary Biology, 47, 220-232.
 
 Eastman, J.M., Alfaro, M.E., Joyce, P., Hipp, A.L., & Harmon, L.J. (2011) A novel comparative method for identifying shifts in the rate of character evolution on trees. Evolution 65, 3578– 3589.
 

@@ -28,7 +28,7 @@ options(rmarkdown.html_vignette.check_title = FALSE)
 ## search.shift basics {#basics}
 One of the main advantages of the [RRphylo](RRphylo.html) method is the computation of phenotypic evolutionary rates for each branch of the phylogeny. This is particularly welcome as it allows to test for significant rate shifts occurring in groups of species belonging to a certain rate regime. For a rate shift to be real, the $β$ coefficients attached to the branches evolving under a distinctive rate regime must be statistically larger/smaller than the average coefficients calculated for the other branches of the tree. Since rate values are branch-specific, it is feasible to search for shifts indifferently when different rate regimes pertain to distinct [clades](#clade), or to a number of [unrelated species across the phylogeny](#sparse). The strategy to assess rate shifts is to test the difference in mean rates between the branches hypothesized to evolve under different rate regimes and the rest of the tree through randomizations.
 
-The function `search.shift` takes an object produced by `RRphylo`. It can be used to automatically locate the shifts, test different clades where distinct rate shifts are presumed to occur, or test for rate differences among different tip categories. It also allows to account for the effect of a covariate on the rate of evolution, provided the covariate has not been used to produce the RRphylo object (see [`RRphylo`](RRphylo.html) for further explanation about the covariate, and the [guided examples below](#examples)).
+The function `search.shift` (Castiglione et al. 2018) takes an object produced by `RRphylo`. It can be used to automatically locate the shifts, test different clades where distinct rate shifts are presumed to occur, or test for rate differences among different tip categories. It also allows to account for the effect of a covariate on the rate of evolution, provided the covariate has not been used to produce the RRphylo object (see [`RRphylo`](RRphylo.html) for further explanation about the covariate, and the [guided examples below](#examples)).
 
 
 
@@ -642,3 +642,6 @@ search.shift(RRdinomass, status.type= "clade",cov=lmass,foldername=getwd())->SSa
 search.shift(RRdinomass, status.type= "sparse", state=statedino,cov=lmass, foldername=getwd())->SSstate
 ```
 
+## References
+
+Castiglione, S., Tesone, G., Piccolo, M., Melchionna, M., Mondanaro, A., Serio, C., Di Febbraro, M., & Raia, P.(2018). A new method for testing evolutionary rate variation and shifts in phenotypic evolution. Methods in Ecology and Evolution, 9, 974-983.
