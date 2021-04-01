@@ -144,9 +144,9 @@ RRphylo(tree=treedino,y=massdino)->dinoRates
 RRphylo(tree=treeptero,y=log(massptero))->RRptero
 
 # Case 1 search.shift under both "clade" and "sparse" condition
-search.shift(RR=dinoRates, status.type= "clade",foldername=tempdir())->SSnode
+search.shift(RR=dinoRates, status.type= "clade",filename=tempdir())->SSnode
 search.shift(RR=dinoRates, status.type= "sparse", state=statedino,
-             foldername=tempdir())->SSstate
+             filename=tempdir())->SSstate
 
 overfitRR(RR=dinoRates,y=massdino,swap.args =list(si=0.2,si2=0.2),
           shift.args = list(node=rownames(SSnode$single.clades),state=statedino),
@@ -154,13 +154,13 @@ overfitRR(RR=dinoRates,y=massdino,swap.args =list(si=0.2,si2=0.2),
 
 # Case 2 search.trend on the entire tree
 search.trend(RR=RRptero, y=log(massptero),nsim=100,clus=cc,
-             foldername=tempdir(),cov=NULL,ConfInt=FALSE,node=NULL)->STtree
+             filename=tempdir(),cov=NULL,ConfInt=FALSE,node=NULL)->STtree
 
 overfitRR(RR=RRptero,y=log(massptero),swap.args =list(si=0.2,si2=0.2),
           trend.args = list(),nsim=10,clus=cc)
 
 # Case 3 search.trend at specified nodes
-search.trend(RR=RRptero, y=log(massptero),node=143,clus=cc,foldername=tempdir(),
+search.trend(RR=RRptero, y=log(massptero),node=143,clus=cc,filename=tempdir(),
              cov=NULL,ConfInt=FALSE)->STnode
 
 overfitRR(RR=RRptero,y=log(massptero),trend.args = list(node=143),nsim=10,clus=cc)
@@ -181,11 +181,11 @@ RRmass.multi$aces[,1]->acemass.multi
 c(acemass.multi,masscet.multi)->x1.mass
 
 RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass)->RRmulti
-search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,clus=cc,foldername=tempdir())->STcet
+search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,clus=cc,filename=tempdir())->STcet
 overfitRR(RR=RRmulti,y=brainmasscet,trend.args = list(),x1=x1.mass,nsim=10,clus=cc)
 
 search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,x1.residuals=TRUE,
-             clus=cc,foldername=tempdir())->STcet.resi
+             clus=cc,filename=tempdir())->STcet.resi
 overfitRR(RR=RRmulti,y=brainmasscet,trend.args = list(x1.residuals=TRUE),
           x1=x1.mass,nsim=10,clus=cc)
 
@@ -197,7 +197,7 @@ DataFelids$statefel->statefel
 
 RRphylo(tree=treefel,y=PCscoresfel,clus=cc)->RRfel
 search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="node9",
-            foldername = tempdir(),clus=cc)->SC.clade
+            filename = tempdir(),clus=cc)->SC.clade
 as.numeric(c(rownames(SC.clade[[1]])[1],as.numeric(as.character(SC.clade[[1]][1,1]))))->conv.nodes
 
 overfitRR(RR=RRfel, y=PCscoresfel,conv.args =

@@ -4,8 +4,8 @@
 \alias{search.trend}
 \title{Searching for evolutionary trends in phenotypes and rates}
 \usage{
-search.trend(RR,y,x1=NULL,x1.residuals =
-  FALSE,nsim=100,clus=0.5,node=NULL,cov=NULL, foldername,ConfInt=FALSE)
+search.trend(RR,y,x1=NULL,x1.residuals = FALSE,
+  node=NULL,cov=NULL,nsim=100,clus=0.5,ConfInt=FALSE,foldername=NULL,filename)
 }
 \arguments{
 \item{RR}{an object produced by \code{\link{RRphylo}}.}
@@ -24,12 +24,6 @@ once can be specified.}
 between \code{y} and \code{x1} should be inspected for a phenotypic trend
 (see details and examples below). Default is \code{FALSE}.}
 
-\item{nsim}{number of simulations to be performed. It is set at 100 by
-default.}
-
-\item{clus}{the proportion of clusters to be used in parallel computing. To
-run the single-threaded version of \code{search.trend} set \code{clus} = 0.}
-
 \item{node}{the node number of individual clades to be specifically tested
 and contrasted to each other. It is \code{NULL} by default. Notice the node
 number must refer to the dichotomic version of the original tree, as
@@ -42,11 +36,22 @@ of the tree, which can be obtained by running \code{RRphylo} on the
 covariate as well, and taking the vector of ancestral states and tip values
 to form the covariate (see the example below).}
 
-\item{foldername}{the path of the folder where plots are to be found.}
+\item{nsim}{number of simulations to be performed. It is set at 100 by
+default.}
+
+\item{clus}{the proportion of clusters to be used in parallel computing. To
+run the single-threaded version of \code{search.trend} set \code{clus} = 0.}
 
 \item{ConfInt}{if \code{TRUE}, the function returns 95\% confidence intervals
 around phenotypes and rates produced according to the Brownian motion model
 of evolution. It is \code{FALSE} by default.}
+
+\item{foldername}{has been deprecated; please see the argument
+\code{filename} instead.}
+
+\item{filename}{a character indicating the name of the pdf file and the path
+where it is to be saved. If no path is indicated the file is stored in the
+working directory}
 }
 \value{
 The function returns a list object including:
@@ -159,11 +164,11 @@ RRphylo(tree=treeptero,y=log(massptero))->RRptero
 
 # Case 1.1. "search.trend" whitout indicating nodes to be tested for trends
 search.trend(RR=RRptero, y=log(massptero), nsim=100, clus=cc,
-             foldername=tempdir(),cov=NULL,ConfInt=FALSE,node=NULL)
+             filename=tempdir(),cov=NULL,ConfInt=FALSE,node=NULL)
 
 # Case 1.2. "search.trend" indicating nodes to be specifically tested for trends
 search.trend(RR=RRptero, y=log(massptero), nsim=100, node=143, clus=cc,
-             foldername=tempdir(),cov=NULL,ConfInt=FALSE)
+             filename=tempdir(),cov=NULL,ConfInt=FALSE)
 
 
 # Case 2. "RRphylo" accounting for the effect of a covariate
@@ -175,11 +180,11 @@ RRphylo(tree=treeptero,y=log(massptero),cov=cov.values)->RRpteroCov
 
 # Case 2.1. "search.trend" whitout indicating nodes to be tested for trends
 search.trend(RR=RRpteroCov, y=log(massptero), nsim=100, clus=cc,
-             foldername=tempdir(),ConfInt=FALSE,cov=cov.values)
+             filename=tempdir(),ConfInt=FALSE,cov=cov.values)
 
 # Case 2.2. "search.trend" indicating nodes to be specifically tested for trends
 search.trend(RR=RRpteroCov, y=log(massptero), nsim=100, node=143, clus=cc,
-             foldername=tempdir(),ConfInt=FALSE,cov=cov.values)
+             filename=tempdir(),ConfInt=FALSE,cov=cov.values)
 
 
 # Case 3. "search.trend" on multiple "RRphylo"
@@ -199,11 +204,11 @@ c(acemass.multi,masscet.multi)->x1.mass
 RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass)->RRmulti
 
 # incorporating the effect of body size at inspecting trends in absolute evolutionary rates
-search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,clus=cc,foldername=tempdir())
+search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,clus=cc,filename=tempdir())
 
 # incorporating the effect of body size at inspecting trends in both absolute evolutionary
 # rates and phenotypic values (by using brain versus body mass regression residuals)
-search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,x1.residuals=TRUE,clus=cc,foldername=tempdir())
+search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,x1.residuals=TRUE,clus=cc,filename=tempdir())
    }
 }
 \references{

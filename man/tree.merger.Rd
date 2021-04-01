@@ -53,7 +53,7 @@ The function attaches new tips and/or clades derived from a
 \details{
 The function attaches tips and/or clades from the \code{source} tree
   to the \code{backbone} tree according to the \code{data} object. Within the
-  latter, a clade, either to be binded or to be the reference, must be
+  latter, a clade, either to be bound or to be the reference, must be
   indicated by collating the names of the two phylogenetically furthest tips
   belonging to it, separated by a "-". Duplicated 'bind' produce error.
   Tips/clades set to be attached to the same 'reference' are considered to

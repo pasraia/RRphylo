@@ -30,6 +30,7 @@ Under \code{type='resolve'} polytomous clades are resolved adding
   to the new nodes is partitioned equally below the dichotomized clade.
 }
 \examples{
+\dontrun{
  require(ape)
 
  data("DataCetaceans")
@@ -52,6 +53,7 @@ Under \code{type='resolve'} polytomous clades are resolved adding
  par(mfrow=c(1,2))
  plot(treecet,no.margin=TRUE,show.tip.label=FALSE)
  plot(treecet.collapsed,no.margin=TRUE,show.tip.label=FALSE)
+}
 }
 \references{
 Castiglione, S., Serio, C., Piccolo, M., Mondanaro, A.,

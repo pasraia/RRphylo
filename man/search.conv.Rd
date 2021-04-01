@@ -5,8 +5,8 @@
 \title{Searching for morphological convergence among species and clades}
 \usage{
 search.conv(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
-  min.dim=NULL,max.dim=NULL,min.dist=NULL,PGLSf=FALSE,declust=FALSE,nsim=1000,rsim=1000,
-   clus=.5,foldername=NULL)
+  min.dim=NULL,max.dim=NULL,min.dist=NULL,declust=FALSE,nsim=1000,rsim=1000,
+   clus=.5,foldername=NULL,filename)
 }
 \arguments{
 \item{RR}{an object produced by \code{\link{RRphylo}}. This is not indicated
@@ -61,9 +61,6 @@ clades separated by more than 8 nodes has to be tested, the argument
 searches for convergence between clades separated by a number of nodes
 bigger than one tenth of the tree size.}
 
-\item{PGLSf}{has been deprecated; please see the argument \code{declust}
-instead.}
-
 \item{declust}{if species under a given state (or a pair of states) to be
 tested for convergence are phylogenetically closer than expected by chance,
 trait similarity might depend on proximity rather than true convergence. In
@@ -80,7 +77,12 @@ distribution of theta values. It is set at 1000 by default.}
 \item{clus}{the proportion of clusters to be used in parallel computing. To
 run the single-threaded version of \code{search.conv} set \code{clus} = 0.}
 
-\item{foldername}{the path of the folder where plots are to be found.}
+\item{foldername}{has been deprecated; please see the argument
+\code{filename} instead.}
+
+\item{filename}{a character indicating the name of the pdf file and the path
+where it is to be saved. If no path is indicated the file is stored in the
+working directory}
 }
 \value{
 If convergence between clades is tested, the function returns a list
@@ -118,7 +120,7 @@ The function scans a phylogenetic tree looking for morphological
 }
 \details{
 Regardless the case (either 'state' or 'clade'), the function stores
-  a plot into the folder specified by \code{foldername}. If convergence among
+  a plot into the folder specified by \code{filename}. If convergence among
   clades is tested, the clade pair plotted corresponds to those clades with
   the smallest \code{$average distance from group centroid}. The figure shows
   the Euclidean distances computed between the MRCAs of the clades and the
@@ -151,14 +153,14 @@ RRphylo(treefel,PCscoresfel,clus=cc)->RRfel
 ## Case 1. searching convergence between clades
 # by setting min.dist as node distance
 search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="node9",
-            foldername = tempdir(),clus=cc)
+            filename = tempdir(),clus=cc)
 # by setting min.dist as time distance
 search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="time38",
-            foldername = tempdir(),clus=cc)
+            filename = tempdir(),clus=cc)
 
 ## Case 2. searching convergence within a single state
 search.conv(tree=treefel, y=PCscoresfel, state=statefel,declust=TRUE,
-            foldername = tempdir(),clus=cc)
+            filename = tempdir(),clus=cc)
   }
 }
 \references{

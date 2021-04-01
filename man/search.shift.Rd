@@ -5,7 +5,7 @@
 \title{Locating shifts in phenotypic evolutionary rates}
 \usage{
 search.shift(RR, status.type = c("clade", "sparse"),node = NULL, state
-  = NULL, cov = NULL, nrep = 1000, f = NULL,foldername)
+  = NULL, cov = NULL, nrep = 1000, f = NULL,foldername=NULL,filename)
 }
 \arguments{
 \item{RR}{an object fitted by the function \code{\link{RRphylo}}.}
@@ -33,7 +33,12 @@ test, by default \code{nrep} is set at 1000.}
 \item{f}{the size of the smallest clade to be tested. By default, nodes
 subtending to one tenth of the tree tips are tested.}
 
-\item{foldername}{the path of the folder where plots are to be found.}
+\item{foldername}{has been deprecated; please see the argument
+\code{filename} instead.}
+
+\item{filename}{a character indicating the name of the pdf file and the path
+where it is to be saved. If no path is indicated the file is stored in the
+working directory}
 }
 \value{
 Under all circumstances, \code{search.shift} provides a vector of
@@ -153,23 +158,23 @@ RRphylo(tree=treedino,y=massdino)->dinoRates
 
 # Case 1.1 "clade" condition
 # with auto-recognize
-search.shift(RR=dinoRates,status.type="clade",foldername=tempdir())
+search.shift(RR=dinoRates,status.type="clade",filename=tempdir())
 # testing two hypothetical clades
-search.shift(RR=dinoRates,status.type="clade",node=c(696,746),foldername=tempdir())
+search.shift(RR=dinoRates,status.type="clade",node=c(696,746),filename=tempdir())
 
 # Case 1.2 "sparse" condition
 # testing the sparse condition.
-search.shift(RR=dinoRates,status.type= "sparse",state=statedino,foldername=tempdir())
+search.shift(RR=dinoRates,status.type= "sparse",state=statedino,filename=tempdir())
 
 
 # Case 2. Accounting for the effect of a covariate
 
 # Case 2.1 "clade" condition
-search.shift(RR=dinoRates,status.type= "clade",cov=massdino,foldername=tempdir())
+search.shift(RR=dinoRates,status.type= "clade",cov=massdino,filename=tempdir())
 
 # Case 2.2 "sparse" condition
 search.shift(RR=dinoRates,status.type="sparse",state=statedino,cov=massdino,
-             foldername=tempdir())
+             filename=tempdir())
     }
 }
 \references{
