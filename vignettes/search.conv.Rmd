@@ -614,7 +614,7 @@ $$\frac{\theta_{real}}{dist_{mrcas}} = 17.286 ; \frac{\theta_{real}+\theta_{ace}
 Regardless of whether clades are indicated (by the argument `node`) or not (i.e. the function automatically locates convergent clades), `search.conv` returns the metrics (i.e. $θ_{real}$, $θ_{ace}$ and so on) and the relative significance level for each clade pair under testing (`$node pairs`). 
 ```{r message=FALSE, warning=FALSE,eval=FALSE}
 search.conv(RR=RR,y=y,min.dim=3,max.dim=4,nsim=100,rsim=100,
-            clus=2/parallel::detectCores(),foldername=getwd())->SC
+            clus=2/parallel::detectCores(),filename="convergence plot")->SC
 ```
 ```{r message=FALSE, warning=FALSE,echo=FALSE}
 pdf.options(useDingbats=FALSE)
@@ -1192,7 +1192,7 @@ knitr::kable(as.data.frame(cbind(SC$`node pairs comparison`,
 
 As for the example above, `search.conv` found two clade pairs under "convergence and parallelism" (which is also printed out in the console when the function ends running). In both cases, $\theta_{real}$ by time (**ang.bydist.tip**) is not significant (**p.ang.bydist** > 0.05) while $\theta_{real}+\theta_{ace}$ by time (**ang.conv**) is significantly different from random (**p.ang.conv** < 0.05). This means the clades within each pair started with similar phenotypes and evolved along parallel trajectories. Although not significantly different (**p adj**), the average distance from group centroid for the pair 18/24 is smaller than for 23/18, which means the former has less phenotypic variance.
 
-The function also stores a pdf file in the directory specified by the argument `foldername`.
+The function also stores a pdf file in the directory specified by the argument `filename`.
 
 ```{r echo=FALSE,fig.align="center",message=FALSE,warning=FALSE, out.width='98%'}
 require(pdftools)
@@ -1290,14 +1290,14 @@ legend("bottomright",legend=c("State a","State b","nostate"),pch=21,pt.cex=2,
 Under the "state" case, `search.conv` returns the mean $θ_{real}$ within/between states (**ang.state**) and the same metric divided by time distance (**ang.state.time**), along with respective significance level (**p.ang.state** and **p.ang.state.time**).
 
 ```{r message=FALSE, warning=FALSE,eval=FALSE}
-search.conv(tree=tree,y=y,state=state,nsim=100,
-            clus=2/parallel::detectCores(),foldername=getwd())->SC
+search.conv(tree=tree,y=y,state=state,nsim=100,clus=2/parallel::detectCores(),
+            filename="convergence plot states")->SC
 ```
 ```{r message=FALSE, warning=FALSE,echo=FALSE}
 pdf.options(useDingbats=FALSE)
 # search.conv(tree=tree,y=y,state=state,nsim=100,
 #             clus=2/parallel::detectCores(),foldername=getwd())->SC
-tree=tree;y=y;state=state;nsim=100;foldername=getwd()
+tree=tree;y=y;state=state;nsim=100
 {
   phylo.run.test<-function(tree,state,st,nsim=100){
     cophenetic.phylo(tree)->cop
@@ -1451,8 +1451,7 @@ tree=tree;y=y;state=state;nsim=100;foldername=getwd()
   data.frame(bbb,l1=bbb[,1]/2,l2=360-(bbb[,1]/2),rlim1=bbb[,2]/2,
              rlim2=360-bbb[,2]/2,p=res.tot[,8])->ccc
   
-  pdf(file = paste(foldername, "convergence plot for different states.pdf",
-                   sep = "/"))
+  pdf(file = "convergence plot states.pdf")
   
   if(nrow(res.tot)==1) {
     mat<-matrix(c(1,2),ncol=1,nrow=2,byrow=TRUE)
@@ -1528,12 +1527,12 @@ knitr::kable(SC,digits=3,align="c") %>%
 
 The example above produced significant results for convergence between states regarding both mean $θ_{real}$ (**p.ang.state** < 0.05) and mean $θ_{real}$ by time (**p.ang.state.time**). Whether **p.ang.state.time** or **p.ang.state** should be inspected to assess significance depends on the study settings. Ideally, **p.ang.state.time** provides the most appropriate significance metric, however, for badly incomplete tree with clades pertaining to very distant parts of the tree of life (which is commonplace in studies of morphological convergence), the time distance could be highly uninformative and **p.ang.state** should be preferred.
 
-As above, the function stores a pdf file in the folder indicated by the argument `foldername`. 
+As above, the function stores a pdf file in the folder indicated by the argument `filename`. 
 ```{r echo=FALSE,fig.align="center",message=FALSE,warning=FALSE, out.width='98%'}
 require(pdftools)
-ddpcr::quiet(pdf_convert(paste(getwd(),"/convergence plot for different states.pdf",sep=""), format = "png",dpi=300))
-ddpcr::quiet(file.remove(paste(getwd(),"/convergence plot for different states.pdf",sep="")))
-knitr::include_graphics("convergence plot for different states_1.png")
+ddpcr::quiet(pdf_convert(paste(getwd(),"/convergence plot states.pdf",sep=""), format = "png",dpi=300))
+ddpcr::quiet(file.remove(paste(getwd(),"/convergence plot states.pdf",sep="")))
+knitr::include_graphics("convergence plot states_1.png")
 ```
 
 The PC plot is obtained by performing a PCA on the species phenotypes. Species belonging to different states are indicated by colored convex hulls. The circular plot represents the mean $θ_{real}$ between states (blue lines) and the range of $θ_{random}$ (gray shaded area) around it. The p-value for the convergence test (**p.ang.state.time**) is printed within the circular plot.
@@ -1563,11 +1562,11 @@ RRphylo(tree=treefel,y=PCscoresfel)->RRfel
 ## Example 1: search for morphological convergence between clades (automatic mode)
 ## by setting 9 nodes as minimum distance between the clades to be tested
 search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="node9",
-            foldername = tempdir())->SC.clade
+            filename = "sc clade")->SC.clade
 
 ## Example 2: search for morphological convergence within sabertoothed species
 search.conv(tree=treefel, y=PCscoresfel, state=statefel,
-            foldername = tempdir())->SC.state
+            filename = "sc state")->SC.state
 
 ```
 

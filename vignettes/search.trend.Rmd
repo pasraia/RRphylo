@@ -61,7 +61,7 @@ makeL(tree)->L
 makeL1(tree)->L1
 RRphylo(tree,yt)->rr
 
-quiet(search.trend(rr,yt,clus=2/parallel::detectCores(),foldername=tempdir())->st.rates)
+quiet(search.trend(rr,yt,clus=2/parallel::detectCores(),filename=tempdir())->st.rates)
 
 c(rr$aces,yt)->phen
 
@@ -132,7 +132,7 @@ names(rootD)<-c((Ntip(tree)+1),hei[,1])
 makeL(tree)->L
 makeL1(tree)->L1
 RRphylo(tree,yd)->rr
-quiet(search.trend(rr,yd,clus=2/parallel::detectCores(),foldername=tempdir())->st.phen)
+quiet(search.trend(rr,yd,clus=2/parallel::detectCores(),filename=tempdir())->st.phen)
 
 c(rr$aces,yd)->phen
 names(phen)<-c(rownames(rr$aces),names(yd))
@@ -195,7 +195,7 @@ colnames(res)[4:5]<-c("spread","dev")
 rownames(res)<-c("absolute rate regression","phenotypic regression")
 ```
 ```{r,eval=FALSE,message=FALSE,warning=FALSE}
-search.trend(RR=RR,y=y,foldername=getwd())->ST
+search.trend(RR=RR,y=y,filename="st whole")->ST
 ```
 ```{r,echo=FALSE,message=FALSE,warning=FALSE}
 require(kableExtra)
@@ -225,65 +225,19 @@ require(plotrix)
 
 sim.bdtree(b = .5, d = 0.2,seed=14)->T
 
-set.seed(93)
-sizedsubtree(T,20)->n
-repeat({
-  c(getMommy(T,n),getDescendants(T,n))->outs
-  sizedsubtree(T,20)->n2
-  if(n2%in%outs==FALSE & getSis(T,n2,printZoom = FALSE)!=n & n!=n2) break
-})
-
+n=275
+n2=198
 max(nodeHeights(T))/nodeHeights(T)[,2][which(T$edge[,2]==n)]->dN1
 max(nodeHeights(T))/nodeHeights(T)[,2][which(T$edge[,2]==n2)]->dN2
-ds1<-.5
-ds2<- -.5
-es1=.01
-es2=1.9
-runif(1,-10,10)->rt
-S2<-sample(seq(0.1,10,0.01),1)
-sample(c(es1,es2),1)->esx1
-sample(c(es1,es2),1)->esx2
 
+rt=-9.365124
+S2=1.04
+set.seed(22)
 fastBM(T,a=rt,sig2=S2)->yB
-yB->y
-
-### Phenotypes ###
-y[match(tips(T,n),names(y))]->yDR
-diag(vcv(T)[names(yDR),names(yDR)])->timeDR
-coef(lm(yDR~timeDR))[2]->tend
-if(tend*ds1>0) ds1->ds1 else ds1*(-1)->ds1
-ds1*dN1->dsx1
-yD <- (timeDR*dsx1)+ yDR
-y[match(tips(T,n),names(y))]<-yD
-
-y[match(tips(T,n2),names(y))]->yDR
-diag(vcv(T)[names(yDR),names(yDR)])->timeDR
-coef(lm(yDR~timeDR))[2]->tend
-if(tend*ds2>0) ds2->ds2 else ds2*(-1)->ds2
-ds2*dN2->dsx2
-yD <- (timeDR*dsx2)+ yDR
-y[match(tips(T,n2),names(y))]<-yD
-
-RRphylo(T,y)->RR
-quiet(search.trend(RR,y,node=c(n,n2),clus=2/parallel::detectCores(),foldername=tempdir())->STphen)
-c(RR$aces[,1],y)->phen
-
-c(n,getDescendants(T,n))->desn
-T$tip.label[desn[which(desn<=Ntip(T))]]->desn[which(desn<=Ntip(T))]
-
-c(n2,getDescendants(T,n2))->desn2
-T$tip.label[desn2[which(desn2<=Ntip(T))]]->desn2[which(desn2<=Ntip(T))]
-
-dist.nodes(T)[Ntip(T)+1,]->ages
-T$tip.label[as.numeric(names(ages)[which(as.numeric(names(ages))<=Ntip(T))])]->names(ages)[which(as.numeric(names(ages))<=Ntip(T))]
-ages[match(names(phen),names(ages))]->ages
-
 
 ### Rates ###
-es1=.01
-es2=1.9
-sample(c(es1,es2),1)->esx1
-sample(c(es1,es2),1)->esx2
+esx1=.01
+esx2=.01
 
 yB->y
 y[match(tips(T,n),names(y))]->yT
@@ -297,8 +251,47 @@ y[match(tips(T,n),names(y))]<-yT
 y[match(tips(T,n2),names(y))]<-yT2
 
 RRphylo(T,y)->RR
-quiet(search.trend(RR,y,node=c(n,n2),clus=2/parallel::detectCores(),foldername=tempdir())->STrates)
+quiet(search.trend(RR,y,node=c(n,n2),clus=2/parallel::detectCores(),filename=tempdir())->STrates)
 abs(RR$rates[,1])->rats
+
+
+### Phenotypes ###
+set.seed(2293)
+fastBM(T,a=rt,sig2=S2)->yB
+ds1=.2
+ds2=-.2
+
+yB->y
+y[match(tips(T,n),names(y))]->yDR
+diag(vcv(T)[names(yDR),names(yDR)])->timeDR
+coef(lm(yDR~timeDR))[2]->tend
+if(tend*ds1>0) ds1->ds1 else ds1*(-1)->ds1
+ds1*dN1->dsx1
+yD <- (timeDR*dsx1)+ yDR
+y[match(tips(T,n),names(y))]<-yD
+
+y[match(tips(T,n2),names(y))]->yDR
+diag(vcv(T)[names(yDR),names(yDR)])->timeDR
+coef(lm(yDR~timeDR))[2]->tend
+# if(tend*ds2>0) ds2->ds2 else 
+ds2*(-1)->ds2
+ds2*dN2->dsx2
+yD <- (timeDR*dsx2)+ yDR
+y[match(tips(T,n2),names(y))]<-yD
+
+RRphylo(T,y)->RR
+quiet(search.trend(RR,y,node=c(n,n2),clus=2/parallel::detectCores(),filename=tempdir())->STphen)
+c(RR$aces[,1],y)->phen
+
+c(n,getDescendants(T,n))->desn
+T$tip.label[desn[which(desn<=Ntip(T))]]->desn[which(desn<=Ntip(T))]
+
+c(n2,getDescendants(T,n2))->desn2
+T$tip.label[desn2[which(desn2<=Ntip(T))]]->desn2[which(desn2<=Ntip(T))]
+
+dist.nodes(T)[Ntip(T)+1,]->ages
+T$tip.label[as.numeric(names(ages)[which(as.numeric(names(ages))<=Ntip(T))])]->names(ages)[which(as.numeric(names(ages))<=Ntip(T))]
+ages[match(names(phen),names(ages))]->ages
 
 
 par(mfrow=c(1,2),mar=c(4,3,3,1))
@@ -365,7 +358,7 @@ cbind(data.frame(node=names(STrates[[6]]),do.call(rbind,STrates[[6]])),
       data.frame(node=names(STphen[[5]]),do.call(rbind,STphen[[5]])))->res
 ```
 ```{r,eval=FALSE,message=FALSE,warning=FALSE}
-search.trend(RR=RR,y=y,node=c(275,198),foldername=getwd())->ST
+search.trend(RR=RR,y=y,node=c(275,198),filename="st nodes")->ST
 ```
 ```{r,echo=FALSE,message=FALSE,warning=FALSE}
 rownames(res)<-NULL
@@ -395,9 +388,9 @@ add_header_above(c("Comparison of trends in phenotypic means" = 6))
 
 If more than one clade is indicated, the results also include pairwise comparison of trends between clades (`$group.comparison`). The comparison of trends in absolute rates is performed in the same way as the comparison of a single clade against the rest of the tree. Thus, results consist of differences in both estimated marginal means (**emm.difference**) and slopes (**slope.difference**) between clades with respective p.values (**p.emm** and **p.slope** respectively). For the comparison of phenotypic trends between clades, the differences in regression slopes (**slope.difference**) and estimated marginal means (**emm.difference**) between clades are returned. In this case the p-value for the slope difference (**p.slope**) is computed through randomization.
 
-In the example above, the comparison of trends in absolute rates at nodes 275 and 198 is marginally significant for slope difference only (**p.emm** > 0.05 and **p.slope** < 0.05). Conversely, trends in phenotypic means are significantly different in both slope (**p.slope** < 0.05) and estimate marginal means (**p.emm** < 0.05).
+In the example above, the comparison of trends in absolute rates at nodes 275 and 198 is marginally significant for slope difference only (**p.emm** > 0.05 and **p.slope** ~ 0.05). Conversely, trends in phenotypic means are significantly different in both slope (**p.slope** < 0.05) and estimate marginal means (**p.emm** < 0.05).
 
-The function stores plots of phenotype versus age and absolute rate versus age regression (similar to those in the figures above) as pdf files within the folder indicated by the argument `foldername`.
+The function stores plots of phenotype versus age and absolute rate versus age regression (similar to those in the figures above) as pdf files within the folder indicated by the argument `filename`.
 
 ## Multivariate data and multiple RRphylo output{#multi}
 When applied on multivariate data, `search.trend` treats each phenotypic and rate (derived by `RRphylo`) component independently. Also, it performs the whole set of analyses on a multivariate vector of phenotypes (rates), derived by computing the L2-norm of the individual phenotypes (rates) at each branch (the same as in multivariate RRphylo).
@@ -442,7 +435,7 @@ masscet[match(treecet$tip.label,names(masscet))]->masscet
 RRphylo(tree=treecet,y=masscet,aces=aceMyst)->RR
 
 # Perform search.trend on the RR object and (log) body mass by indicating Mysticeti as focal clade
-search.trend(RR=RR,y=masscet,node=as.numeric(names(aceMyst)),foldername=tempdir())
+search.trend(RR=RR,y=masscet,node=as.numeric(names(aceMyst)),filename="st mysticetes")
 
 
 ## Example 2: search.trend on multiple regression version of RRphylo
@@ -471,13 +464,13 @@ RRphylo(treecet.multi,y=brainmasscet,x1=x1.mass)->RRmulti
 
 # Perform search.trend on the multiple RR object to inspect the effect of body 
 # size on absolute rates temporal trend only
-search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,clus=cc,foldername=tempdir())
+search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,clus=cc,filename="st predictor")
 
 # Perform search.trend on the multiple RR object to inspect the effect of body
 # size on trends in both absolute evolutionary rates and phenotypic values 
 # (by using brain versus body mass regression residuals)
 search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,x1.residuals=TRUE,
-             clus=cc,foldername=tempdir())
+             clus=cc,filename="st residuals")
 
 ```
 
