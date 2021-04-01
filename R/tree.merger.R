@@ -35,7 +35,7 @@
 #' @author Silvia Castiglione, Carmela Serio, Pasquale Raia
 #' @details The function attaches tips and/or clades from the \code{source} tree
 #'   to the \code{backbone} tree according to the \code{data} object. Within the
-#'   latter, a clade, either to be binded or to be the reference, must be
+#'   latter, a clade, either to be bound or to be the reference, must be
 #'   indicated by collating the names of the two phylogenetically furthest tips
 #'   belonging to it, separated by a "-". Duplicated 'bind' produce error.
 #'   Tips/clades set to be attached to the same 'reference' are considered to
@@ -360,14 +360,16 @@ tree.merger<-function(backbone,data,source.tree=NULL,tip.ages = NULL, node.ages 
 
       c(which(tree.plot$tip.label%in%dat$bind[which(dat$bind.type==1)]),unlist(cla.plot))->all.plot
       colo<-rep(scales::hue_pal()(2)[2],nrow(tree.plot$edge))
-      colo[which(tree.plot$edge[,2]%in%all.plot)]<-scales::hue_pal()(2)[1]
+      colo[match(all.plot,tree.plot$edge[,2])]<-scales::hue_pal()(2)[1]
       names(colo)<-tree.plot$edge[,2]
+      colo[which(as.numeric(names(colo))<=Ntip(tree.plot))]->colo.tips
       tree.plot$tip.label[which(!tree.plot$tip.label%in%unique(c(unlist(strsplit(dat$bind,"-")),unlist(strsplit(dat$reference,"-")))))]<-" "
+      names(colo.tips)<-tree.plot$tip.label[as.numeric(names(colo.tips))]
 
       if(!is.null(filename)){
         pdf(file=paste(filename,".pdf",sep=""))
         if(Ntip(tree.plot)<100)
-          plot(tree.plot,edge.color=colo,cex=.6,tip.color=colo[which(tree.plot$edge[,2]<=Ntip(tree.plot))]) else
+          plot(tree.plot,edge.color=colo,cex=.6,tip.color=colo.tips[match(tree.plot$tip.label,names(colo.tips))]) else
             plot(tree.plot,edge.color=colo,type="fan",cex=.6,tip.color=colo[which(tree.plot$edge[,2]<=Ntip(tree.plot))])
         dev.off()
       }
@@ -396,3 +398,4 @@ tree.merger<-function(backbone,data,source.tree=NULL,tip.ages = NULL, node.ages 
 
   return(tree.final)
 }
+

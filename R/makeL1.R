@@ -62,7 +62,7 @@ makeL1<-function (tree)
                                                        2] == edged.1[, 2], ][, 3]
     }
     d <- data.frame(L1.match, br.len)
-    L1[j+1, match(d[, 1], colnames(L1))] <- d[, 2]
+    L1[match(pathN[[j]][length(pathN[[j]])],rownames(L1)), match(d[, 1], colnames(L1))] <- d[, 2]
   }
   if (is.null(t$root.edge) || t$root.edge == 0)
     L1[, 1] <- 1

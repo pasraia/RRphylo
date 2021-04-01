@@ -1,7 +1,7 @@
 #' @title Locating shifts in phenotypic evolutionary rates
 #'
 #' @usage search.shift(RR, status.type = c("clade", "sparse"),node = NULL, state
-#'   = NULL, cov = NULL, nrep = 1000, f = NULL,foldername)
+#'   = NULL, cov = NULL, nrep = 1000, f = NULL,foldername=NULL,filename)
 #' @description The function \code{search.shift} (\cite{Castiglione et al.
 #'   2018}) tests whether individual clades or isolated tips dispersed through
 #'   the phylogeny evolve at different \code{\link{RRphylo}} rates as compared
@@ -25,7 +25,11 @@
 #'   test, by default \code{nrep} is set at 1000.
 #' @param f the size of the smallest clade to be tested. By default, nodes
 #'   subtending to one tenth of the tree tips are tested.
-#' @param foldername the path of the folder where plots are to be found.
+#' @param foldername has been deprecated; please see the argument
+#'   \code{filename} instead.
+#' @param filename a character indicating the name of the pdf file and the path
+#'   where it is to be saved. If no path is indicated the file is stored in the
+#'   working directory
 #' @importFrom graphics symbols mtext
 #' @importFrom stats sd
 #' @importFrom utils globalVariables
@@ -138,23 +142,23 @@
 #'
 #' # Case 1.1 "clade" condition
 #' # with auto-recognize
-#' search.shift(RR=dinoRates,status.type="clade",foldername=tempdir())
+#' search.shift(RR=dinoRates,status.type="clade",filename=tempdir())
 #' # testing two hypothetical clades
-#' search.shift(RR=dinoRates,status.type="clade",node=c(696,746),foldername=tempdir())
+#' search.shift(RR=dinoRates,status.type="clade",node=c(696,746),filename=tempdir())
 #'
 #' # Case 1.2 "sparse" condition
 #' # testing the sparse condition.
-#' search.shift(RR=dinoRates,status.type= "sparse",state=statedino,foldername=tempdir())
+#' search.shift(RR=dinoRates,status.type= "sparse",state=statedino,filename=tempdir())
 #'
 #'
 #' # Case 2. Accounting for the effect of a covariate
 #'
 #' # Case 2.1 "clade" condition
-#' search.shift(RR=dinoRates,status.type= "clade",cov=massdino,foldername=tempdir())
+#' search.shift(RR=dinoRates,status.type= "clade",cov=massdino,filename=tempdir())
 #'
 #' # Case 2.2 "sparse" condition
 #' search.shift(RR=dinoRates,status.type="sparse",state=statedino,cov=massdino,
-#'              foldername=tempdir())
+#'              filename=tempdir())
 #'     }
 
 
@@ -166,7 +170,8 @@ search.shift<-function(RR,
                        cov=NULL,
                        nrep=1000,
                        f=NULL,
-                       foldername)
+                       foldername=NULL,
+                       filename)
 {
   # require(phytools)
   # require(geiger)
@@ -174,6 +179,11 @@ search.shift<-function(RR,
 
   if (!requireNamespace("scales", quietly = TRUE)) {
     stop("Package \"scales\" needed for this function to work. Please install it.",
+         call. = FALSE)
+  }
+
+  if(!missing(foldername)){
+    stop("argument foldername is deprecated; please use filename instead.",
          call. = FALSE)
   }
 
@@ -374,7 +384,7 @@ search.shift<-function(RR,
 
 
 
-      pdf(file=paste(foldername, "AR results for rate differences.pdf",sep="/"))
+      pdf(file=paste(filename,".pdf",sep=""))
       #if(length(which(p.single<=0.025|p.single>=0.975))>0){
       if(!is.null(p.single)){
         if(Ntip(tree)>100) plot(tree, show.tip.label = FALSE) else plot(tree, cex=.8)
@@ -441,7 +451,7 @@ search.shift<-function(RR,
       p.shift <- rank(c(leaf2NC.diff, ran.diffR[1:(nrep -
                                                      1)]))[1]/nrep
       if(length(node)==1){
-        pdf(file=paste(foldername, "AR results for rate differences.pdf",sep="/"),width=8.3,height=8.3)
+        pdf(file=paste(filename,".pdf",sep=""),width=8.3,height=8.3)
         par(mar = c(3, 2, 2, 1))
         hist(ran.diffR, main="",cex.lab=1.5,
              yaxt="n",xaxt="n",ylab=paste("node", node, sep = " "),xlab="",mgp=c(0.2,0,0),
@@ -468,7 +478,7 @@ search.shift<-function(RR,
           names(res)[2]<-"rates"
         }
       }else{
-        pdf(file=paste(foldername, "AR results for rate differences.pdf",sep="/"),width=8.3,height=11.7)
+        pdf(file=paste(filename,".pdf",sep=""),width=8.3,height=11.7)
         par(mfrow = c(length(node) + 1, 1))
         par(mar = c(3, 2, 2, 1))
         hist(ran.diffR, main="",cex.lab=1.5,
@@ -595,7 +605,7 @@ search.shift<-function(RR,
         status.diffS[i, ] <- c(SD, w)
       }
       colnames(status.diffS) <- names(status.diff)
-      pdf(file=paste(foldername, "AR results for rate differences.pdf",sep="/"),width=8.3,height=11.7)
+      pdf(file=paste(filename,".pdf",sep=""),width=8.3,height=11.7)
       par(mfrow = c(length(unique(state)), 1))
       idx <- match(unique(state), colnames(status.diffS))
       for (i in 1:length(idx)) {
@@ -649,7 +659,7 @@ search.shift<-function(RR,
       #      xlim = c(min(status.diffS) * 2.5, max(status.diffS) *
       #                 2.5))
       # abline(v = status.diff, lwd = 3, col = "green")
-      pdf(file=paste(foldername, "AR results for rate differences.pdf",sep="/"),width=8.3,height=8.3)
+      pdf(file=paste(filename,".pdf",sep=""),width=8.3,height=8.3)
       par(mar = c(3, 2, 2, 1))
       hist(status.diffS, main="",xaxt="n",
            yaxt="n",ylab="",xlab="random differences",

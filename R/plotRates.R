@@ -1,5 +1,5 @@
 #'@title Plot RRphylo rates at a specified node
-#'@usage plotRates(RR,node,export.tiff =TRUE,foldername)
+#'@usage plotRates(RR,node,export.tiff =TRUE,foldername=NULL,filename)
 #'@description The function \code{plotRates} plots the \code{\link{RRphylo}}
 #'  rates computed for a given clade as compared to the rates computed for the
 #'  rest of the tree.
@@ -7,7 +7,11 @@
 #'@param node the node subtending the clade of interest.
 #'@param export.tiff if \code{TRUE} the function save a "rate_bars.tiff" file
 #'  inside the working directory. It is \code{TRUE} by default.
-#'@param foldername the path of the folder where plots are to be found.
+#' @param foldername has been deprecated; please see the argument
+#'   \code{filename} instead.
+#' @param filename a character indicating the name of the tiff file and the path
+#'   where it is to be saved. If no path is indicated the file is stored in the
+#'   working directory
 #'@export
 #' @seealso \href{../doc/RRphylo.html}{\code{RRphylo} vignette}
 #'@importFrom grDevices tiff
@@ -28,14 +32,19 @@
 #'
 #' RRphylo(tree=Tstage,y=PCstage,clus=cc)->RR
 #'
-#' plotRates(RR,node=72,foldername=tempdir(),export.tiff = TRUE)
+#' plotRates(RR,node=72,filename=tempdir(),export.tiff = TRUE)
 #' }
 
 
 
 
-plotRates<-function(RR, node, export.tiff=TRUE,foldername){
+plotRates<-function(RR, node, export.tiff=TRUE,foldername=NULL,filename){
   #require(phytools)
+
+  if(!missing(foldername)){
+    stop("argument foldername is deprecated; please use filename instead.",
+         call. = FALSE)
+  }
 
   RR$rates->FULLrates
   RR$tree->rr3
@@ -48,7 +57,7 @@ plotRates<-function(RR, node, export.tiff=TRUE,foldername){
 
   if(export.tiff==TRUE)
   {
-    tiff(paste(foldername,"rate_bars.tiff",sep="/"),
+    tiff(paste(filename,".tiff",sep=""),
          width=2000,
          height=1500,
          pointsize=4,

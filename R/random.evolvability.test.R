@@ -79,7 +79,7 @@ random.evolvability.test<-function(tree,data,node.estimation=c("RR","BM"),aces=N
     tree$edge[match(dftips[,2],tree$edge[,2]),2]<-dftips[,3]
   }
 
-  if(!is.binary.tree(tree)){
+  if(!is.binary.phylo(tree)){
     tree->mutree
     multi2di(tree,random=FALSE)->tree
     tree$edge[which(tree$edge.length==0),2]->len0

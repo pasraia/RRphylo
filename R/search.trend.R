@@ -1,8 +1,8 @@
 #' @title Searching for evolutionary trends in phenotypes and rates
 #' @description This function searches for evolutionary trends in the phenotypic
 #'   mean and the evolutionary rates for the entire tree and individual clades.
-#' @usage search.trend(RR,y,x1=NULL,x1.residuals =
-#'   FALSE,nsim=100,clus=0.5,node=NULL,cov=NULL, foldername,ConfInt=FALSE)
+#' @usage search.trend(RR,y,x1=NULL,x1.residuals = FALSE,
+#'   node=NULL,cov=NULL,nsim=100,clus=0.5,ConfInt=FALSE,foldername=NULL,filename)
 #' @param RR an object produced by \code{\link{RRphylo}}.
 #' @param y the named vector (or matrix if multivariate) of phenotypes.
 #' @param x1 the additional predictor to be specified if the RR object has been
@@ -19,20 +19,24 @@
 #'   and contrasted to each other. It is \code{NULL} by default. Notice the node
 #'   number must refer to the dichotomic version of the original tree, as
 #'   produced by \code{RRphylo}.
-#' @param nsim number of simulations to be performed. It is set at 100 by
-#'   default.
-#' @param clus the proportion of clusters to be used in parallel computing. To
-#'   run the single-threaded version of \code{search.trend} set \code{clus} = 0.
 #' @param cov the covariate values to be specified if the RR object has been
 #'   created using a  covariate for rates calculation.  As for \code{RRphylo},
 #'   \code{'cov'} must be as long as the number of nodes plus the number of tips
 #'   of the tree, which can be obtained by running \code{RRphylo} on the
 #'   covariate as well, and taking the vector of ancestral states and tip values
 #'   to form the covariate (see the example below).
-#' @param foldername the path of the folder where plots are to be found.
+#' @param nsim number of simulations to be performed. It is set at 100 by
+#'   default.
+#' @param clus the proportion of clusters to be used in parallel computing. To
+#'   run the single-threaded version of \code{search.trend} set \code{clus} = 0.
 #' @param ConfInt if \code{TRUE}, the function returns 95\% confidence intervals
 #'   around phenotypes and rates produced according to the Brownian motion model
 #'   of evolution. It is \code{FALSE} by default.
+#' @param foldername has been deprecated; please see the argument
+#'   \code{filename} instead.
+#' @param filename a character indicating the name of the pdf file and the path
+#'   where it is to be saved. If no path is indicated the file is stored in the
+#'   working directory
 #' @return The function returns a list object including:
 #' @return \strong{$rbt} for each branch of the tree, there are the
 #'   \code{RRphylo} rates and the distance from the tree root (age). If y is
@@ -146,11 +150,11 @@
 #'
 #' # Case 1.1. "search.trend" whitout indicating nodes to be tested for trends
 #' search.trend(RR=RRptero, y=log(massptero), nsim=100, clus=cc,
-#'              foldername=tempdir(),cov=NULL,ConfInt=FALSE,node=NULL)
+#'              filename=tempdir(),cov=NULL,ConfInt=FALSE,node=NULL)
 #'
 #' # Case 1.2. "search.trend" indicating nodes to be specifically tested for trends
 #' search.trend(RR=RRptero, y=log(massptero), nsim=100, node=143, clus=cc,
-#'              foldername=tempdir(),cov=NULL,ConfInt=FALSE)
+#'              filename=tempdir(),cov=NULL,ConfInt=FALSE)
 #'
 #'
 #' # Case 2. "RRphylo" accounting for the effect of a covariate
@@ -162,11 +166,11 @@
 #'
 #' # Case 2.1. "search.trend" whitout indicating nodes to be tested for trends
 #' search.trend(RR=RRpteroCov, y=log(massptero), nsim=100, clus=cc,
-#'              foldername=tempdir(),ConfInt=FALSE,cov=cov.values)
+#'              filename=tempdir(),ConfInt=FALSE,cov=cov.values)
 #'
 #' # Case 2.2. "search.trend" indicating nodes to be specifically tested for trends
 #' search.trend(RR=RRpteroCov, y=log(massptero), nsim=100, node=143, clus=cc,
-#'              foldername=tempdir(),ConfInt=FALSE,cov=cov.values)
+#'              filename=tempdir(),ConfInt=FALSE,cov=cov.values)
 #'
 #'
 #' # Case 3. "search.trend" on multiple "RRphylo"
@@ -186,15 +190,18 @@
 #' RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass)->RRmulti
 #'
 #' # incorporating the effect of body size at inspecting trends in absolute evolutionary rates
-#' search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,clus=cc,foldername=tempdir())
+#' search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,clus=cc,filename=tempdir())
 #'
 #' # incorporating the effect of body size at inspecting trends in both absolute evolutionary
 #' # rates and phenotypic values (by using brain versus body mass regression residuals)
-#' search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,x1.residuals=TRUE,clus=cc,foldername=tempdir())
+#' search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,x1.residuals=TRUE,clus=cc,filename=tempdir())
 #'    }
 
-search.trend<-function (RR, y,x1=NULL,x1.residuals=FALSE, nsim = 100, clus = 0.5, node = NULL, cov = NULL,
-                        foldername, ConfInt = FALSE)
+search.trend<-function (RR,y,
+                        x1=NULL,x1.residuals=FALSE,
+                        node = NULL, cov = NULL,
+                        nsim = 100, clus = 0.5, ConfInt = FALSE,
+                        foldername=NULL,filename)
 {
   # require(ape)
   # require(phytools)
@@ -216,6 +223,11 @@ search.trend<-function (RR, y,x1=NULL,x1.residuals=FALSE, nsim = 100, clus = 0.5
 
   if (!requireNamespace("car", quietly = TRUE)) {
     stop("Package \"car\" needed for this function to work. Please install it.",
+         call. = FALSE)
+  }
+
+  if(!missing(foldername)){
+    stop("argument foldername is deprecated; please use filename instead.",
          call. = FALSE)
   }
 
@@ -1329,8 +1341,8 @@ search.trend<-function (RR, y,x1=NULL,x1.residuals=FALSE, nsim = 100, clus = 0.5
 
     PP[,dim(PP)[2]]<-max(PP[,dim(PP)[2]])-PP[,dim(PP)[2]]
     if (dim(y)[2] <= 3) {
-      pdf(file = paste(foldername, "Phenotypic Trend Test.pdf",
-                       sep = "/"))
+      pdf(file = paste(filename, "Phenotypes.pdf",
+                       sep = "-"))
       par(mar = c(3.5, 3.5, 1, 2))
       par(mfrow = c(dim(y)[2] + 1, 2))
       for (i in 1:(dim(y)[2] + 1)) {
@@ -1375,8 +1387,8 @@ search.trend<-function (RR, y,x1=NULL,x1.residuals=FALSE, nsim = 100, clus = 0.5
 
       }
     }else {
-      pdf(file = paste(foldername, "Phenotypic Trend Test.pdf",
-                       sep = "/"))
+      pdf(file = paste(filename, "Phenotypes.pdf",
+                       sep = "-"))
       par(mar = c(3.5, 3.5, 1, 2))
       par(mfrow = c(2, 1))
       i <- dim(yTot)[2]
@@ -1421,8 +1433,8 @@ search.trend<-function (RR, y,x1=NULL,x1.residuals=FALSE, nsim = 100, clus = 0.5
 
     p.trend <- c(trend.reg[2, c(1, 4)],  p.trend, dev)
     names(p.trend) <- c("slope", "p.real", "p.random","dev")
-    pdf(file = paste(foldername, "Phenotypic Trend Test.pdf",
-                     sep = "/"))
+    pdf(file = paste(filename, "Phenotypes.pdf",
+                     sep = "-"))
     par(mar = c(3.5, 3.5, 1, 2))
     par(mfrow = c(2, 1))
     obj <- hist(trend.slopes, xlab = "simulated slopes",
@@ -1510,8 +1522,8 @@ search.trend<-function (RR, y,x1=NULL,x1.residuals=FALSE, nsim = 100, clus = 0.5
       CIabsolute[[i]] <- t(RBTAci)
     }
     if (dim(y)[2] <= 3) {
-      pdf(file = paste(foldername, "Evolutionary Rate Trend Test.pdf",
-                       sep = "/"))
+      pdf(file = paste(filename, "Absolute Rates.pdf",
+                       sep = "-"))
       par(mfrow = c(dim(y)[2] + 1, 1))
       par(mar = c(3.5, 3.5, 1, 1))
       for (i in 1:(dim(y)[2] + 1)) {
@@ -1555,8 +1567,8 @@ search.trend<-function (RR, y,x1=NULL,x1.residuals=FALSE, nsim = 100, clus = 0.5
 
       }
     } else {
-      pdf(file = paste(foldername, "Evolutionary Rate Trend Test.pdf",
-                       sep = "/"))
+      pdf(file = paste(filename, "Absolute Rates.pdf",
+                       sep = "-"))
       if(is.null(x1)) {
         bet <- A[, i]
         age <- max(A[, dim(A)[2]])-A[, dim(A)[2]]
@@ -1615,8 +1627,8 @@ search.trend<-function (RR, y,x1=NULL,x1.residuals=FALSE, nsim = 100, clus = 0.5
       AA[-which(rownames(AA)==(Ntip(t)+1)),]->AA
       RBTAci[-which(rownames(RBTAci)==(Ntip(t)+1)),]->RBTAci
     }
-    pdf(file = paste(foldername, "Evolutionary Rate Trend Test.pdf",
-                     sep = "/"))
+    pdf(file = paste(filename, "Absolute Rates.pdf",
+                           sep = "-"))
     plot(abs(rate) ~ age, data = AA, ylab = "absolute rate",
          mgp = c(2, 0.5, 0),xlim=c(max(AA$age),min(AA$age)))
     polygon(c(RBTAci[, 2], rev(RBTAci[, 2])), c(RBTAci[,

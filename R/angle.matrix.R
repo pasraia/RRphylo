@@ -211,7 +211,7 @@ angle.matrix<-function(RR,node,Y=NULL,select.axes=c("no","yes"),type=c("phenotyp
 
   node->n
   retrieve.angles(evo.p,wishlist="angles.between.species",focus="node",write2csv="no",node=n,random="no")->ret.ang
-  retrieve.angles(evo.p,wishlist="anglesMRCA",focus="node",write2csv="no",node=72,random="no")[,c(1,2,4)]->vecS
+  retrieve.angles(evo.p,wishlist="anglesMRCA",focus="node",write2csv="no",node=n,random="no")[,c(1,2,4)]->vecS
   retrieve.angles(evo.p,wishlist="anglesMRCA",focus="node",write2csv="no",node=n,random="no")->angMRCA
   ret.ang[,c(2,4,3)]->btwsp
   data.frame(do.call(rbind,strsplit(as.character(btwsp[,1]), "/")),btwsp[,c(2,3)])->ansp

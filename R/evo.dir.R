@@ -295,7 +295,7 @@ evo.dir<-function(RR,
       length(which(Rang.mrca>as.numeric(ang.mrca)))/(nrep)->p.angle.mrca
       length(which(theta.speciesR>as.numeric(theta.species)))/(nrep)->p.angle.btw
 
-      par(mfrow=c(2,2))
+      par(mfrow=c(2,2),ask=F)
       hist(RangA, xlab="random angle species A",main="path angle A")
       abline(v=angA,col="red",lwd=4)
       hist(RangB, xlab="random angle species B",main="path angle B")

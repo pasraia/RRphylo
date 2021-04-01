@@ -91,7 +91,7 @@ fix.poly<-function(tree,type=c("collapse","resolve"),node=NULL){
 
 
   }else{
-    if(is.binary.tree(tree))
+    if(is.binary.phylo(tree))
     {
       if(min(tree$edge.length)==0) di2multi(tree,tol=1e-06)->tree else stop("binary tree provided, no polytomies to resolve")
     }
@@ -161,7 +161,7 @@ fix.poly<-function(tree,type=c("collapse","resolve"),node=NULL){
       tree1$tip.label[match(aa$tip.label,tree1$tip.label)]<-nams[m]
       geiger::rescale(tree1,"depth",max(nodeHeights(treeN)))->tree1
       suppressWarnings(scaleTree(tree1,tip.ages=f2)->tree1)
-      if(is.binary.tree(tree1)==FALSE) multi2di(tree1)->xtree1 else tree1->xtree1
+      if(is.binary.phylo(tree1)==FALSE) multi2di(tree1)->xtree1 else tree1->xtree1
       xtree1->xtree
     }
     return(xtree)

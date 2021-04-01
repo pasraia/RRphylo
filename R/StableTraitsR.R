@@ -87,7 +87,7 @@ StableTraitsR<-function(tree,y,path,output=NULL,aces=NULL,argST=NULL,argSTS=NULL
     tree$edge[match(dftips[,2],tree$edge[,2]),2]<-dftips[,3]
   }
 
-  if (is.binary.tree(tree)) t <- tree else t <- multi2di(tree,random=FALSE)
+  if (is.binary.phylo(tree)) t <- tree else t <- multi2di(tree,random=FALSE)
   y[match(t$tip.label,names(y))]->y
   t->tree.start
 
@@ -103,7 +103,7 @@ StableTraitsR<-function(tree,y,path,output=NULL,aces=NULL,argST=NULL,argSTS=NULL
     aces->aceV
     L <- makeL(t)
     if(is.null(names(aceV))) stop("The vector of aces needs to be named")
-    if (is.binary.tree(tree)==FALSE){
+    if (is.binary.phylo(tree)==FALSE){
       ac<-array()
       for(i in 1:length(aceV)){
         getMRCA(t,tips(tree,names(aceV)[i]))->ac[i]
