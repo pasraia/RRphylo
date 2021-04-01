@@ -829,7 +829,8 @@ search.trend<-function (RR,y,
 
 
   res <- list()
-  if(round((detectCores() * clus), 0)==0) cl<-makeCluster(1) else cl <- makeCluster(round((detectCores() * clus), 0))
+  if(round((detectCores() * clus), 0)==0) cl<-makeCluster(1, setup_strategy = "sequential") else
+    cl <- makeCluster(round((detectCores() * clus), 0), setup_strategy = "sequential")
   registerDoParallel(cl)
   res <- foreach(i = 1:nsim, .packages = c("car","nlme", "ape",
                                            "geiger", "phytools", "doParallel"

@@ -300,7 +300,8 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       RRaces[match(nod,rownames(RR$aces)),]->aces
 
       res<-list()
-      if(round((detectCores() * clus), 0)==0) cl<-makeCluster(1) else cl <- makeCluster(round((detectCores() * clus), 0))
+      if(round((detectCores() * clus), 0)==0) cl<-makeCluster(1, setup_strategy = "sequential") else
+        cl <- makeCluster(round((detectCores() * clus), 0), setup_strategy = "sequential")
       registerDoParallel(cl)
       res <- foreach(i = 1:(length(nod)-1),
                      .packages = c("ape", "geiger", "phytools", "doParallel")) %dopar%
@@ -441,7 +442,8 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       colnames(AD)<-c("ang.by.dist","dist","n1","n2","combo")
 
       res.ran <- list()
-      cl <- makeCluster(round((detectCores() * clus), 0))
+      if(round((detectCores() * clus), 0)==0) cl<-makeCluster(1, setup_strategy = "sequential") else
+        cl <- makeCluster(round((detectCores() * clus), 0), setup_strategy = "sequential")
       registerDoParallel(cl)
       res.ran <- foreach(k = 1:nsim,
                          .packages = c("ape", "geiger", "phytools", "doParallel")) %dopar%
@@ -653,7 +655,8 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       RRaces[match(c(nod,mean.sel),rownames(RR$aces)),]->aces
 
       res<-list()
-      cl <- makeCluster(round((detectCores() * clus), 0))
+      if(round((detectCores() * clus), 0)==0) cl<-makeCluster(1, setup_strategy = "sequential") else
+        cl <- makeCluster(round((detectCores() * clus), 0), setup_strategy = "sequential")
       registerDoParallel(cl)
       res <- foreach(i = 1:length(nod),
                      .packages = c("ape", "geiger", "phytools", "doParallel")) %dopar%
@@ -771,7 +774,8 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
 
 
       res.ran <- list()
-      cl <- makeCluster(round((detectCores() * clus), 0))
+      if(round((detectCores() * clus), 0)==0) cl<-makeCluster(1, setup_strategy = "sequential") else
+        cl <- makeCluster(round((detectCores() * clus), 0), setup_strategy = "sequential")
       registerDoParallel(cl)
       res.ran <- foreach(k = 1:nsim,
                          .packages = c("ape", "geiger", "phytools", "doParallel")) %dopar%
@@ -1076,7 +1080,8 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       c(mean(aa),mean(aa/dt),vs1,vs2)->ang.by.state
 
 
-      cl <- makeCluster(round((detectCores() * clus), 0))
+      if(round((detectCores() * clus), 0)==0) cl<-makeCluster(1, setup_strategy = "sequential") else
+        cl <- makeCluster(round((detectCores() * clus), 0), setup_strategy = "sequential")
       registerDoParallel(cl)
       ang.by.stateR<- foreach(j = 1:nsim,.combine = 'rbind') %dopar%
         {
@@ -1240,7 +1245,8 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       data.frame(state1=t(stcomb1)[,1],state2=t(stcomb1)[,2],ang.state=ang.by.state[,1],ang.state.time=ang.by.state[,2],size.v1=ang.by.state[,3],size.v2=ang.by.state[,4])->ang2state
 
       ang2stateR <- list()
-      cl <- makeCluster(round((detectCores() * clus), 0))
+      if(round((detectCores() * clus), 0)==0) cl<-makeCluster(1, setup_strategy = "sequential") else
+        cl <- makeCluster(round((detectCores() * clus), 0), setup_strategy = "sequential")
       registerDoParallel(cl)
       ang2stateR <- foreach(j = 1:nsim) %dopar%
         {

@@ -53,7 +53,7 @@ distNodes<-function(tree,node=NULL,clus=0.5){
     matrix(ncol=ncol(L),nrow=ncol(L))->mat
     i=1
     res<-list()
-    if(round((detectCores() * clus), 0)==0) cl<-makeCluster(1) else cl <- makeCluster(round((detectCores() * clus), 0))
+    if(round((detectCores() * clus), 0)==0) cl<-makeCluster(1, setup_strategy = "sequential") else cl <- makeCluster(round((detectCores() * clus), 0), setup_strategy = "sequential")
     registerDoParallel(cl)
     res <- foreach(i = 1:length(nam),
                    .packages = c("RRphylo","ape", "geiger", "phytools", "doParallel")) %dopar%
