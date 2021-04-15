@@ -124,166 +124,6 @@ conv.map<-function(dataset,pcs,mshape,conv=NULL,exclude=NULL,out.rem=TRUE,show.c
          call. = FALSE)
   }
 
-  dosur <- function(scores,pcs,sel=NULL,mshape,radius=0){
-    if(is.null(sel)==TRUE) {
-      temp<-Morpho::showPC(scores,pcs,mshape)
-    } else {
-      temp<-Morpho::showPC(scores[sel],pcs[,sel],mshape)
-    }
-    mshape<-Rvcg::vcgBallPivoting(mshape, radius = radius)
-    sur<-mshape
-    sur$vb[1:3,]<-t(temp)
-    return(sur)
-
-  }
-  areadiff<-function(mesh1,mesh2,out.rem=FALSE,scale01=TRUE,fact=1.5){
-    range01<-function(x){
-      (x-min(x))/(max(x)-min(x))
-    }
-    area_shape1<-Rvcg::vcgArea(mesh1,perface=T)$pertriangle
-    area_shape2<-Rvcg::vcgArea(mesh2,perface=T)$pertriangle
-    diff_areas<-(area_shape1-area_shape2)/area_shape1
-    sel<-which(is.na(diff_areas))
-
-    if(length(sel)>0){
-      mesh1$it<-mesh1$it[,-sel]
-      mesh2$it<-mesh2$it[,-sel]
-      mesh1<-Morpho::rmUnrefVertex(mesh1)
-      mesh2<-Morpho::rmUnrefVertex(mesh2)
-      area_shape1<-Rvcg::vcgArea(mesh1,perface=T)$pertriangle
-      area_shape2<-Rvcg::vcgArea(mesh2,perface=T)$pertriangle
-      diff_areas<-(area_shape1-area_shape2)/area_shape1
-    }
-
-    if(out.rem==TRUE){
-      x=diff_areas
-      qq <- quantile(x, c(1,3)/4, names=FALSE)
-      r <- diff(qq) * fact
-      tst <- x < qq[1] - r | x > qq[2] + r
-      tstp<-qq[2] + r
-      tstn<-qq[1] - r
-      diff_areas[x>tstp]<-tstp
-      diff_areas[x<tstn]<-tstn
-    }else{
-      diff_areas=diff_areas}
-
-    if(scale01==TRUE){
-      diff_areas<-range01(diff_areas)
-    }
-
-    return(list("ash1"=area_shape1,"ash2"=area_shape2,"dareas"=diff_areas))
-  }
-  localmeshdiff<-function(mesh1,mesh2,ploton,
-                          paltot=rainbow(200),from=0,to=0.4,
-                          n.int=200,out.rem=FALSE,fact=1.5,
-                          visual=1,scale01=TRUE,vec=NULL,plot=FALSE,densityplot=TRUE){
-
-    range01<-function(x){
-      (x-min(x))/(max(x)-min(x))
-    }
-
-    if(is.null(vec)){
-
-      area_shape1<-Rvcg::vcgArea(mesh1,perface=T)$pertriangle
-      area_shape2<-Rvcg::vcgArea(mesh2,perface=T)$pertriangle
-      diff_areas<-(area_shape1-area_shape2)/area_shape1
-      sel<-which(is.na(diff_areas))
-
-      if(length(sel)>0){
-        mesh1$it<-mesh1$it[,-sel]
-        mesh2$it<-mesh2$it[,-sel]
-        mesh1<-Morpho::rmUnrefVertex(mesh1)
-        mesh2<-Morpho::rmUnrefVertex(mesh2)
-        area_shape1<-Rvcg::vcgArea(mesh1,perface=T)$pertriangle
-        area_shape2<-Rvcg::vcgArea(mesh2,perface=T)$pertriangle
-        diff_areas<-(area_shape1-area_shape2)/area_shape1
-      }
-
-      if(out.rem==TRUE){
-        x=diff_areas
-        qq <- quantile(x, c(1,3)/4, names=FALSE)
-        r <- diff(qq) * fact
-        tst <- x < qq[1] - r | x > qq[2] + r
-        tstp<-qq[2] + r
-        tstn<-qq[1] - r
-        diff_areas[x>tstp]<-tstp
-        diff_areas[x<tstn]<-tstn
-      }else{
-        diff_areas=diff_areas}
-
-      if(scale01==TRUE){
-        diff_areas<-range01(diff_areas)
-      }
-    }else{
-      diff_areas<-vec
-    }
-    cat("the range of diff_areas is ",range(diff_areas),sep="\n")
-
-    if(is.null(to)==TRUE){
-      to<-max(diff_areas)*1.01
-    }
-    if(is.null(from)==TRUE){
-      from<-min(diff_areas)*1.01
-    }
-
-    selfromto<-which(diff_areas<to & diff_areas>=from)
-
-    colmap_tot<-colorRampPalette(paltot)
-    breaks_tot<-cut(c(from,diff_areas,to),n.int)
-    cols_tot<-colmap_tot(n.int)[breaks_tot]
-    cols_tot<-cols_tot[-c(1,length(cols_tot))]
-
-    selfromto<-which(diff_areas<to & diff_areas>=from)
-    cols_tot[-selfromto]<-"#FFFFFF"
-
-
-    if(isTRUE(densityplot)){
-      plot(density(c(from,diff_areas,to)),main="",xlab="",ylab="")
-      abline(v=seq(from,to,length.out = n.int),col=colmap_tot(n.int),lwd=5)
-      points(density(diff_areas),type="l",lwd=2)
-    }
-
-    if(ploton==1){
-      meshtobeplotted<-mesh1
-    }
-    if(ploton==2){
-      meshtobeplotted<-mesh2
-    }
-
-
-    if (plot == TRUE) {
-      if(visual==1){
-        rgl::triangles3d(t(meshtobeplotted$vb[,meshtobeplotted$it]),
-                         col=rep(cols_tot,each=3),alpha=1,lit=T,specular="black")
-      }
-      if(visual==2){
-        rgl::triangles3d(t(meshtobeplotted$vb[,meshtobeplotted$it]),
-                         col=rep(cols_tot,each=3),alpha=1,lit=T,specular="black")
-        rgl::wire3d(meshtobeplotted,col="blue",lit=F)
-      }
-    }
-
-
-    diffvert<-NULL
-    track_v<-Rvcg::vcgVFadj(meshtobeplotted)
-    for(i in 1:length(track_v)){
-      diffvert[i]<-mean(diff_areas[track_v[[i]]])
-    }
-    selfromto<-which(diffvert<to & diffvert>=from)
-    colmap_tot<-colorRampPalette(paltot)
-    breaks_tot<-cut(c(from,diffvert,to),n.int)
-    cols_tot<-colmap_tot(n.int)[breaks_tot]
-    cols_tot<-cols_tot[-c(1,length(cols_tot))]
-    selfromto<-which(diffvert<to & diffvert>=from)
-    cols_tot[-selfromto]<-"#FFFFFF"
-
-    mesh<-meshtobeplotted
-    mesh$material$color<-cols_tot
-
-    if(is.null(vec)){
-      return(list("ash1"=area_shape1,"ash2"=area_shape2,"dareas"=diff_areas,"mesh"=mesh))}else{
-        list("mesh"=mesh)}
-  }
   if(is.null(conv)) {
     conv<-rep("conv",nrow(dataset))
     names(conv)<-rownames(dataset)
@@ -427,12 +267,13 @@ conv.map<-function(dataset,pcs,mshape,conv=NULL,exclude=NULL,out.rem=TRUE,show.c
     v.pale=v.pale[seq(1,1000,by=100)-1]
     v.pale=c(rev(v.pale[-1]),pale(1),v.pale[-1])
 
+
     ddpcr::quiet(meshes1[[k]]<-localmeshdiff(surfs[[k]],surfs1[[k]],ploton = 1,n.int = 100,vec=surfsd[[k]],
-                                      paltot=v.pale,densityplot = FALSE,
-                                      from = -max(thrs),to=max(thrs),out.rem = out.rem,fact = 1.5,visual = 1,scale01 = FALSE, plot = FALSE))
+                                             paltot=v.pale,densityplot = FALSE,
+                                             from = -max(thrs),to=max(thrs),out.rem = out.rem,fact = 1.5,visual = 1,scale01 = FALSE, plot = FALSE))
     ddpcr::quiet(meshes2[[k]]<-localmeshdiff(surfs1[[k]],surfs[[k]],ploton = 1,n.int = 100,vec=surfsd1[[k]],
-                                      paltot=v.pale,densityplot = FALSE,
-                                      from = -max(thrs),to=max(thrs),out.rem = out.rem,fact = 1.5,visual = 1,scale01 = FALSE, plot = FALSE))
+                                             paltot=v.pale,densityplot = FALSE,
+                                             from = -max(thrs),to=max(thrs),out.rem = out.rem,fact = 1.5,visual = 1,scale01 = FALSE, plot = FALSE))
 
   }
 
