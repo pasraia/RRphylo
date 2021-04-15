@@ -1,3 +1,10 @@
+# RRphylo 2.5.4
+What's new in version 2.5.4
+
+New function added!
+
+The function rate.map selects RW(PC) axes linked to the highest (and lowest) evolutionary rate values and maps where and how the phenotype changed the most between any pair of taxa.
+
 # RRphylo 2.5.0
 What's new in version 2.5.0
 
