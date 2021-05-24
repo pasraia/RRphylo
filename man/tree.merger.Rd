@@ -4,8 +4,8 @@
 \alias{tree.merger}
 \title{Fast addition of tips and clades on an existing tree}
 \usage{
-tree.merger(backbone,data,source.tree=NULL,tip.ages = NULL, node.ages
-  = NULL,min.branch=NULL,plot=TRUE,filename=NULL)
+tree.merger(backbone,data,source.tree=NULL,age.offset=NULL,tip.ages =
+  NULL, node.ages = NULL,min.branch=NULL,plot=TRUE,filename=NULL)
 }
 \arguments{
 \item{backbone}{the backbone tree to attach tips/clades on.}
@@ -18,6 +18,12 @@ explanations.}
 
 \item{source.tree}{the tree where 'bind' clades are to be extracted from. If
 no clade has to be attached, it can be left unspecified.}
+
+\item{age.offset}{if the most recent age (i.e. the maximum distance from the
+tree root) differs between the source and the backbone trees, the
+“age.offset” is the difference between them in this exact order (source
+minus backbone). It is positive when the backbone tree attains younger age
+than the source tree, and vice-versa.}
 
 \item{tip.ages}{as in \code{\link{scaleTree}}, a named vector including the
 ages (i.e. the time distance from the youngest tip within the tree) of the
@@ -59,7 +65,8 @@ The function attaches tips and/or clades from the \code{source} tree
   Tips/clades set to be attached to the same 'reference' are considered to
   represent a polytomy. Tips set as 'bind' which are already on the backbone
   tree are removed from the latter and placed according to the 'reference'.
-  See examples and \href{../doc/Tree-Manipulation.html#tree.merger.html}{vignette} for
+  See examples and
+  \href{../doc/Tree-Manipulation.html#tree.merger.html}{vignette} for
   clarifications.
 }
 \examples{
@@ -131,8 +138,9 @@ The function attaches tips and/or clades from the \code{source} tree
 aaa
 }
 \seealso{
-\href{../doc/Tree-Manipulation.html#tree.merger.html}{\code{tree.merger} vignette};
-  \href{../doc/Tree-Manipulation.html#scaleTree}{\code{scaleTree} vignette};
+\href{../doc/Tree-Manipulation.html#tree.merger.html}{\code{tree.merger}
+vignette}; \href{../doc/Tree-Manipulation.html#scaleTree}{\code{scaleTree}
+vignette};
 }
 \author{
 Silvia Castiglione, Carmela Serio, Pasquale Raia
