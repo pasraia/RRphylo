@@ -1,12 +1,12 @@
 #' @title Testing RRphylo methods overfit
 #' @description Testing the robustness of \code{\link{search.trend}}
 #'   (\cite{Castiglione et al. 2019a}), \code{\link{search.shift}}
-#'   (\cite{Castiglione et al. 2018}), and  \code{\link{search.conv}}
-#'   (\cite{Castiglione et al. 2019b}) results to sampling effects and
-#'   phylogenetic uncertainty.
+#'   (\cite{Castiglione et al. 2018}),  \code{\link{search.conv}}
+#'   (\cite{Castiglione et al. 2019b}), and \code{\link{PGLS_fossil}}
+#'    results to sampling effects and phylogenetic uncertainty.
 #' @usage
 #' overfitRR(RR,y,s=0.25,swap.args=NULL,trend.args=NULL,shift.args=NULL,conv.args=NULL,
-#' aces=NULL,x1=NULL,aces.x1=NULL,cov=NULL,rootV=NULL,nsim=100,clus=.5)
+#' pgls.args=NULL,aces=NULL,x1=NULL,aces.x1=NULL,cov=NULL,rootV=NULL,nsim=100,clus=.5)
 #' @param RR an object produced by \code{\link{RRphylo}}.
 #' @param y a named vector of phenotypes.
 #' @param s the percentage of tips to be cut off. It is set at 25\% by default.
@@ -15,9 +15,9 @@
 #'   \code{node=NULL)}. If \code{swap.arg} is unspecified, the function
 #'   automatically sets both \code{si} and \code{si2} to 0.1.
 #' @param trend.args a list of arguments specific to the function
-#'   \code{search.trend}, including \code{list(node=NULL,x1.residuals=FALSE)}. If a trend for the
-#'   whole tree is to be tested, type \code{trend.args = list()}. No trend is
-#'   tested if left unspecified.
+#'   \code{search.trend}, including \code{list(node=NULL,x1.residuals=FALSE)}.
+#'   If a trend for the whole tree is to be tested, type \code{trend.args =
+#'   list()}. No trend is tested if left unspecified.
 #' @param shift.args a list of arguments specific to the function
 #'   \code{search.shift}, including \code{list(node=NULL,} \code{state=NULL)}.
 #'   Arguments \code{node} and \code{state} can be specified at the same time.
@@ -25,6 +25,13 @@
 #'   \code{search.conv}, including \code{list(node=NULL,} \code{state=NULL,
 #'   declust=FALSE)}. Arguments \code{node} and \code{state} can be specified at
 #'   the same time.
+#' @param pgls.args a list of arguments specific to the function
+#'   \code{PGLS_fossil}, including \code{list(modform,} \code{data,
+#'   tree=FALSE,RR=TRUE)}. If \code{tree=TRUE}, \code{PGLS_fossil} is performed
+#'   by using the RRphylo output tree as \code{tree} argument. If
+#'   \code{RR=TRUE}, \code{PGLS_fossil} is performed by using the RRphylo
+#'   output as \code{RR} argument. Arguments \code{tree} and \code{RR} can be
+#'   \code{TRUE} at the same time.
 #' @param aces if used to produce the \code{RR} object, the vector of those
 #'   ancestral character values at nodes known in advance must be specified.
 #'   Names correspond to the nodes in the tree.
@@ -48,12 +55,17 @@
 #'   default.
 #' @param clus the proportion of clusters to be used in parallel computing. To
 #'   run the single-threaded version of \code{overfitRR} set \code{clus} = 0.
-#' @return The function returns a 'list' containing:
+#' @return The function returns a 'RRphyloList' objec containing:
 #' @return \strong{$mean.sampling} the mean proportion of species actually
 #'   removed from the tree over the iterations.
+#' @return \strong{$tree.list} a 'multiPhylo' list including the trees generated
+#'   within \code{overfitRR}
+#' @return \strong{$RR.list} a 'RRphyloList' including the results of each
+#'   \code{RRphylo} performed within \code{overfitRR}
 #' @return \strong{$rootCI} the 95\% confidence interval around the root value.
-#' @return \strong{$ace.regressions} the results of linear regression between
-#'   ancestral state estimates before and after the subsampling.
+#' @return \strong{$ace.regressions} a 'RRphyloList' including the results of
+#'   linear regression between ancestral state estimates before and after the
+#'   subsampling.
 #' @return \strong{$conv.results} a list including results for
 #'   \code{search.conv} performed under \code{clade} and \code{state}
 #'   conditions. If a node pair is specified within \code{conv.args}, the
@@ -78,22 +90,26 @@
 #'   slope sign ($tree). If one or more nodes are specified within
 #'   \code{trend.args}, the list also includes the same results at nodes ($node)
 #'   and the results for comparison between nodes ($comparison).
+#' @return \strong{$pgls.results} two 'RRphyloList' objects including results of
+#'   \code{PGLS_fossil} performed by using the phylogeny as it is (\code{$tree})
+#'   or rescaled according to the \code{RRphylo} rates (\code{$RR}).
 #' @author Silvia Castiglione, Carmela Serio, Pasquale Raia
 #' @details Methods using a large number of parameters risk being overfit. This
 #'   usually translates in poor fitting with data and trees other than the those
 #'   originally used. With \code{RRphylo} methods this risk is usually very low.
 #'   However, the user can assess how robust the results got by applying
-#'   \code{search.shift}, \code{search.trend} or \code{search.conv} are by
-#'   running \code{overfitRR}. With the latter, the original tree and data are
-#'   subsampled by specifying a \code{s} parameter, that is the proportion of
-#'   tips to be removed from the tree. In some cases, though, removing as many
-#'   tips as imposed by \code{s} would delete too many tips right in clades
-#'   and/or states under testing. In these cases, the function maintains no less
-#'   than 5 species at least in each clade/state under testing (or all species
-#'   if there is less), reducing the sampling parameter \code{s} if necessary.
-#'   Internally, \code{overfitRR} further shuffles the tree by using the
-#'   function \code{\link{swapONE}}. Thereby, both the potential for overfit and
-#'   phylogenetic uncertainty are accounted for straight away.
+#'   \code{search.shift}, \code{search.trend}, \code{search.conv} or
+#'   \code{PGLS_fossil} are by running \code{overfitRR}. With the latter, the
+#'   original tree and data are subsampled by specifying a \code{s} parameter,
+#'   that is the proportion of tips to be removed from the tree. In some cases,
+#'   though, removing as many tips as imposed by \code{s} would delete too many
+#'   tips right in clades and/or states under testing. In these cases, the
+#'   function maintains no less than 5 species at least in each clade/state
+#'   under testing (or all species if there is less), reducing the sampling
+#'   parameter \code{s} if necessary. Internally, \code{overfitRR} further
+#'   shuffles the tree by using the function \code{\link{swapONE}}. Thereby,
+#'   both the potential for overfit and phylogenetic uncertainty are accounted
+#'   for straight away.
 #' @export
 #' @seealso \href{../doc/overfitRR.html}{\code{overfitRR} vignette} ;
 #'   \href{../doc/search.trend.html}{\code{search.trend} vignette} ;
@@ -134,26 +150,28 @@
 #' RRphylo(tree=treeptero,y=log(massptero))->RRptero
 #'
 #' # Case 1 search.shift under both "clade" and "sparse" condition
-#' search.shift(RR=dinoRates, status.type= "clade",filename=tempdir())->SSnode
+#' search.shift(RR=dinoRates, status.type= "clade",
+#'              filename=paste(tempdir(),"SSnode",sep="/"))->SSnode
 #' search.shift(RR=dinoRates, status.type= "sparse", state=statedino,
-#'              filename=tempdir())->SSstate
+#'              filename=paste(tempdir(),"SSstate",sep="/"))->SSstate
 #'
 #' overfitRR(RR=dinoRates,y=massdino,swap.args =list(si=0.2,si2=0.2),
 #'           shift.args = list(node=rownames(SSnode$single.clades),state=statedino),
-#'           nsim=10,clus=cc)
+#'           nsim=10,clus=cc)->orr.ss
 #'
 #' # Case 2 search.trend on the entire tree
-#' search.trend(RR=RRptero, y=log(massptero),nsim=100,clus=cc,
-#'              filename=tempdir(),cov=NULL,ConfInt=FALSE,node=NULL)->STtree
+#' search.trend(RR=RRptero, y=log(massptero),nsim=100,clus=cc,cov=NULL,node=NULL,
+#'              filename=paste(tempdir(),"STtree",sep="/"),ConfInt=FALSE)->STtree
 #'
 #' overfitRR(RR=RRptero,y=log(massptero),swap.args =list(si=0.2,si2=0.2),
-#'           trend.args = list(),nsim=10,clus=cc)
+#'           trend.args = list(),nsim=10,clus=cc)->orr.st1
 #'
-#' # Case 3 search.trend at specified nodes
-#' search.trend(RR=RRptero, y=log(massptero),node=143,clus=cc,filename=tempdir(),
-#'              cov=NULL,ConfInt=FALSE)->STnode
+#' # Case 3 search.trend at specified nodescov=NULL,
+#' search.trend(RR=RRptero, y=log(massptero),node=143,clus=cc,
+#'              filename=paste(tempdir(),"STtree",sep="/"),ConfInt=FALSE)->STnode
 #'
-#' overfitRR(RR=RRptero,y=log(massptero),trend.args = list(node=143),nsim=10,clus=cc)
+#' overfitRR(RR=RRptero,y=log(massptero),
+#'           trend.args = list(node=143),nsim=10,clus=cc)->orr.st2
 #'
 #' # Case 4 overfitRR on multiple RRphylo
 #' data("DataCetaceans")
@@ -171,13 +189,15 @@
 #' c(acemass.multi,masscet.multi)->x1.mass
 #'
 #' RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass)->RRmulti
-#' search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,clus=cc,filename=tempdir())->STcet
-#' overfitRR(RR=RRmulti,y=brainmasscet,trend.args = list(),x1=x1.mass,nsim=10,clus=cc)
+#' search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,clus=cc,
+#'              filename=paste(tempdir(),"STtree",sep="/"))->STcet
+#' overfitRR(RR=RRmulti,y=brainmasscet,trend.args = list(),
+#'           x1=x1.mass,nsim=10,clus=cc)->orr.st3
 #'
 #' search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,x1.residuals=TRUE,
-#'              clus=cc,filename=tempdir())->STcet.resi
+#'              clus=cc,filename=paste(tempdir(),"STcet.resi",sep="/"))->STcet.resi
 #' overfitRR(RR=RRmulti,y=brainmasscet,trend.args = list(x1.residuals=TRUE),
-#'           x1=x1.mass,nsim=10,clus=cc)
+#'           x1=x1.mass,nsim=10,clus=cc)->orr.st4
 #'
 #' # Case 5 searching convergence between clades and within a single state
 #' data("DataFelids")
@@ -187,11 +207,37 @@
 #'
 #' RRphylo(tree=treefel,y=PCscoresfel,clus=cc)->RRfel
 #' search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="node9",
-#'             filename = tempdir(),clus=cc)->SC.clade
+#'             filename = paste(tempdir(),"SC.clade",sep="/"),clus=cc)->SC.clade
 #' as.numeric(c(rownames(SC.clade[[1]])[1],as.numeric(as.character(SC.clade[[1]][1,1]))))->conv.nodes
 #'
 #' overfitRR(RR=RRfel, y=PCscoresfel,conv.args =
-#' list(node=conv.nodes,state=statefel,declust=TRUE),nsim=10,clus=cc)
+#' list(node=conv.nodes,state=statefel,declust=TRUE),nsim=10,clus=cc)->orr.sc
+#'
+#' # Case 6 overfitRR on PGLS_fossil
+#' library(phytools)
+#' rtree(100)->tree
+#' fastBM(tree)->resp
+#' fastBM(tree,nsim=3)->resp.multi
+#' fastBM(tree)->pred1
+#' fastBM(tree)->pred2
+#'
+#' PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp,x2=pred1,x1=pred2),tree=tree)->pgls_noRR
+#'
+#' RRphylo::RRphylo(tree,resp)->RR
+#' PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp,x2=pred1,x1=pred2),tree=tree,RR=RR)->pgls_RR
+#'
+#' overfitRR(RR=RR,y=resp,
+#'           pgls.args=list(modform=y1~x1+x2,data=list(y1=resp,x2=pred1,x1=pred2),
+#'                          tree=TRUE,RR=TRUE),nsim=10,clus=cc)->orr.pgls1
+#'
+#' PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp.multi,x2=pred1,x1=pred2),tree=tree)->pgls2_noRR
+#' cc<- 2/parallel::detectCores()
+#' RRphylo::RRphylo(tree,resp.multi,clus=cc)->RR
+#' PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp.multi,x2=pred1,x1=pred2),tree=tree,RR=RR)->pgls2_RR
+#'
+#' overfitRR(RR=RR,y=resp.multi,
+#'           pgls.args=list(modform=y1~x1+x2,data=list(y1=resp.multi,x2=pred1,x1=pred2),
+#'                          tree=TRUE,RR=TRUE),nsim=10,clus=cc)->orr.pgls2
 #'
 #'
 #' }
@@ -201,6 +247,7 @@ overfitRR<-function(RR,y,
                     trend.args=NULL,
                     shift.args=NULL,
                     conv.args=NULL,
+                    pgls.args=NULL,
                     aces=NULL,x1=NULL,aces.x1=NULL,cov=NULL,rootV=NULL,nsim=100,
                     clus=.5)
 {
@@ -216,8 +263,6 @@ overfitRR<-function(RR,y,
 
   RR$tree->tree
 
-  # if (inherits(y,"data.frame"))
-  #   y <- treedata(tree, y, sort = TRUE)[[2]]
   if(is.null(nrow(y))) y <- treedata(tree, y, sort = TRUE)[[2]][,1] else y <- treedata(tree, y, sort = TRUE)[[2]]
 
   if (length(y) > Ntip(tree)) {
@@ -265,24 +310,36 @@ overfitRR<-function(RR,y,
     shift.state<-NULL
   }
 
-  if(is.null(conv.args)==FALSE){
-    if(is.null(conv.args$node)==FALSE) conv.node<-conv.args$node else conv.node<-NULL
-    if(is.null(conv.args$state)==FALSE){
+  if(!is.null(conv.args)){
+    if(!is.null(conv.args$node)) conv.node<-conv.args$node else conv.node<-NULL
+    if(!is.null(conv.args$state)){
       conv.state<-conv.args$state
       conv.state<-treedata(tree,conv.state, sort = TRUE)[[2]][,1]
     }else conv.state<-NULL
-    if(is.null(conv.args$declust)==FALSE) conv.declust<-conv.args$declust else conv.declust<-FALSE
+    if(!is.null(conv.args$declust)) conv.declust<-conv.args$declust else conv.declust<-FALSE
   }else{
     conv.node<-NULL
     conv.state<-NULL
     conv.declust<-NULL
   }
 
+  if(!is.null(pgls.args)){
+    modform<-pgls.args$modform
+    pgls.data<-pgls.args$data
+    if(pgls.args$tree) pgls.tree<-pgls.args$tree else pgls.tree<-NULL
+    if(pgls.args$RR) pgls.RR<-pgls.args$RR else pgls.RR<-NULL
+  }else{
+    modform<-NULL
+    pgls.data<-NULL
+    pgls.tree<-NULL
+    pgls.RR<-NULL
+  }
 
   pb = txtProgressBar(min = 0, max = nsim, initial = 0)
 
   rootlist<-list()
-  acefit<-STcut<-SScut<-SScutS<-SCcut<-SCcutS<-list()
+  RR.list<-tree.list<-list()
+  acefit<-STcut<-SScut<-SScutS<-SCcut<-SCcutS<-PGLScut<-PGLScutRR<-list()
   real.s<-array()
   for(k in 1:nsim){
     setTxtProgressBar(pb,k)
@@ -365,9 +422,11 @@ overfitRR<-function(RR,y,
       y.ace->y.acecut
     }
 
+    treecut->tree.list[[k]]
+
     1-(Ntip(treecut)/Ntip(tree))->real.s[k]
 
-    if(is.null(cov)==FALSE) {
+    if(!is.null(cov)) {
       cov[match(c(tree.swap$node.label,tree.swap$tip.label), names(cov))]->cov
       if(length(y)>Ntip(tree))
         cov[match(c(rownames(y.acecut),rownames(ycut)),names(cov))]->covcut else
@@ -375,7 +434,7 @@ overfitRR<-function(RR,y,
       names(covcut)[1:Nnode(treecut)]<-seq((Ntip(treecut)+1),(Ntip(treecut)+Nnode(treecut)))
     }else covcut<-NULL
 
-    if(is.null(x1)==FALSE) {
+    if(!is.null(x1)) {
       x1[match(c(tree.swap$node.label,tree.swap$tip.label), names(x1))]->x1
       if(length(y)>Ntip(tree))
         x1[match(c(rownames(y.acecut),rownames(ycut)),names(x1))]->x1cut else
@@ -383,7 +442,7 @@ overfitRR<-function(RR,y,
       names(x1cut)[1:Nnode(treecut)]<-seq((Ntip(treecut)+1),(Ntip(treecut)+Nnode(treecut)))
     }else x1cut<-NULL
 
-    if(is.null(aces)==FALSE){
+    if(!is.null(aces)){
       aces->acescut
 
       if(length(y)>Ntip(tree)){
@@ -406,7 +465,7 @@ overfitRR<-function(RR,y,
 
     }else acescut<-NULL
 
-    if(is.null(aces.x1)==FALSE){
+    if(!is.null(aces.x1)){
       aces.x1->aces.x1cut
       drop<-c()
       for(i in 1:length(aces.x1)) {
@@ -418,43 +477,51 @@ overfitRR<-function(RR,y,
 
     }else aces.x1cut<-NULL
 
-    if(is.null(trend.node)==FALSE){
+    if(!is.null(trend.node)){
       trend.node.cut<-array()
       for(i in 1:length(trend.node)) getMRCA(treecut,tips(tree,trend.node[i])[which(tips(tree,trend.node[i])%in%treecut$tip.label)])->trend.node.cut[i]
     }else trend.node.cut<-NULL
 
-    if(is.null(shift.node)==FALSE){
+    if(!is.null(shift.node)){
       shift.node.cut<-array()
       for(i in 1:length(shift.node)) getMRCA(treecut,tips(tree,shift.node[i])[which(tips(tree,shift.node[i])%in%treecut$tip.label)])->shift.node.cut[i]
     }
 
-    if(is.null(shift.state)==FALSE) {
+    if(!is.null(shift.state)) {
       shift.state[match(c(tree.swap$node.label,tree.swap$tip.label), names(shift.state))]->shift.state
       if(length(y)>Ntip(tree))
         shift.state[match(rownames(ycut),names(shift.state))]->shift.state.cut else
           shift.state[match(names(ycut),names(shift.state))]->shift.state.cut
     }
 
-    if(is.null(conv.node)==FALSE){
+    if(!is.null(conv.node)){
       conv.node.cut<-array()
       for(i in 1:length(conv.node)) getMRCA(treecut,tips(tree,conv.node[i])[which(tips(tree,conv.node[i])%in%treecut$tip.label)])->conv.node.cut[i]
     }
 
-    if(is.null(conv.state)==FALSE) {
+    if(!is.null(conv.state)) {
       conv.state[match(c(tree.swap$node.label,tree.swap$tip.label), names(conv.state))]->conv.state
       if(length(y)>Ntip(tree))
         conv.state[match(rownames(ycut),names(conv.state))]->conv.state.cut else
           conv.state[match(names(ycut),names(conv.state))]->conv.state.cut
     }
 
-    if(is.null(rootV)==FALSE) rootV->rootVcut else rootVcut<-NULL
+    if(!is.null(pgls.tree)|!is.null(pgls.RR)) {
+      ddpcr::quiet(lapply(pgls.data,function(x){
+        if(is.null(nrow(x))) treedata(treecut, x, sort = TRUE)[[2]][,1] else treedata(treecut, x, sort = TRUE)[[2]]
+      })->pgls.datacut)
+    }
 
-    RRphylo(treecut,ycut,aces=acescut,x1=x1cut,aces.x1=aces.x1cut,cov=covcut,rootV = rootVcut,clus=clus)->RRcut
-    if(trend|is.null(trend.node)==FALSE) ddpcr::quiet(search.trend(RRcut,ycut,x1=x1cut,x1.residuals = trend.x1.residuals,node=trend.node.cut,filename=tempdir(),cov=covcut,clus=clus)->stcut->STcut[[k]],all=TRUE)
-    if(is.null(shift.node)==FALSE) ddpcr::quiet(search.shift(RRcut,status.type="clade",node=shift.node.cut,filename=tempdir())->sscut->SScut[[k]],all=TRUE)
-    if(is.null(shift.state)==FALSE) ddpcr::quiet(search.shift(RRcut,status.type="sparse",state=shift.state.cut,filename=tempdir())->sscut->SScutS[[k]],all=TRUE)
-    if(is.null(conv.node)==FALSE) ddpcr::quiet(search.conv(RR=RRcut,y=ycut,nodes=conv.node.cut,aceV=acescut,clus=clus,filename=tempdir())->sccut->SCcut[[k]],all=TRUE)
-    if(is.null(conv.state)==FALSE) ddpcr::quiet(search.conv(tree=treecut,y=ycut,state=conv.state.cut,aceV=acescut,declust=conv.declust,clus=clus,filename=tempdir())->sccut->SCcutS[[k]],all=TRUE)
+    if(!is.null(rootV)) rootV->rootVcut else rootVcut<-NULL
+
+    RRphylo(treecut,ycut,aces=acescut,x1=x1cut,aces.x1=aces.x1cut,cov=covcut,rootV = rootVcut,clus=clus)->RRcut->RR.list[[k]]
+    if(trend|!is.null(trend.node)) ddpcr::quiet(search.trend(RRcut,ycut,x1=x1cut,x1.residuals = trend.x1.residuals,node=trend.node.cut,filename=tempdir(),cov=covcut,clus=clus)->stcut->STcut[[k]],all=TRUE)
+    if(!is.null(shift.node)) ddpcr::quiet(search.shift(RRcut,status.type="clade",node=shift.node.cut,filename=tempdir())->sscut->SScut[[k]],all=TRUE)
+    if(!is.null(shift.state)) ddpcr::quiet(search.shift(RRcut,status.type="sparse",state=shift.state.cut,filename=tempdir())->sscut->SScutS[[k]],all=TRUE)
+    if(!is.null(conv.node)) ddpcr::quiet(search.conv(RR=RRcut,y=ycut,nodes=conv.node.cut,aceV=acescut,clus=clus,filename=tempdir())->sccut->SCcut[[k]],all=TRUE)
+    if(!is.null(conv.state)) ddpcr::quiet(search.conv(tree=treecut,y=ycut,state=conv.state.cut,aceV=acescut,declust=conv.declust,clus=clus,filename=tempdir())->sccut->SCcutS[[k]],all=TRUE)
+    if(!is.null(pgls.tree)) ddpcr::quiet(PGLS_fossil(modform,data=pgls.datacut,tree=treecut)->PGLScut[[k]],all=TRUE)
+    if(!is.null(pgls.RR)) ddpcr::quiet(PGLS_fossil(modform,data=pgls.datacut,tree=RRcut$tree,RR=RRcut)->PGLScutRR[[k]],all=TRUE)
 
     RRcut$aces[1,]->rootlist[[k]]
     summary(lm(y.acecut~RRcut$aces))->acefit[[k]]
@@ -510,13 +577,16 @@ overfitRR<-function(RR,y,
   list(shift.res.clade,shift.res.state)->shift.res
   names(shift.res)<-c("clade","sparse")
 
-  if(trend|is.null(trend.node)==FALSE){
+  if(trend|!is.null(trend.node)){
     #### Whole tree ####
     if(length(y)>Ntip(tree)){ #### Multivariate ####
       phen.trend<-rate.trend<-list()
       for(j in 1:(ncol(y)+1)){
-        as.data.frame(do.call(rbind,lapply(lapply(STcut,"[[",3),function(x) x[j,]))[,c(1,3)])->pr#->phen.ran[[j]]
-        as.data.frame(do.call(rbind,lapply(lapply(STcut,"[[",4),function(x) x[j,]))[,c(1,3)])->rr#->rat.ran[[j]]
+        # as.data.frame(do.call(rbind,lapply(lapply(STcut,"[[",3),function(x) x[j,]))[,c(1,3)])->pr#->phen.ran[[j]]
+        # as.data.frame(do.call(rbind,lapply(lapply(STcut,"[[",4),function(x) x[j,]))[,c(1,3)])->rr#->rat.ran[[j]]
+
+        as.data.frame(do.call(rbind,lapply(lapply(STcut,"[[",2),function(x) x[j,]))[,c(1,3)])->pr#->phen.ran[[j]]
+        as.data.frame(do.call(rbind,lapply(lapply(STcut,"[[",3),function(x) x[j,]))[,c(1,3)])->rr#->rat.ran[[j]]
 
         c(length(which(pr$slope>0&pr$p.random<=0.05))/nsim,
           length(which(pr$slope<0&pr$p.random<=0.05))/nsim)->phen.trend[[j]]
@@ -538,8 +608,11 @@ overfitRR<-function(RR,y,
       list(phen.trend,rate.trend)->p.trend
       names(p.trend)<-c("phenotype","rates")
     }else{ #### Univariate ####
-      as.data.frame(do.call(rbind,lapply(STcut,"[[",3))[,c(1,3)])->phen.ran
-      as.data.frame(do.call(rbind,lapply(STcut,"[[",4))[,c(1,3)])->rat.ran
+      # as.data.frame(do.call(rbind,lapply(STcut,"[[",3))[,c(1,3)])->phen.ran
+      # as.data.frame(do.call(rbind,lapply(STcut,"[[",4))[,c(1,3)])->rat.ran
+
+      as.data.frame(do.call(rbind,lapply(STcut,"[[",2))[,c(1,3)])->phen.ran
+      as.data.frame(do.call(rbind,lapply(STcut,"[[",3))[,c(1,3)])->rat.ran
 
       rbind(c(length(which(phen.ran$slope>0&phen.ran$p.random<=0.05))/nsim,
               length(which(phen.ran$slope<0&phen.ran$p.random<=0.05))/nsim),
@@ -553,21 +626,29 @@ overfitRR<-function(RR,y,
     p.trend->whole.tree.res
 
     if(is.null(trend.node)==FALSE){
-      lapply(STcut,"[[",5)->phen.node
-      lapply(STcut,"[[",6)->rat.node
+      # lapply(STcut,"[[",5)->phen.node
+      # lapply(STcut,"[[",6)->rat.node
 
-      if(length(STcut[[1]])==7){ #### Node comparison ####
+      lapply(STcut,"[[",4)->phen.node
+      lapply(STcut,"[[",5)->rat.node
+
+      #if(length(STcut[[1]])==7){ #### Node comparison ####
+      if(length(STcut[[1]])==6){ #### Node comparison ####
         if(length(trend.node)>2) { #### More than 2 nodes ####
           if(length(y)>Ntip(tree)){ #### Multivariate ####
             comp.phen.y<-comp.rat.y<-nod.nam<-list()
             for(w in 1:(ncol(y)+1)){
               nod.nam<-list()
-              p.comp.phen<-p.comp.rat<-matrix(ncol=4,nrow=nrow(STcut[[1]][[7]][[1]][[1]]))
-              for(k in 1:nrow(STcut[[1]][[7]][[1]][[1]])){
-                do.call(rbind,lapply(lapply(lapply(lapply(STcut,"[[",7),"[[",1),"[[",w),function(x) x[k,]))->pcomp
+              # p.comp.phen<-p.comp.rat<-matrix(ncol=4,nrow=nrow(STcut[[1]][[7]][[1]][[1]]))
+              p.comp.phen<-p.comp.rat<-matrix(ncol=4,nrow=nrow(STcut[[1]][[6]][[1]][[1]]))
+              # for(k in 1:nrow(STcut[[1]][[7]][[1]][[1]])){
+              for(k in 1:nrow(STcut[[1]][[6]][[1]][[1]])){
+                # do.call(rbind,lapply(lapply(lapply(lapply(STcut,"[[",7),"[[",1),"[[",w),function(x) x[k,]))->pcomp
+                do.call(rbind,lapply(lapply(lapply(lapply(STcut,"[[",6),"[[",1),"[[",w),function(x) x[k,]))->pcomp
                 if(w==1) pcomp[nsim,1:2]->nod.nam[[k]]
                 as.data.frame(pcomp[,3:6])->pcomp#->phen.comp[[k]]
-                as.data.frame(do.call(rbind,lapply(lapply(lapply(lapply(STcut,"[[",7),"[[",2),"[[",w),function(x) x[k,]))[,3:6])->rcomp
+                # as.data.frame(do.call(rbind,lapply(lapply(lapply(lapply(STcut,"[[",7),"[[",2),"[[",w),function(x) x[k,]))[,3:6])->rcomp
+                as.data.frame(do.call(rbind,lapply(lapply(lapply(lapply(STcut,"[[",6),"[[",2),"[[",w),function(x) x[k,]))[,3:6])->rcomp
 
                 c(length(which(pcomp$slope.difference>0&pcomp$p.slope<=0.05))/nsim,
                   length(which(pcomp$slope.difference<0&pcomp$p.slope<=0.05))/nsim,
@@ -612,12 +693,16 @@ overfitRR<-function(RR,y,
             names(p.comp)<-c("phenotype","rates")
           }else{ #### Univariate ####
             nod.nam<-list()
-            p.comp.phen<-p.comp.rat<-matrix(ncol=4,nrow=nrow(STcut[[1]][[7]][[1]]))
-            for(k in 1:nrow(STcut[[1]][[7]][[1]])){
-              do.call(rbind,lapply(lapply(lapply(STcut,"[[",7),"[[",1),function(w) w[k,]))->pcomp
+            # p.comp.phen<-p.comp.rat<-matrix(ncol=4,nrow=nrow(STcut[[1]][[7]][[1]]))
+            p.comp.phen<-p.comp.rat<-matrix(ncol=4,nrow=nrow(STcut[[1]][[6]][[1]]))
+            # for(k in 1:nrow(STcut[[1]][[7]][[1]])){
+            for(k in 1:nrow(STcut[[1]][[6]][[1]])){
+              #do.call(rbind,lapply(lapply(lapply(STcut,"[[",7),"[[",1),function(w) w[k,]))->pcomp
+              do.call(rbind,lapply(lapply(lapply(STcut,"[[",6),"[[",1),function(w) w[k,]))->pcomp
               pcomp[nsim,1:2]->nod.nam[[k]]
               as.data.frame(pcomp[,3:6])->pcomp
-              as.data.frame(do.call(rbind,lapply(lapply(lapply(STcut,"[[",7),"[[",2),function(w) w[k,]))[,3:6])->rcomp
+              # as.data.frame(do.call(rbind,lapply(lapply(lapply(STcut,"[[",7),"[[",2),function(w) w[k,]))[,3:6])->rcomp
+              as.data.frame(do.call(rbind,lapply(lapply(lapply(STcut,"[[",6),"[[",2),function(w) w[k,]))[,3:6])->rcomp
 
               c(length(which(pcomp$slope.difference>0&pcomp$p.slope<=0.05))/nsim,
                 length(which(pcomp$slope.difference<0&pcomp$p.slope<=0.05))/nsim,
@@ -644,8 +729,10 @@ overfitRR<-function(RR,y,
           if(length(y)>Ntip(tree)){ #### Multivariate ####
             p.comp.phen<-p.comp.rat<-matrix(ncol=4,nrow=ncol(y)+1)
             for(w in 1:(ncol(y)+1)){
-              as.data.frame(do.call(rbind,lapply(lapply(lapply(STcut,"[[",7),"[[",1),"[[",w)))[,3:6]->phen.comp
-              as.data.frame(do.call(rbind,lapply(lapply(lapply(STcut,"[[",7),"[[",2),"[[",w)))[,3:6]->rat.comp
+              # as.data.frame(do.call(rbind,lapply(lapply(lapply(STcut,"[[",7),"[[",1),"[[",w)))[,3:6]->phen.comp
+              # as.data.frame(do.call(rbind,lapply(lapply(lapply(STcut,"[[",7),"[[",2),"[[",w)))[,3:6]->rat.comp
+              as.data.frame(do.call(rbind,lapply(lapply(lapply(STcut,"[[",6),"[[",1),"[[",w)))[,3:6]->phen.comp
+              as.data.frame(do.call(rbind,lapply(lapply(lapply(STcut,"[[",6),"[[",2),"[[",w)))[,3:6]->rat.comp
 
               c(length(which(phen.comp$slope.difference>0&phen.comp$p.slope<=0.05))/nsim,
                 length(which(phen.comp$slope.difference<0&phen.comp$p.slope<=0.05))/nsim,
@@ -659,11 +746,15 @@ overfitRR<-function(RR,y,
             }
             colnames(p.comp.phen)<-c("p.slope+","p.slope-","p.emm+","p.emm-")
             colnames(p.comp.rat)<-c("p.emm+","p.emm-","p.slope+","p.slope-")
-            rownames(p.comp.phen)<-names(STcut[[1]][[7]][[1]])
-            rownames(p.comp.rat)<-names(STcut[[1]][[7]][[2]])
+            # rownames(p.comp.phen)<-names(STcut[[1]][[7]][[1]])
+            # rownames(p.comp.rat)<-names(STcut[[1]][[7]][[2]])
+            rownames(p.comp.phen)<-names(STcut[[1]][[6]][[1]])
+            rownames(p.comp.rat)<-names(STcut[[1]][[6]][[2]])
           }else{ #### Univariate ####
-            as.data.frame(do.call(rbind,lapply(lapply(STcut,"[[",7),"[[",1))[,3:6])->phen.comp
-            as.data.frame(do.call(rbind,lapply(lapply(STcut,"[[",7),"[[",2))[,3:6])->rat.comp
+            # as.data.frame(do.call(rbind,lapply(lapply(STcut,"[[",7),"[[",1))[,3:6])->phen.comp
+            # as.data.frame(do.call(rbind,lapply(lapply(STcut,"[[",7),"[[",2))[,3:6])->rat.comp
+            as.data.frame(do.call(rbind,lapply(lapply(STcut,"[[",6),"[[",1))[,3:6])->phen.comp
+            as.data.frame(do.call(rbind,lapply(lapply(STcut,"[[",6),"[[",2))[,3:6])->rat.comp
 
             c(length(which(phen.comp$slope.difference>0&phen.comp$p.slope<=0.05))/nsim,
               length(which(phen.comp$slope.difference<0&phen.comp$p.slope<=0.05))/nsim,
@@ -755,14 +846,14 @@ overfitRR<-function(RR,y,
 
   }else trend.res<-NULL
 
-  if(is.null(conv.node)==FALSE){
+  if(!is.null(conv.node)){
     matrix(c(length(which(lapply(lapply(SCcut,"[[",1),function(x) x[1,8])<=0.05))/nsim,
              length(which(lapply(lapply(SCcut,"[[",1),function(x) x[1,9])<=0.05))/nsim),ncol=2)->p.convC
     colnames(p.convC)<-colnames(SCcut[[1]][[1]])[8:9]
     rownames(p.convC)<-paste(conv.node,collapse="-")
   }else p.convC<-NULL
 
-  if(is.null(conv.state)==FALSE){
+  if(!is.null(conv.state)){
     p.convS<-matrix(ncol=2,nrow=nrow(SCcutS[[1]]))
     if("nostate"%in%conv.state&length(unique(conv.state)[-which(unique(conv.state)=="nostate")])){
       c(length(which(sapply(SCcutS,function(x) x[1,3])<=0.05))/nsim,
@@ -783,8 +874,39 @@ overfitRR<-function(RR,y,
   list(p.convC,p.convS)->conv.res
   names(conv.res)<-c("clade","state")
 
-  res<-list(mean(real.s),root.conf.int,acefit,conv.res,shift.res,trend.res)
-  names(res)<-c("mean.sampling","rootCI","ace.regressions","conv.results","shift.results","trend.results")
+  if(is.null(pgls.tree)) PGLScut<-NULL else class(PGLScut)<-"RRphyloList"
+  if(is.null(pgls.RR)) PGLScutRR<-NULL else class(PGLScutRR)<-"RRphyloList"
 
-  return(res)
+  list(PGLScut,PGLScutRR)->pgls.res
+  names(pgls.res)<-c("tree","RR")
+
+  # res<-list(mean(real.s),root.conf.int,acefit,conv.res,shift.res,trend.res,pgls.res)
+  # names(res)<-c("mean.sampling","rootCI","ace.regressions","conv.results","shift.results","trend.results","pgls.results")
+
+  class(RR.list)<-"RRphyloList"
+  class(acefit)<-"RRphyloList"
+  class(tree.list)<-"multiPhylo"
+
+  res<-structure(list(mean.sampling = mean(real.s),
+                      tree.list=tree.list,
+                      RR.list=RR.list,
+                      rootCI=root.conf.int,
+                      ace.regressions=acefit,
+                      conv.results=conv.res,
+                      shift.results=shift.res,
+                      trend.results=trend.res,
+                      pgls.results=pgls.res),
+                 class = "RRphyloList")
+  res
 }
+
+
+#' @export
+print.RRphyloList<-function(x,...){
+  if("mean.sampling"%in%attributes(x)[[1]]) cat(paste(length(x[[2]]),"overfitRR simulations",sep=" ")) else
+    if("lambda"%in%attributes(x[[1]])[[1]]) cat("List of",paste(length(x),"RRphylo outputs",sep=" ")) else
+      if(class(x[[1]])[1]%in%c("gls","procD.lm")) cat("List of",paste(length(x),"PGLS_fossil outputs",sep=" ")) else
+        cat("List of",paste(length(x),"outputs",sep=" "))
+
+}
+

@@ -91,7 +91,10 @@
 #'   }
 
 
-conv.map<-function(dataset,pcs,mshape,conv=NULL,exclude=NULL,out.rem=TRUE,show.consensus=FALSE,plot=TRUE,col="blue",names = TRUE){
+conv.map<-function(dataset,pcs,mshape,
+                   conv=NULL,exclude=NULL,
+                   out.rem=TRUE,show.consensus=FALSE,
+                   plot=TRUE,col="blue",names = TRUE){
   # require(inflection)
   # require(ddpcr)
   # require(rgl)

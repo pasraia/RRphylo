@@ -1,137 +1,145 @@
-#' @title Searching for evolutionary trends in phenotypes and rates
-#' @description This function searches for evolutionary trends in the phenotypic
-#'   mean and the evolutionary rates for the entire tree and individual clades.
-#' @usage search.trend(RR,y,x1=NULL,x1.residuals = FALSE,
-#'   node=NULL,cov=NULL,nsim=100,clus=0.5,ConfInt=FALSE,foldername=NULL,filename)
-#' @param RR an object produced by \code{\link{RRphylo}}.
-#' @param y the named vector (or matrix if multivariate) of phenotypes.
-#' @param x1 the additional predictor to be specified if the RR object has been
-#'   created using an additional predictor (i.e. multiple version of
-#'   \code{RRphylo}). \code{'x1'} vector must be as long as the number of nodes
-#'   plus the number of tips of the tree, which can be obtained by running
-#'   \code{RRphylo} on the predictor as well, and taking the vector of ancestral
-#'   states and tip values to form the \code{x1}. Note: only one predictor at
-#'   once can be specified.
-#' @param x1.residuals logical specifying whether the residuals of regression
-#'   between \code{y} and \code{x1} should be inspected for a phenotypic trend
-#'   (see details and examples below). Default is \code{FALSE}.
-#' @param node the node number of individual clades to be specifically tested
-#'   and contrasted to each other. It is \code{NULL} by default. Notice the node
-#'   number must refer to the dichotomic version of the original tree, as
-#'   produced by \code{RRphylo}.
-#' @param cov the covariate values to be specified if the RR object has been
-#'   created using a  covariate for rates calculation.  As for \code{RRphylo},
-#'   \code{'cov'} must be as long as the number of nodes plus the number of tips
-#'   of the tree, which can be obtained by running \code{RRphylo} on the
-#'   covariate as well, and taking the vector of ancestral states and tip values
-#'   to form the covariate (see the example below).
-#' @param nsim number of simulations to be performed. It is set at 100 by
-#'   default.
-#' @param clus the proportion of clusters to be used in parallel computing. To
-#'   run the single-threaded version of \code{search.trend} set \code{clus} = 0.
-#' @param ConfInt if \code{TRUE}, the function returns 95\% confidence intervals
-#'   around phenotypes and rates produced according to the Brownian motion model
-#'   of evolution. It is \code{FALSE} by default.
-#' @param foldername has been deprecated; please see the argument
-#'   \code{filename} instead.
-#' @param filename a character indicating the name of the pdf file and the path
-#'   where it is to be saved. If no path is indicated the file is stored in the
-#'   working directory
-#' @return The function returns a list object including:
-#' @return \strong{$rbt} for each branch of the tree, there are the
-#'   \code{RRphylo} rates and the distance from the tree root (age). If y is
-#'   multivariate, it also includes the multiple rates for each y vector. If
-#'   \code{node} is specified, each branch is classified as belonging or not to
-#'   the indicated clades.
-#' @return \strong{$pbt} a data frame of phenotypic values (or \code{y} versus
-#'   \code{x1} regression residuals if \code{x1.residuals=TRUE}) and their
-#'   distance from the tree root for each node (i.e. ancestral states) and tip
-#'   of the tree.
-#' @return \strong{$phenotypic.regression} results of phenotype (\code{y} versus
-#'   \code{x1} regression residuals) versus age regression. It reports a p-value
-#'   for the regression slope between the variables (p.real), a p-value computed
-#'   contrasting the real slope to Brownian motion simulations (p.random), and a
-#'   parameter indicating the deviation of the phenotypic mean from the root
-#'   value in terms of the number of standard deviations of the trait
-#'   distribution (dev). dev is 0 under Brownian Motion. Only p.random should be
-#'   inspected to assess significance.
-#' @return \strong{$rate.regression} results of the rates (absolute values)
-#'   versus age regression. It reports a p-value for the regression between the
-#'   variables (p.real), a p-value computed contrasting the real slope to
-#'   Brownian motion simulations (p.random), and a parameter indicating the
-#'   ratio between the range of phenotypic values and the range of such values
-#'   halfway along the tree height, divided to the same figure under Brownian
-#'   motion (spread). spread is 1 under Brownian Motion. Only p.random should be
-#'   inspected to assess significance.
-#' @return \strong{$ConfInts} the 95\% confidence intervals around phenotypes
-#'   and rates produced according to the Brownian motion model of evolution.
-#' @return If specified, individual nodes are tested as the whole tree, the
-#'   results are summarized in the objects:
-#' @return \strong{$node.phenotypic.regression} results of phenotype (or
-#'   \code{y} versus \code{x1} regression residuals) versus age regression
-#'   through node. It reports the slope for the regression between the variables
-#'   at node (slope), a p-value computed contrasting the real slope to Brownian
-#'   motion simulations (p.random), the difference between estimated marginal
-#'   means predictions for the group and for the rest of the tree
-#'   (emm.difference), and a p-value for the emm.difference (p.emm).
-#' @return \strong{$node.rate.regression} results of the rates (absolute values)
-#'   versus age regression through node. It reports the difference between
-#'   estimated marginal means predictions for the group and for the rest of the
-#'   tree (emm.difference), a p-value for the emm.difference (p.emm), the
-#'   difference between regression slopes for the group and for the rest of the
-#'   tree (slope.difference), and a p-value for the slope.difference (p.slope).
-#' @return If more than one node is specified, the object
-#'   \strong{$group.comparison} reports the same results as
-#'   $node.phenotypic.regression and $node.rate.regression obtained by comparing
-#'   individual clades to each other.
-#' @author Silvia Castiglione, Carmela Serio, Pasquale Raia, Alessandro
-#'   Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
-#'   Carotenuto
-#' @details The function simultaneously returns the regression of phenotypes and
-#'   phenotypic evolutionary rates against age tested against Brownian motion
-#'   simulations to assess significance. It stores the rates (absolute values)
-#'   versus age regression and the phenotype versus age regression plots as .pdf
-#'   files. In the plots, the 95\% confidence intervals of phenotypes and rates
-#'   simulated under the Brownian motion for each node are plotted as shaded
-#'   areas. Regression lines are printed for all regressions. To assess
-#'   significance, slopes are compared to a family of simulated slopes
-#'   (BMslopes, where the number of simulations is equal to \code{nsim}),
-#'   generated under the Brownian motion, using the \code{fastBM} function in
-#'   the package \pkg{phytools}. Individual nodes are compared to the rest of
-#'   the tree in different ways depending on whether phenotypes or rates versus
-#'   age regressions are tested. With the former, the regression slopes for
-#'   individual clades and the slope difference between clades is contrasted to
-#'   slopes obtained through Brownian motion simulations. For the latter,
-#'   regression models are tested and contrasted to each other referring to
-#'   estimated marginal means, by using the \code{emmeans} function in the
-#'   package \pkg{emmeans}.
+#'@title Searching for evolutionary trends in phenotypes and rates
+#'@description This function searches for evolutionary trends in the phenotypic
+#'  mean and the evolutionary rates for the entire tree and individual clades.
+#'@usage search.trend(RR,y,x1=NULL,x1.residuals = FALSE,
+#'  node=NULL,cov=NULL,nsim=100,clus=0.5,ConfInt=FALSE,foldername=NULL,filename)
+#'@param RR an object produced by \code{\link{RRphylo}}.
+#'@param y the named vector (or matrix if multivariate) of phenotypes.
+#'@param x1 the additional predictor to be specified if the RR object has been
+#'  created using an additional predictor (i.e. multiple version of
+#'  \code{RRphylo}). \code{'x1'} vector must be as long as the number of nodes
+#'  plus the number of tips of the tree, which can be obtained by running
+#'  \code{RRphylo} on the predictor as well, and taking the vector of ancestral
+#'  states and tip values to form the \code{x1}. Note: only one predictor at
+#'  once can be specified.
+#'@param x1.residuals logical specifying whether the residuals of regression
+#'  between \code{y} and \code{x1} should be inspected for a phenotypic trend
+#'  (see details and examples below). Default is \code{FALSE}.
+#'@param node the node number of individual clades to be specifically tested and
+#'  contrasted to each other. It is \code{NULL} by default. Notice the node
+#'  number must refer to the dichotomic version of the original tree, as
+#'  produced by \code{RRphylo}.
+#'@param cov the covariate values to be specified if the RR object has been
+#'  created using a  covariate for rates calculation.  As for \code{RRphylo},
+#'  \code{'cov'} must be as long as the number of nodes plus the number of tips
+#'  of the tree, which can be obtained by running \code{RRphylo} on the
+#'  covariate as well, and taking the vector of ancestral states and tip values
+#'  to form the covariate (see the example below).
+#'@param nsim number of simulations to be performed. It is set at 100 by
+#'  default.
+#'@param clus the proportion of clusters to be used in parallel computing. To
+#'  run the single-threaded version of \code{search.trend} set \code{clus} = 0.
+#'@param ConfInt if \code{TRUE}, the function returns 95\% confidence intervals
+#'  around phenotypes and rates produced according to the Brownian motion model
+#'  of evolution. It is \code{FALSE} by default.
+#'@param foldername has been deprecated; please see the argument \code{filename}
+#'  instead.
+#'@param filename a character indicating the name of the pdf file and the path
+#'  where it is to be saved. If no path is indicated the file is stored in the
+#'  working directory
+#'@return The function returns a list object containing:
+#'@return \strong{$trends.data} a 'RRphyloList' object including:
+#'  \enumerate{\item{\code{$phenotypeVStime}}: a data frame of phenotypic values (or
+#'  \code{y} versus \code{x1} regression residuals if \code{x1.residuals=TRUE})
+#'  and their distance from the tree root for each node (i.e. ancestral states)
+#'  and tip of the tree. \item{\code{$absrateVStime}}: a data frame of
+#'  \code{RRphylo} rates and the distance from the tree root (age). If y is
+#'  multivariate, it also includes the multiple rates for each y vector. If
+#'  \code{node} is specified, each branch is classified as belonging to an
+#'  indicated clade. \item{\code{$rescaledrateVStime}}: a data frame of rescaled
+#'  \code{RRphylo} rates and the distance from the tree root (age). If y is
+#'  multivariate, it also includes the multiple rates for each y vector. If
+#'  \code{node} is specified, each branch is classified as belonging to an
+#'  indicated clade. NAs correspond either to very small values or to outliers
+#'  which are excluded from the analysis.}
+#'@return \strong{$phenotypic.regression} results of phenotype (\code{y} versus
+#'  \code{x1} regression residuals) versus age regression. It reports a p-value
+#'  for the regression slope between the variables (p.real), a p-value computed
+#'  contrasting the real slope to Brownian motion simulations (p.random), and a
+#'  parameter indicating the deviation of the phenotypic mean from the root
+#'  value in terms of the number of standard deviations of the trait
+#'  distribution (dev). dev is 0 under Brownian Motion. Only p.random should be
+#'  inspected to assess significance.
+#'@return \strong{$rate.regression} results of the rates (rescaled absolute
+#'  values) versus age regression. It reports a p-value for the regression
+#'  between the variables (p.real), a p-value computed contrasting the real
+#'  slope to Brownian motion simulations (p.random), and a parameter indicating
+#'  the ratio between the range of phenotypic values and the range of such
+#'  values halfway along the tree height, divided to the same figure under
+#'  Brownian motion (spread). spread is 1 under Brownian Motion. Only p.random
+#'  should be inspected to assess significance.
+#'@return \strong{$ConfInts} a 'RRphyloList' object including the 95\%
+#'  confidence intervals around phenotypes and rates (both rescaled and unscaled
+#'  absolute rates) produced according to the Brownian motion model of
+#'  evolution.
+#'@return If specified, individual nodes are tested as the whole tree, the
+#'  results are summarized in the objects:
+#'@return \strong{$node.phenotypic.regression} results of phenotype (or \code{y}
+#'  versus \code{x1} regression residuals) versus age regression through node.
+#'  It reports the slope for the regression between the variables at node
+#'  (slope), a p-value computed contrasting the real slope to Brownian motion
+#'  simulations (p.random), the difference between estimated marginal means
+#'  predictions for the group and for the rest of the tree (emm.difference), and
+#'  a p-value for the emm.difference (p.emm).
+#'@return \strong{$node.rate.regression} results of the rates (absolute values)
+#'  versus age regression through node. It reports the difference between
+#'  estimated marginal means predictions for the group and for the rest of the
+#'  tree (emm.difference), a p-value for the emm.difference (p.emm), the
+#'  difference between regression slopes for the group and for the rest of the
+#'  tree (slope.difference), and a p-value for the slope.difference (p.slope).
+#'@return If more than one node is specified, the object
+#'  \strong{$group.comparison} reports the same results as
+#'  $node.phenotypic.regression and $node.rate.regression obtained by comparing
+#'  individual clades to each other.
+#'@author Silvia Castiglione, Carmela Serio, Pasquale Raia, Alessandro
+#'  Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
+#'  Carotenuto
+#'@details The function simultaneously returns the regression of phenotypes and
+#'  phenotypic evolutionary rates against age tested against Brownian motion
+#'  simulations to assess significance. To this aim rates are rescaled in the
+#'  0-1 range and then logged. The function stores the rates (both rescaled and
+#'  unscaled absolute values) versus age regression and the phenotype versus age
+#'  regression plots as .pdf files. In the plots, the 95\% confidence intervals
+#'  of phenotypes and rates simulated under the Brownian motion for each node
+#'  are plotted as shaded areas. Regression lines are printed for all
+#'  regressions. To assess significance, slopes are compared to a family of
+#'  simulated slopes (BMslopes, where the number of simulations is equal to
+#'  \code{nsim}), generated under the Brownian motion, using the \code{fastBM}
+#'  function in the package \pkg{phytools}. Individual nodes are compared to the
+#'  rest of the tree in different ways depending on whether phenotypes or rates
+#'  (always unscaled in this case) versus age regressions are tested. With the
+#'  former, the regression slopes for individual clades and the slope difference
+#'  between clades is contrasted to slopes obtained through Brownian motion
+#'  simulations. For the latter, regression models are tested and contrasted to
+#'  each other referring to estimated marginal means, by using the
+#'  \code{emmeans} function in the package \pkg{emmeans}.
 #'
-#'   The \href{../doc/RRphylo.html#predictor}{multiple regression version of RRphylo} allows
-#'   to incorporate the effect of an additional predictor in the computation of
-#'   evolutionary rates without altering the ancestral character estimation.
-#'   Thus, when a multiple \code{RRphylo} output is fed to \code{search.trend}, the
-#'   predictor effect is accounted for on the absolute evolutionary rates, but
-#'   not on the phenotype. However, in some situations the user might want to
-#'   ‘factor out’ the predictor effect on phenotypes as well. Under the latter
-#'   circumstance, by setting the argument \code{x1.residuals = TRUE}, the residuals
-#'   of the response to predictor regression are used as to represent the
-#'   phenotype.
-#' @importFrom graphics points text title polygon pairs plot
-#' @importFrom stats as.formula coef resid density predict cor
-#' @importFrom phytools nodeHeights
-#' @importFrom parallel makeCluster detectCores stopCluster
-#' @importFrom doParallel registerDoParallel
-#' @importFrom foreach foreach %dopar%
-#' @importFrom grDevices pdf dev.off
-#' @importFrom utils combn
-#' @importFrom emmeans emmeans emtrends
-#' @export
-#' @seealso \href{../doc/search.trend.html}{\code{search.trend} vignette}
-#' @references Castiglione, S., Serio, C., Mondanaro, A., Di Febbraro, M.,
-#'   Profico, A., Girardi, G., & Raia, P. (2019) Simultaneous detection of
-#'   macroevolutionary patterns in phenotypic means and rate of change with and
-#'   within phylogenetic trees including extinct species. \emph{PLoS ONE}, 14:
-#'   e0210101. https://doi.org/10.1371/journal.pone.0210101
+#'  The \href{../doc/RRphylo.html#predictor}{multiple regression version of
+#'  RRphylo} allows to incorporate the effect of an additional predictor in the
+#'  computation of evolutionary rates without altering the ancestral character
+#'  estimation. Thus, when a multiple \code{RRphylo} output is fed to
+#'  \code{search.trend}, the predictor effect is accounted for on the absolute
+#'  evolutionary rates, but not on the phenotype. However, in some situations
+#'  the user might want to factor out the predictor effect on phenotypes
+#'  as well. Under the latter circumstance, by setting the argument
+#'  \code{x1.residuals = TRUE}, the residuals of the response to predictor
+#'  regression are used as to represent the phenotype.
+#'@importFrom graphics points text title polygon pairs plot
+#'@importFrom stats as.formula coef resid density predict cor
+#'@importFrom phytools nodeHeights
+#'@importFrom parallel makeCluster detectCores stopCluster
+#'@importFrom doParallel registerDoParallel
+#'@importFrom foreach foreach %dopar%
+#'@importFrom grDevices pdf dev.off
+#'@importFrom utils combn
+#'@importFrom emmeans emmeans emtrends
+#'@export
+#'@seealso \href{../doc/search.trend.html}{\code{search.trend} vignette}
+#'@references Castiglione, S., Serio, C., Mondanaro, A., Di Febbraro, M.,
+#'  Profico, A., Girardi, G., & Raia, P. (2019) Simultaneous detection of
+#'  macroevolutionary patterns in phenotypic means and rate of change with and
+#'  within phylogenetic trees including extinct species. \emph{PLoS ONE}, 14:
+#'  e0210101. https://doi.org/10.1371/journal.pone.0210101
 #' @examples
 #'  \dontrun{
 #' data("DataOrnithodirans")
@@ -150,11 +158,11 @@
 #'
 #' # Case 1.1. "search.trend" whitout indicating nodes to be tested for trends
 #' search.trend(RR=RRptero, y=log(massptero), nsim=100, clus=cc,
-#'              filename=tempdir(),cov=NULL,ConfInt=FALSE,node=NULL)
+#'              filename=paste(tempdir(), "ST", sep="/"),cov=NULL,ConfInt=FALSE,node=NULL)
 #'
 #' # Case 1.2. "search.trend" indicating nodes to be specifically tested for trends
 #' search.trend(RR=RRptero, y=log(massptero), nsim=100, node=143, clus=cc,
-#'              filename=tempdir(),cov=NULL,ConfInt=FALSE)
+#'              filename=paste(tempdir(), "STnode", sep="/"),cov=NULL,ConfInt=FALSE)
 #'
 #'
 #' # Case 2. "RRphylo" accounting for the effect of a covariate
@@ -166,11 +174,11 @@
 #'
 #' # Case 2.1. "search.trend" whitout indicating nodes to be tested for trends
 #' search.trend(RR=RRpteroCov, y=log(massptero), nsim=100, clus=cc,
-#'              filename=tempdir(),ConfInt=FALSE,cov=cov.values)
+#'              filename=paste(tempdir(), "ST_cov", sep="/"),ConfInt=FALSE,cov=cov.values)
 #'
 #' # Case 2.2. "search.trend" indicating nodes to be specifically tested for trends
 #' search.trend(RR=RRpteroCov, y=log(massptero), nsim=100, node=143, clus=cc,
-#'              filename=tempdir(),ConfInt=FALSE,cov=cov.values)
+#'              filename=paste(tempdir(), "STnode_cov", sep="/"),ConfInt=FALSE,cov=cov.values)
 #'
 #'
 #' # Case 3. "search.trend" on multiple "RRphylo"
@@ -190,12 +198,15 @@
 #' RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass)->RRmulti
 #'
 #' # incorporating the effect of body size at inspecting trends in absolute evolutionary rates
-#' search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,clus=cc,filename=tempdir())
+#' search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,clus=cc,
+#'              filename=paste(tempdir(), "STmulti_rate", sep="/"))
 #'
 #' # incorporating the effect of body size at inspecting trends in both absolute evolutionary
 #' # rates and phenotypic values (by using brain versus body mass regression residuals)
-#' search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,x1.residuals=TRUE,clus=cc,filename=tempdir())
+#' search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,x1.residuals=TRUE,clus=cc,
+#'              filename=paste(tempdir(), "STmulti", sep="/"))
 #'    }
+
 
 search.trend<-function (RR,y,
                         x1=NULL,x1.residuals=FALSE,
@@ -249,7 +260,7 @@ search.trend<-function (RR,y,
   eds <- t$edge[, 2]
   eds[which(t$edge[, 2] < Ntip(t) + 1)] <- t$tip.label
   eds <- c(Ntip(t) + 1, eds)
-  hh <- c(0.0001, nodeHeights(t)[, 2])
+  hh <- c(0, nodeHeights(t)[, 2])
   eds <- data.frame(leaf = eds, height = hh)
   if (length(y) > Ntip(t)) {
     y.multi <- (L %*% rates)
@@ -257,45 +268,28 @@ search.trend<-function (RR,y,
     aceRR.multi <- (L1 %*% rates[1:Nnode(t), ])
     rates <- as.data.frame(rates)
     betas <- as.data.frame(betas)
-    data <- data.frame(betas = betas[match(eds[, 1], rownames(betas)),
-                                     ], rate = rates[match(eds[, 1], rownames(rates)),
-                                                     ], age = eds[, 2])
-    colnames(data)[1:dim(y)[2]] <- paste("betas", seq(1,
-                                                      dim(y)[2], 1), sep = "")
+
+    rbi.rate <- data.frame(betas = betas[match(eds[, 1], rownames(betas)),
+    ], rate = rates[match(eds[, 1], rownames(rates)),
+    ], age = eds[, 2])
+    colnames(rbi.rate)[1:dim(y)[2]] <- paste("betas", seq(1,
+                                                          dim(y)[2], 1), sep = "")
+
   }else {
-    data <- data.frame(rate = rates[match(eds[, 1], rownames(rates)),
-                                    ], age = eds[, 2])
-    rownames(data) <- rownames(rates)[match(eds[, 1], rownames(rates))]
+    rbi.rate <- data.frame(rate = rates[match(eds[, 1], rownames(rates)),
+    ], age = eds[, 2])
+    rownames(rbi.rate) <- rownames(rates)[match(eds[, 1], rownames(rates))]
+
   }
 
-  # B.age <- data.frame(t$edge, nodeHeights(t), t$edge.length)
-  # B.age <- data.frame(B.age, H - B.age[, 3])
-  # names(B.age) <- c("parent", "daughter", "rootdist.p", "rootdist.d",
-  #                   "PD.dist", "P.age")
-  # B.age <- data.frame(B.age, B.age$P.age - B.age$PD.dist)
-  # colnames(B.age)[7] <- "D.age"
-  # B.age$D.age <- jitter(B.age$D.age)
-  # D.death <- findInterval(B.age$D.age, binr::bins.greedy(B.age$D.age,
-  #                                                        nbins = Ntip(t)/3, minpts = 3)$binhi)
-  # B.age <- data.frame(B.age, D.death)
-  # b.distrib <- B.age[, c(2, 7, 6, 8)]
-  # b.distrib[which(b.distrib$daughter < Ntip(t) + 1), 1] <- t$tip.label[b.distrib[which(b.distrib$daughter <
-  #                                                                                        Ntip(t) + 1), 1]]
-  # rbind(c((Ntip(t)+1),L[1,1],0,0),b.distrib)->b.distrib
-  # data[,dim(data)[2]]+L[1,1]->data[,dim(data)[2]]
-  # data[match(b.distrib[,1],rownames(data)),]->data
-  # data <- data.frame(b.distrib, data)
-  # rbi <- data
-
-  data[,dim(data)[2]]+L[1,1]->data[,dim(data)[2]]
-  rbi.rate <- data
+  rbi.rate[,dim(rbi.rate)[2]]+L[1,1]->rbi.rate[,dim(rbi.rate)[2]]
 
   if (length(y) > Ntip(t)) {##### Rate Trend Real Multi #####
-    # rbi.rate <- rbi[, c(5:(dim(rbi)[2] - 1), dim(rbi)[2])]
     rbi.slopeA <- matrix(ncol = 2, nrow = (dim(rbi.rate)[2] -
                                              1))
     REGabs.betas <- list()
     e1<-array()
+    scalrat.data<-matrix(ncol=(ncol(y)+1),nrow=nrow(rbi.rate))
     for (i in 1:(dim(rbi.rate)[2] - 1)) {
       bet <- rbi.rate[, i]
       age <- rbi.rate[, dim(rbi.rate)[2]]
@@ -315,12 +309,12 @@ search.trend<-function (RR,y,
       sd(range01(rtsA[ageC<0.5*max(ageC)]))/sd(range01(rtsA)[ageC>0.5*max(ageC)])->e1[i]
 
       if(!is.null(x1)){
-        rts[-1,]->rts
+        rts[-1,,drop=FALSE]->rts
         age[-1]->age
 
         car::outlierTest(lm(rts~age))->ouT
         if(length(which(ouT$bonf.p<=0.05))>0){
-          rts[-match(names(which(ouT$bonf.p<=0.05)),names(rts))]->rts
+          rts[-match(names(which(ouT$bonf.p<=0.05)),rownames(rts)),,drop=FALSE]->rts
           age[-match(names(which(ouT$bonf.p<=0.05)),names(age))]->age
         }
 
@@ -336,13 +330,19 @@ search.trend<-function (RR,y,
       lm(rts~age)->regr.1
       rbi.slopeA[i, ] <- coef(summary(regr.1))[2, c(1, 4)]
       REGabs.betas[[i]] <- regr.1
+
+      ##############
+      scalrat.data[,i]<-rts[match(rownames(rbi.rate),rownames(rts)),]
+
     }
+    colnames(scalrat.data)<-colnames(rbi.rate)[1:(ncol(y)+1)]
+    rownames(scalrat.data)<-rownames(rbi.rate)
+    data.frame(as.data.frame(scalrat.data),age=rbi.rate$age)->scalrat.data
+
     colnames(rbi.slopeA) <- c("slope","p-value")
-    #if(is.null(colnames(y))) rownames(rbi.slopeA) <- names(REGabs.betas)<-colnames(data)[5:(5 +dim(y)[2])] else
-    if(is.null(colnames(y))) rownames(rbi.slopeA) <- names(REGabs.betas)<-colnames(data)[1:(ncol(y)+1)] else
+    if(is.null(colnames(y))) rownames(rbi.slopeA) <- names(REGabs.betas)<-colnames(rbi.rate)[1:(ncol(y)+1)] else
       rownames(rbi.slopeA) <- names(REGabs.betas)<-c(colnames(y),"multiple")
   }else { #### Rate Trend Real Uni #####
-    # rbi.rate <- rbi[, c(5, 6)]
     bet <- rbi.rate[, 1]
     age <- rbi.rate[, 2]
     names(bet)<-names(age)<-rownames(rbi.rate)
@@ -361,12 +361,13 @@ search.trend<-function (RR,y,
     sd(range01(rtsA[ageC<0.5*max(ageC)]))/sd(range01(rtsA)[ageC>0.5*max(ageC)])->e1
 
     if(!is.null(x1)){
-      rts[-1,]->rts
+      rts[-1,,drop=FALSE]->rts
+
       age[-1]->age
 
       car::outlierTest(lm(rts~age))->ouT
       if(length(which(ouT$bonf.p<=0.05))>0){
-        rts[-match(names(which(ouT$bonf.p<=0.05)),names(rts))]->rts
+        rts[-match(names(which(ouT$bonf.p<=0.05)),rownames(rts)),,drop=FALSE]->rts
         age[-match(names(which(ouT$bonf.p<=0.05)),names(age))]->age
       }
     }else{
@@ -382,10 +383,12 @@ search.trend<-function (RR,y,
     lm(rts~age)->regr.1
     rbi.slopeA<- coef(summary(regr.1))[2, c(1, 4)]
     REGabs <- regr.1
+
+    data.frame(rate=rts[match(rownames(rbi.rate),rownames(rts)),1],age=age[match(rownames(rbi.rate),names(age))],row.names =rownames(rbi.rate))->scalrat.data
+    rownames(scalrat.data)<-rownames(rbi.rate)
   }
 
   nodes <- aceRR[1:Nnode(t), ]
-  # rbiRES<-rbi[, c(5:(dim(rbi)[2] - 1), dim(rbi)[2])]
   rbiRES<-rbi.rate
 
   if (length(y) > Ntip(t)) {##### Phenotypic Trend Real Multi #####
@@ -394,7 +397,8 @@ search.trend<-function (RR,y,
     P <- rbind(nodes, cbind(y,y.multi))
     if(isTRUE(x1.residuals)) apply(P,2,function(x) residuals(lm(x~x1)))->P
     #PP <- data.frame(P[match(rbi[, 1], rownames(P)), ],rbi$age)
-    PP <- data.frame(P[match(rownames(data), rownames(P)), ],data$age)
+    # PP <- data.frame(P[match(rownames(data), rownames(P)), ],data$age)
+    PP <- data.frame(P[match(rownames(rbi.rate), rownames(P)), ],rbi.rate$age)
     colnames(PP)[dim(PP)[2]] <- "age"
     trendR <- apply(PP[1:(dim(PP)[2] - 1)], 2, function(x) lm(range01(x) ~ PP[, dim(PP)[2]]))
     trend.reg <- lapply(trendR, function(x) coefficients(summary(x)))
@@ -410,7 +414,8 @@ search.trend<-function (RR,y,
     P <- c(nodes, y)
     if(isTRUE(x1.residuals)) P<-residuals(lm(P~x1))
     # PP <- data.frame(P[match(rbi[, 1], names(P))], rbi$age)
-    PP <- data.frame(P[match(rownames(data), names(P))], data$age)
+    # PP <- data.frame(P[match(rownames(data), names(P))], data$age)
+    PP <- data.frame(P[match(rownames(rbi.rate), names(P))], rbi.rate$age)
     colnames(PP) <- c("phenotype", "age")
     lm(range01(PP[,1])~PP[,2])->trendR
     summary(trendR)$coef->trend.reg
@@ -440,7 +445,8 @@ search.trend<-function (RR,y,
       gg[match(c(n,sele), rownames(rbi.sma))]<-paste("g",n, sep = "")
       data.frame(rbi.sma,gg)->rbi.sma
       # rbi.sel <- rbi[match(c(n,sele), rownames(rbi)), ]
-      rbi.sel <- data[match(c(n,sele), rownames(data)), ]
+      # rbi.sel <- data[match(c(n,sele), rownames(data)), ]
+      rbi.sel <- rbi.rate[match(c(n,sele), rownames(rbi.rate)), ]
 
       if (length(y) > Ntip(t)) { #### Rate Trend Real Node Multi ####
         # rbi.rate <- rbi.sel[, c(5:(dim(rbi.sel)[2] -
@@ -461,7 +467,8 @@ search.trend<-function (RR,y,
           REGabs.betas.y[[i]]<-predict(lm(rts~age))
         }
         #names(REG.betas.age) <- names(REGabs.betas.y) <- colnames(data)[5:(5 +dim(y)[2])]
-        names(REG.betas.age) <- names(REGabs.betas.y) <- colnames(data)[1:(ncol(y)+1)]
+        #names(REG.betas.age) <- names(REGabs.betas.y) <- colnames(data)[1:(ncol(y)+1)]
+        names(REG.betas.age) <- names(REGabs.betas.y) <- colnames(rbi.rate)[1:(ncol(y)+1)]
       }else {#### Rate Trend Real Node Uni ####
         # rbi.rate <- rbi.sel[, 5:6]
         ## rbi.rate <- rbi.sel
@@ -482,22 +489,6 @@ search.trend<-function (RR,y,
 
       # nodes <- aceRR[1:Nnode(t), ]
       if (length(y) > Ntip(t)) {##### Phenotypic Trend Real Node Multi #####
-        # nodes <- cbind(aceRR[1:Nnode(t), ],aceRR.multi[1:Nnode(t), ])
-        # colnames(nodes)<- c(paste("y", seq(1, dim(y)[2]),sep = ""),"y.multi")
-        # P <- rbind(nodes, cbind(y,y.multi))
-        # PP <- data.frame(P[match(rbi.sel[, 1], rownames(P)),], rbi.sel$age)
-        # colnames(PP)[dim(PP)[2]] <- "age"
-        # trend.regC <- apply(PP[1:(dim(PP)[2] - 1)],
-        #                     2, function(x) summary(lm(range01(x) ~ PP[, dim(PP)[2]])))
-        # trend.regC <- lapply(trend.regC, coefficients)
-        # #names(trend.regC) <- c(paste("y", seq(1:dim(y)[2]),sep = ""),"multiple")
-        # if(is.null(colnames(y))) names(trend.regC) <- c(paste("y", seq(1:dim(y)[2]), sep = ""),"multiple") else
-        #   names(trend.regC) <- c(colnames(y),"multiple")
-        # trend.reg.y.sel[[j]] <- apply(PP[1:(dim(PP)[2] -
-        #                                       1)], 2, function(x) predict(lm(x ~ PP[, dim(PP)[2]])))
-        #
-        # trend.reg.age.sel[[j]] <- PP$age
-
         PPsel <- PP[match(rownames(rbi.sel), rownames(PP)),]
         # colnames(PP)[dim(PP)[2]] <- "age"
         trend.regC <- apply(PPsel[1:(dim(PPsel)[2] - 1)],
@@ -798,7 +789,6 @@ search.trend<-function (RR,y,
         suppressWarnings(yyD<-replicate(nsim,fastBM(t,sig2=1,a=ares,bounds=c(min(yres),max(yres)))))
       }
 
-
       matrix(ncol=nsim,nrow=Ntip(t))->yyT
       matrix(ncol=nsim,nrow=Ntip(t))->yy1T
       matrix(ncol=nsim,nrow=Nnode(t))->ace1T
@@ -825,8 +815,6 @@ search.trend<-function (RR,y,
       rownames(ace1T)<-rownames(aceRR)
     }
   }
-
-
 
   res <- list()
   if(round((detectCores() * clus), 0)==0) cl<-makeCluster(1, setup_strategy = "sequential") else
@@ -978,32 +966,37 @@ search.trend<-function (RR,y,
     eds <- t$edge[, 2]
     eds[which(t$edge[, 2] < Ntip(t) + 1)] <- t$tip.label
     eds <- c(Ntip(t) + 1, eds)
-    hh <- c(0.0001, nodeHeights(t)[, 2])
+    hh <- c(0, nodeHeights(t)[, 2])
     eds <- data.frame(leaf = eds, height = hh)
 
     if (length(y) > Ntip(t)) {
       betasTreal->betasT
-      data <- data.frame(betas = betasT[match(eds[, 1],
-                                              rownames(betasT)), ], rate = ratesT[match(eds[,
-                                                                                            1], rownames(ratesT)), ], age = eds[, 2])
-      colnames(data)[1:dim(yT)[2]] <- paste("betas", seq(1,
-                                                         dim(yT)[2], 1), sep = "")
+      # data <- data.frame(betas = betasT[match(eds[, 1],
+      #                                         rownames(betasT)), ], rate = ratesT[match(eds[,
+      #                                                                                       1], rownames(ratesT)), ], age = eds[, 2])
+      # colnames(data)[1:dim(yT)[2]] <- paste("betas", seq(1,
+      #                                                    dim(yT)[2], 1), sep = "")
+
+      rbi.rate <- data.frame(betas = betasT[match(eds[, 1],
+                                                  rownames(betasT)), ], rate = ratesT[match(eds[,
+                                                                                                1], rownames(ratesT)), ], age = eds[, 2])
+      colnames(rbi.rate)[1:dim(yT)[2]] <- paste("betas", seq(1,
+                                                             dim(yT)[2], 1), sep = "")
     }else {
       rates <- betasT
-      data <- data.frame(rate = rates[match(eds[, 1],
-                                            rownames(rates)), ], age = eds[, 2])
+      # data <- data.frame(rate = rates[match(eds[, 1],
+      #                                       rownames(rates)), ], age = eds[, 2])
+      rbi.rate <- data.frame(rate = rates[match(eds[, 1],
+                                                rownames(rates)), ], age = eds[, 2])
     }
-    data[,dim(data)[2]]+L[1,1]->data[,dim(data)[2]]
-    # data[match(b.distrib[,1],rownames(data)),]->data
-    # data <- data.frame(b.distrib, data)
-    # rbi <- data
-    rbi.rate <- data
+    #data[,dim(data)[2]]+L[1,1]->data[,dim(data)[2]]
+    rbi.rate[,dim(rbi.rate)[2]]+L[1,1]->rbi.rate[,dim(rbi.rate)[2]]
 
     if (length(yT) > Ntip(t)) {#### Rate Trend Random Multi ####
-      # rbi.rate <- rbi[, c(5:(dim(rbi)[2] - 1), dim(rbi)[2])]
       rbi.slopeAS <- matrix(ncol = 2, nrow = (dim(rbi.rate)[2] -
                                                 1))
       ee<-array()
+      scalrat.data<-matrix(ncol=(ncol(y)+1),nrow=nrow(rbi.rate))
       for (k in 1:(dim(rbi.rate)[2] - 1)) {
         bet <- rbi.rate[, k]
         age <- rbi.rate[, dim(rbi.rate)[2]]
@@ -1024,12 +1017,12 @@ search.trend<-function (RR,y,
         sd(range01(rtsA[ageC<0.5*max(ageC)]))/sd(range01(rtsA)[ageC>0.5*max(ageC)])->ee[k]
 
         if(!is.null(x1)){
-          rts[-1,]->rts
+          rts[-1,,drop=FALSE]->rts
           age[-1]->age
 
           car::outlierTest(lm(rts~age))->ouT
           if(length(which(ouT$bonf.p<=0.05))>0){
-            rts[-match(names(which(ouT$bonf.p<=0.05)),names(rts))]->rts
+            rts[-match(names(which(ouT$bonf.p<=0.05)),rownames(rts)),,drop=FALSE]->rts
             age[-match(names(which(ouT$bonf.p<=0.05)),names(age))]->age
           }
 
@@ -1044,11 +1037,18 @@ search.trend<-function (RR,y,
         }
         lm(rts~age)->regr.1
         rbi.slopeAS[k, ] <- coef(summary(regr.1))[2, c(1, 4)]
+        scalrat.data[,k]<-rts[match(rownames(rbi.rate),rownames(rts)),1]
 
       }
+      colnames(scalrat.data)<-colnames(rbi.rate)[1:(ncol(y)+1)]
+      rownames(scalrat.data)<-rownames(rbi.rate)
+      data.frame(as.data.frame(scalrat.data),age=rbi.rate$age)->scalrat.data
+
+
       colnames(rbi.slopeAS) <- c("slope","p-value")
       # rownames(rbi.slopeAS) <- colnames(data)[5:(5 +dim(y)[2])]
-      rownames(rbi.slopeAS) <- colnames(data)[1:(ncol(y)+1)]
+      # rownames(rbi.slopeAS) <- colnames(data)[1:(ncol(y)+1)]
+      rownames(rbi.slopeAS) <- colnames(rbi.rate)[1:(ncol(y)+1)]
     }else {#### Rate Trend Random Uni ####
       # rbi.rate <- rbi[, 5:6]
       bet <- rbi.rate[, 1]
@@ -1069,12 +1069,12 @@ search.trend<-function (RR,y,
       sd(range01(rtsA)[ageC<0.5*max(ageC)])/sd(range01(rtsA)[ageC>0.5*max(ageC)])->ee
 
       if(!is.null(x1)){
-        rts[-1,]->rts
+        rts[-1,,drop=FALSE]->rts
         age[-1]->age
 
         car::outlierTest(lm(rts~age))->ouT
         if(length(which(ouT$bonf.p<=0.05))>0){
-          rts[-match(names(which(ouT$bonf.p<=0.05)),names(rts))]->rts
+          rts[-match(names(which(ouT$bonf.p<=0.05)),rownames(rts)),,drop=FALSE]->rts
           age[-match(names(which(ouT$bonf.p<=0.05)),names(age))]->age
         }
 
@@ -1089,6 +1089,9 @@ search.trend<-function (RR,y,
       }
       lm(rts~age)->regr.1
       rbi.slopeAS <- coef(summary(regr.1))[2, c(1, 4)]
+
+      data.frame(rate=rts[match(rownames(rbi.rate),rownames(rts)),1],age=age[match(rownames(rbi.rate),names(age))],row.names =rownames(rbi.rate))->scalrat.data
+      rownames(scalrat.data)<-rownames(rbi.rate)
     }
 
     nodesD <- aceRRD[1:Nnode(t), ]
@@ -1099,7 +1102,8 @@ search.trend<-function (RR,y,
       # PP <- data.frame(P[match(rbi[, 1], rownames(P)),
       #                    ], rbi$age)
       if(isTRUE(x1.residuals)) apply(P,2,function(x) residuals(lm(x~x1)))->P
-      PP <- data.frame(P[match(rownames(data), rownames(P)), ],data$age)
+      # PP <- data.frame(P[match(rownames(data), rownames(P)), ],data$age)
+      PP <- data.frame(P[match(rownames(rbi.rate), rownames(P)), ],rbi.rate$age)
       colnames(PP)[dim(PP)[2]] <- "age"
       trend.regR <- apply(PP[1:(dim(PP)[2] - 1)], 2, function(x)
         summary(lm(range01(x) ~PP[, dim(PP)[2]])))
@@ -1111,7 +1115,7 @@ search.trend<-function (RR,y,
     }else { #### Phenotypic Trend Random Uni ####
       P <- c(nodesD, yD)
       if(isTRUE(x1.residuals)) P<-residuals(lm(P~x1))
-      PP <- data.frame(P[match(rownames(data), names(P))], data$age)
+      PP <- data.frame(P[match(rownames(rbi.rate), names(P))], rbi.rate$age)
       colnames(PP) <- c("phenotype", "age")
       trend.regS <- summary(lm(range01(PP[,1])~PP[,2]))$coef
     }
@@ -1123,7 +1127,6 @@ search.trend<-function (RR,y,
       # rbi.sma <- rbi.rate
       PP.sma <- PP
       PP.sma$group <- rep("NA", dim(PP.sma)[1])
-      rbi.slopeAS.sel <- list()
       trend.reg.SEL <- list()
       for (j in 1:length(node)) {
         n <- node[j]
@@ -1145,7 +1148,8 @@ search.trend<-function (RR,y,
           # trend.regC <- apply(PP[1:(dim(PP)[2] - 1)],
           #                     2, function(x) summary(lm(range01(x) ~ PP[, dim(PP)[2]])))
 
-          PPsel <- PP[match(rownames(data), rownames(PP)),]
+          # PPsel <- PP[match(rownames(data), rownames(PP)),]
+          PPsel <- PP[match(rownames(rbi.rate), rownames(PP)),]
           # colnames(PP)[dim(PP)[2]] <- "age"
           trend.regC <- apply(PPsel[1:(dim(PPsel)[2] - 1)],
                               2, function(x) summary(lm(range01(x) ~ PPsel[, dim(PPsel)[2]])))
@@ -1159,7 +1163,8 @@ search.trend<-function (RR,y,
           # colnames(PP) <- c("phenotype", "age")
           # trend.regC <- summary(lm(range01(PP[,1])~PP[,2]))$coef
 
-          PPsel <- PP[match(rownames(data), rownames(PP)),]
+          # PPsel <- PP[match(rownames(data), rownames(PP)),]
+          PPsel <- PP[match(rownames(rbi.rate), rownames(PP)),]
           # colnames(PPsel) <- c("phenotype", "age")
           trend.regC <- summary(lm(range01(PPsel[,1])~PPsel[,2]))$coef
 
@@ -1213,17 +1218,12 @@ search.trend<-function (RR,y,
       }else{
         sma.resPP.R<-NULL
       }
-      # res[[i]] <- list(trend.regS, rbi.slopeAS,
-      #                  PPtot, rbi,yT,yD,ee,
-      #                  rbi.slopeAS.sel, trend.reg.SEL,sma.resPP.R)
       res[[i]] <- list(trend.regS, rbi.slopeAS,
-                       PPtot, data,yT,yD,ee,
-                       rbi.slopeAS.sel, trend.reg.SEL,sma.resPP.R)
+                       PPtot, rbi.rate,yT,yD,ee,scalrat.data,
+                       trend.reg.SEL,sma.resPP.R)
     }else {
-      # res[[i]] <- list(trend.regS, rbi.slopeAS,
-      #                  PPtot, rbi,yT,yD,ee)
       res[[i]] <- list(trend.regS, rbi.slopeAS,
-                       PPtot, data,yT,yD,ee)
+                       PPtot, rbi.rate,yT,yD,ee,scalrat.data)
     }
   }
   stopCluster(cl)
@@ -1255,7 +1255,175 @@ search.trend<-function (RR,y,
     names(spread)<-names(p.rbi.slopeA) <- rownames(rbi.slopeA)
     p.rbi.slopeA <- data.frame(slope = rbi.slopeA[, 1],
                                p.real = rbi.slopeA[, 2], p.random = p.rbi.slopeA,spread=spread)
-  }else {#### p Rate Trend Uni ####
+
+
+    scalrat.CI <- CIabsolute <- list()
+    for (i in 1:(dim(y)[2] + 1)) {
+      scalrat.ci <- apply(do.call(cbind, lapply(lapply(res,"[[", 8),function(k) k[, i])), 1,
+                          function(u){
+                            if(all(is.na(u)))  rep(NA,2) else quantile(na.omit(u),c(0.025, 0.975))
+                          })
+      colnames(scalrat.ci) <- lapply(lapply(res,"[[", 8), rownames)[[1]]
+      scalrat.CI[[i]] <- t(scalrat.ci)
+
+      RBTAci <- apply(do.call(cbind, lapply(lapply(res,
+                                                   "[[", 4),
+                                            function(k) abs(k[, i]))), 1, function(u) quantile(u,
+                                                                                               c(0.025, 0.975)))
+      colnames(RBTAci) <- lapply(lapply(res,"[[", 4), rownames)[[1]]
+      CIabsolute[[i]] <- t(RBTAci)
+    }
+    names(CIabsolute) <- names(scalrat.CI) <- c(paste("betas",seq(1, dim(y)[2]), sep = ""), "rate")
+
+    scalrat.A <- scalrat.data
+    A <- rbi.rate
+    if(is.null(x1)){
+      scalrat.age <- max(na.omit(scalrat.data[, ncol(scalrat.data)]))-scalrat.A[, ncol(scalrat.A)]
+      age <- max(rbi.rate[, dim(rbi.rate)[2]])-A[, dim(A)[2]]
+      names(scalrat.age)<-names(age)<-rownames(A)
+    }else{
+      scalrat.age <- max(scalrat.data[-which(rownames(scalrat.data)==(Ntip(t)+1)), ncol(scalrat.data)])-
+        scalrat.A[-which(rownames(scalrat.A)==(Ntip(t)+1)), ncol(scalrat.A)]
+      age <- max(rbi.rate[-which(rownames(rbi.rate)==(Ntip(t)+1)), ncol(rbi.rate)])-A[-which(rownames(A)==(Ntip(t)+1)), ncol(A)]
+      names(scalrat.age)<-names(age)<-rownames(A)[-which(rownames(A)==(Ntip(t)+1))]
+    }
+
+    # pdf(file = paste(filename, "Rates.pdf",
+    #                  sep = "-"))
+
+    if (dim(y)[2] <= 2) {
+      pdf(file = paste(filename, "Rates.pdf",sep = "-"))
+      par(mfrow = c(dim(y)[2] + 1, 2),mar = c(2.5, 3, 2, 1))
+      for (i in 1:(dim(y)[2] + 1)) {
+        if (i == dim(y)[2] + 1) ynam <- "rate" else ynam <- paste("betas", i, sep = "")
+        if(is.null(x1)) {
+          scalrat.bet <- scalrat.A[, i]
+          bet <- A[, i]
+          names(bet)<-names(scalrat.bet)<-rownames(A)
+          CIabsolute[[i]]->RBTAci
+          scalrat.CI[[i]]->scalrat.ci
+        }else{
+          bet<-A[-which(rownames(A)==(Ntip(t)+1)),i]
+          scalrat.bet<-scalrat.A[-which(rownames(scalrat.A)==(Ntip(t)+1)),i]
+          names(bet)<-names(scalrat.bet)<-rownames(A)[-which(rownames(A)==(Ntip(t)+1))]
+          CIabsolute[[i]][-which(rownames(CIabsolute[[i]])==(Ntip(t)+1)),]->RBTAci
+          scalrat.CI[[i]][-which(rownames(scalrat.CI[[i]])==(Ntip(t)+1)),]->scalrat.ci
+        }
+
+        apply(scalrat.ci,2,function(j) all(is.na(j)))->NAci
+        if(any(NAci)) scalrat.ci[,which(NAci)]<-scalrat.AA[match(names(which(NAci)),rownames(scalrat.AA)),1]
+        cbind(scalrat.bet,scalrat.age,scalrat.ci)->scalrat.ci
+        scalrat.ci <- scalrat.ci[order(scalrat.ci[, 2]), ]
+        scalrat.ci[which(!is.na(scalrat.ci[, 1])), ]->scalrat.ci
+
+        if(i==1) maintitle<-"rescaled rate" else maintitle<-" "
+        plot(scalrat.bet ~ scalrat.age,data=scalrat.ci, main = maintitle,xlab="age", cex.axis=0.8,mgp = c(1.2, 0.4, 0),
+             ylab = ynam,xlim=c(max(na.omit(scalrat.age)),min(na.omit(scalrat.age))))
+
+        polygon(c(scalrat.ci[, 2], rev(scalrat.ci[, 2])),
+                c(scalrat.ci[,3], rev(scalrat.ci[, 4])), col = rgb(0.5, 0.5, 0.5,0.4), border = NA)
+
+        points(scalrat.age[which(rownames(scalrat.A)%in%t$tip.label)], scalrat.bet[which(rownames(scalrat.A)%in%t$tip.label)],
+               pch = 21, col = "black",bg = "red")
+
+        abline(lm(scalrat.bet ~ scalrat.age), lwd = 4, col = "blue")
+
+
+        cbind(bet,age,RBTAci)->RBTAci
+        RBTAci <- RBTAci[order(RBTAci[, 2]), ]
+        if(i==1) maintitle<-"absolute rate" else maintitle<-" "
+        plot(abs(bet) ~ age, main = maintitle, cex.axis=0.8,mgp = c(1.2, 0.4, 0),
+             ylab = ynam,xlim=c(max(age),min(age)))
+        polygon(c(RBTAci[, 2], rev(RBTAci[, 2])), c(RBTAci[,
+                                                           3], rev(RBTAci[, 4])), col = rgb(0.5, 0.5,
+                                                                                            0.5, 0.4), border = NA)
+        points(age[which(names(age)%in%t$tip.label)], abs(bet[which(names(bet)%in%t$tip.label)]), pch = 21, col = "black",
+               bg = "red")
+
+        if (class(node) != "NULL") {
+          for (j in 1:length(node)) {
+            cols <- suppressWarnings(RColorBrewer::brewer.pal(length(node), "Set2"))
+            points(max(rbi.rate$age)-REG.betas.age.sel[[j]][[i]], REGabs.betas.y.sel[[j]][[i]],
+                   lwd = 4, col = cols[j], type = "l")
+          }
+          abline(lm(abs(bet) ~ age), lwd = 3, col = "blue",
+                 lty = 2)
+          if (i == 1)
+            legend(max(age), max(abs(bet)), legend = node,
+                   fill = cols, bg = rgb(0, 0, 0, 0), box.col = rgb(0,
+                                                                    0, 0, 0), border = NA, x.intersp = 0.25)
+        } else {
+          abline(lm(abs(bet) ~ age), lwd = 4, col = "blue")
+        }
+
+      }
+    } else {
+
+      pdf(file = paste(filename, "Rates.pdf",sep = "-"),width=4.7,height=7)
+      i=ncol(A)-1
+      par(mfrow = c(2, 1),mar = c(2.5, 3, 2, 1))
+      if(is.null(x1)) {
+        scalrat.bet <- scalrat.A[, i]
+        bet <- A[, i]
+        names(bet)<-names(scalrat.bet)<-rownames(A)
+        CIabsolute[[i]]->RBTAci
+        scalrat.CI[[i]]->scalrat.ci
+      }else{
+        bet<-A[-which(rownames(A)==(Ntip(t)+1)),i]
+        scalrat.bet<-scalrat.A[-which(rownames(scalrat.A)==(Ntip(t)+1)),i]
+        names(bet)<-names(scalrat.bet)<-rownames(A)[-which(rownames(A)==(Ntip(t)+1))]
+        CIabsolute[[i]][-which(rownames(CIabsolute[[i]])==(Ntip(t)+1)),]->RBTAci
+        scalrat.CI[[i]][-which(rownames(scalrat.CI[[i]])==(Ntip(t)+1)),]->scalrat.ci
+      }
+
+      apply(scalrat.ci,2,function(j) all(is.na(j)))->NAci
+      if(any(NAci)) scalrat.ci[,which(NAci)]<-scalrat.AA[match(names(which(NAci)),rownames(scalrat.AA)),1]
+      cbind(scalrat.bet,scalrat.age,scalrat.ci)->scalrat.ci
+      scalrat.ci <- scalrat.ci[order(scalrat.ci[, 2]), ]
+      scalrat.ci[which(!is.na(scalrat.ci[, 1])), ]->scalrat.ci
+
+      plot(scalrat.bet ~ scalrat.age,data=scalrat.ci, xlab="age",cex.axis=0.8,
+           ylab = "rescaled rate", mgp = c(1.2, 0.4, 0),xlim=c(max(na.omit(scalrat.age)),min(na.omit(scalrat.age))))
+
+      polygon(c(scalrat.ci[, 2], rev(scalrat.ci[, 2])),
+              c(scalrat.ci[,3], rev(scalrat.ci[, 4])), col = rgb(0.5, 0.5, 0.5,0.4), border = NA)
+
+      points(scalrat.age[which(rownames(scalrat.A)%in%t$tip.label)], scalrat.bet[which(rownames(scalrat.A)%in%t$tip.label)],
+             pch = 21, col = "black",bg = "red")
+
+      abline(lm(scalrat.bet ~ scalrat.age), lwd = 4, col = "blue")
+
+
+      cbind(bet,age,RBTAci)->RBTAci
+      RBTAci <- RBTAci[order(RBTAci[, 2]), ]
+      par(mar = c(3, 3, 1, 1))
+      plot(abs(bet) ~ age,cex.axis=0.8,
+           ylab = "absolute rate", mgp = c(1.2, 0.4, 0),xlim=c(max(age),min(age)))
+      polygon(c(RBTAci[, 2], rev(RBTAci[, 2])), c(RBTAci[,
+                                                         3], rev(RBTAci[, 4])), col = rgb(0.5, 0.5,
+                                                                                          0.5, 0.4), border = NA)
+      points(age[which(names(age)%in%t$tip.label)], abs(bet[which(names(bet)%in%t$tip.label)]), pch = 21, col = "black",
+             bg = "red")
+
+      if (class(node) != "NULL") {
+        for (j in 1:length(node)) {
+          cols <- suppressWarnings(RColorBrewer::brewer.pal(length(node), "Set2"))
+          points(max(age)-REG.betas.age.sel[[j]][[i]], REGabs.betas.y.sel[[j]][[i]],
+                 lwd = 4, col = cols[j], type = "l")
+        }
+        abline(lm(abs(bet) ~ age), lwd = 3, col = "blue",
+               lty = 2)
+        if (i == 1)
+          legend(max(age), max(abs(bet)), legend = node,
+                 fill = cols, bg = rgb(0, 0, 0, 0), box.col = rgb(0,
+                                                                  0, 0, 0), border = NA, x.intersp = 0.25)
+      } else {
+        abline(lm(abs(bet) ~ age), lwd = 4, col = "blue")
+      }
+
+    }
+    dev.off()
+  }else {#### p Rate Trend Uni and pdf ####
     rbi.slopesRAS <- do.call(rbind, lapply(res, "[[", 2))[,
                                                           1]
     yRT<-lapply(res, "[[", 5)
@@ -1278,13 +1446,270 @@ search.trend<-function (RR,y,
     rbi.slopeA <- unname(rbi.slopeA)
     p.rbi.slopeA <- c(slope = rbi.slopeA[1], p.real = rbi.slopeA[2],
                       p.random = p.rbi.slopeA,spread=spread)
+
+
+    pdf(file = paste(filename, "Rates.pdf",
+                     sep = "-"),width=4.7,height=7)
+    par(mfrow = c(2, 1),mar = c(2.5, 3, 2, 1))
+    scalrat.AA<-scalrat.data
+    max(na.omit(scalrat.AA$age))-scalrat.AA$age->scalrat.AA$age
+    scalrat.ci <- apply(do.call(cbind,lapply(lapply(res, "[[",8),function(x) x[, 1])), 1,
+                        function(u){
+                          if(all(is.na(u)))  rep(NA,2) else quantile(na.omit(u),c(0.025, 0.975))
+                        })
+    colnames(scalrat.ci) <- lapply(lapply(res,"[[", 8), rownames)[[1]]
+    scalrat.CI <- t(scalrat.ci)
+
+    apply(scalrat.ci,2,function(j) all(is.na(j)))->NAci
+    if(any(NAci)) scalrat.ci[,which(NAci)]<-scalrat.AA[match(names(which(NAci)),rownames(scalrat.AA)),1]
+    scalrat.ci <- cbind(scalrat.AA, t(scalrat.ci[, match(rownames(scalrat.AA), colnames(scalrat.ci))]))
+    scalrat.ci <- scalrat.ci[order(scalrat.ci[, 2]), ]
+
+    if(!is.null(x1)){
+      scalrat.AA[-which(rownames(scalrat.AA)==(Ntip(t)+1)),]->scalrat.AA
+      scalrat.ci[-which(rownames(scalrat.ci)==(Ntip(t)+1)),]->scalrat.ci
+    }
+
+    scalrat.ci[which(!is.na(scalrat.ci[, 1])), ]->scalrat.ci
+    plot(rate ~ age, data = scalrat.ci, ylab = "rescaled rate",cex.axis=0.8,mgp = c(1.2, 0.4, 0),
+         xlim=c(max(na.omit(scalrat.AA$age)),min(na.omit(scalrat.AA$age))))
+
+    polygon(c(scalrat.ci[, 2], rev(scalrat.ci[, 2])),
+            c(scalrat.ci[,3], rev(scalrat.ci[, 4])), col = rgb(0.5, 0.5, 0.5,0.4), border = NA)
+
+    points(scalrat.AA$age[which(rownames(scalrat.AA)%in%t$tip.label)], scalrat.AA$rate[which(rownames(scalrat.AA)%in%t$tip.label)],
+           pch = 21, col = "black",bg = "red")
+
+    abline(lm(rate ~ age, data = scalrat.AA), col = "blue", lwd = 3)
+
+    AA<-rbi.rate
+    max(rbi.rate$age)-AA$age->AA$age
+    RBTAci <- apply(do.call(cbind,lapply(lapply(res, "[[",4),function(x) abs(x[, 1]))), 1,
+                    function(u) quantile(u,c(0.025, 0.975)))
+    colnames(RBTAci) <- lapply(lapply(res,"[[", 4), rownames)[[1]]
+    CIabsolute <- t(RBTAci)
+    RBTAci <- cbind(AA, t(RBTAci[, match(rownames(AA), colnames(RBTAci))]))
+    RBTAci <- RBTAci[order(RBTAci[, 2]), ]
+    if(!is.null(x1)){
+      AA[-which(rownames(AA)==(Ntip(t)+1)),]->AA
+      RBTAci[-which(rownames(RBTAci)==(Ntip(t)+1)),]->RBTAci
+    }
+
+    par(mar = c(3, 3, 1, 1))
+    plot(abs(rate) ~ age, data = AA, ylab = "absolute rate",
+         mgp = c(2, 0.5, 0),xlim=c(max(AA$age),min(AA$age)),cex.axis=0.8,mgp = c(1.2, 0.4, 0))
+    polygon(c(RBTAci[, 2], rev(RBTAci[, 2])), c(RBTAci[,
+                                                       3], rev(RBTAci[, 4])), col = rgb(0.5, 0.5, 0.5,
+                                                                                        0.4), border = NA)
+
+    points(AA$age[which(rownames(AA)%in%t$tip.label)], abs(AA$rate[which(rownames(AA)%in%t$tip.label)]), pch = 21, col = "black",
+           bg = "red")
+
+    if (class(node) != "NULL") {
+      for (j in 1:length(node)) {
+        cols <- suppressWarnings(RColorBrewer::brewer.pal(length(node), "Set2"))
+        points(max(rbi.rate$age)-REG.betas.age.sel[[j]], REGabs.betas.y.sel[[j]],
+               lwd = 4, col = cols[j], type = "l")
+      }
+      abline(lm(abs(rate) ~ age, data = AA), col = "blue", lwd = 3, lty = 2)
+      legend(max(AA$age), max(abs(AA$rate)), legend = node,
+             fill = cols, bg = rgb(0, 0, 0, 0), box.col = rgb(0,
+                                                              0, 0, 0), border = NA, x.intersp = 0.25)
+    }else {
+      abline(lm(abs(rate) ~ age, data = AA), col = "blue", lwd = 4)
+    }
+    dev.off()
+
   }
 
 
-  if (class(node) != "NULL") {
+
+  p.trend <- array()
+  if (length(y) > Ntip(t)) { #### p Phenotypic Trend Multi and pdf ####
+    trend.slopes <- matrix(ncol = dim(y)[2] + 1, nrow = nsim)
+    CIphenotype <- list()
+    for (i in 1:(dim(y)[2] + 1)) {
+      trend.slopes[, i] <- unlist(lapply(lapply(lapply(res,
+                                                       "[[", 1), "[[", i), function(x) x[2,1]))
+
+      p.trend[i] <- (nsim-length(which(trend.slopes[, i]<trend.reg[[i]][2,1])))/nsim
+
+      trend.real <- do.call(rbind, lapply(trend.reg, function(x) x[2,
+                                                                   c(1, 4)]))
+
+
+      PPci <- apply(do.call(cbind, lapply(lapply(res,
+                                                 "[[", 3), function(x) x[, i])), 1, function(u) quantile(u,
+                                                                                                         c(0.025, 0.975)))
+      colnames(PPci) <- lapply(lapply(res, "[[",
+                                      3), rownames)[[1]]
+      CIphenotype[[i]] <- t(PPci)
+    }
+    p.trend <- cbind(trend.real, p.trend,dev)
+    colnames(p.trend) <- c("slope", "p.real",
+                           "p.random","dev")
+
+    PP[,dim(PP)[2]]<-max(PPtot[,dim(PPtot)[2]])-PP[,dim(PP)[2]]
+    if (dim(y)[2] <= 2) {
+      pdf(file = paste(filename, "Phenotypes.pdf",sep = "-"))
+      par(mar = c(2.5, 3, 2, 1),mfrow = c(dim(y)[2] + 1, 2))
+      for (i in 1:(dim(y)[2] + 1)) {
+        PPci <- cbind(PP[, c(i, dim(PP)[2])], CIphenotype[[i]])
+        PPci <- PPci[order(PPci[, 2]), ]
+        obj <- hist(trend.slopes[, i], xlab = "",
+                    ylab = "", main = names(trend.reg[i]), cex.axis=0.8,mgp = c(1.2, 0.4, 0))
+        title(xlab = "simulated slopes", ylab = "frequency",
+              line = 1.5)
+        if(p.trend[i,3]>0.5) 1-p.trend[i,3]->pp else p.trend[i,3]->pp
+        text(quantile(trend.slopes[, i], 0.01), max(obj$counts) *
+               0.9, labels = paste("p=", pp),
+             cex = 1)
+        abline(v = trend.reg[[i]][2, 1], lwd = 3,
+               col = "red")
+        plot(PP[, c(dim(PP)[2], i)], xlab = "", ylab = "",
+             cex.axis=0.8,mgp = c(1.2, 0.4, 0),xlim=c(max(PP[,dim(PP)[2]]),min(PP[,dim(PP)[2]])))
+        polygon(c(PPci[,2], rev(PPci[, 2])), c(PPci[,3], rev(PPci[, 4])), col = rgb(0.5, 0.5,0.5, 0.4), border = NA)
+        title(xlab = "age", ylab = paste(colnames(PP)[i]),
+              line = 1.5)
+        # points((max(diag(vcv(t)))-diag(vcv(t))), yTot[, i],xlim=c(max(PP[,dim(PP)[2]]),min(PP[,dim(PP)[2]])), pch = 21, col = "black",
+        #        bg = "red")
+        points((max(diag(vcv(t)))-diag(vcv(t))), PP[match(t$tip.label,rownames(PP)),i],xlim=c(max(PP[,dim(PP)[2]]),min(PP[,dim(PP)[2]])), pch = 21, col = "black",
+               bg = "red")
+        if (class(node) != "NULL") {
+          for (j in 1:length(node)) {
+            cols <- suppressWarnings(RColorBrewer::brewer.pal(length(node), "Set2"))
+            points(max(PPtot[,dim(PPtot)[2]])-trend.reg.age.sel[[j]], trend.reg.y.sel[[j]][,
+                                                                                           i], lwd = 4, col = cols[j], type = "l")
+          }
+          abline(lm(PP[, i] ~ age, data = PP), lwd = 3,
+                 col = "blue", lty = 2)
+          if (i == 1)
+            legend(max(PP$age),max(PP[, i]), legend = node,
+                   fill = cols, bg = rgb(0, 0, 0, 0), box.col = rgb(0,
+                                                                    0, 0, 0), border = NA, x.intersp = 0.25)
+        }else {
+          abline(lm(PP[, i] ~ age, data = PP), lwd = 4,
+                 col = "blue")
+        }
+
+      }
+    }else {
+      pdf(file = paste(filename, "Phenotypes.pdf",sep = "-"),width=4.7,height=7)
+      par(mfrow = c(2, 1),mar = c(2.5, 3, 2, 1))
+      i <- dim(yTot)[2]
+      obj <- hist(trend.slopes[, i], xlab = "", ylab = "",
+                  main = "Phenotypic Trend Test", cex.axis=0.8,mgp = c(1.2, 0.4, 0))
+      title(xlab = "simulated slopes", ylab = "frequency",
+            line = 1.5)
+      if(p.trend[i,3]>0.5) 1-p.trend[i,3]->pp else p.trend[i,3]->pp
+      text(quantile(trend.slopes[, i], 0.01), max(obj$counts) *
+             0.9, labels = paste("p=", pp), cex = 1)
+      abline(v = trend.reg[[i]][2, 1], lwd = 3, col = "red")
+      par(mar = c(3, 3, 1, 1))
+      plot(PP[, c(dim(PP)[2], i)], xlab = "", ylab = "",
+           cex.axis=0.8,mgp = c(1.2, 0.4, 0),xlim=c(max(PP[,dim(PP)[2]]),min(PP[,dim(PP)[2]])))
+      # points((max(diag(vcv(t)))-diag(vcv(t))), yTot[, i], pch = 21, col = "black",
+      #        bg = "red")
+      points((max(diag(vcv(t)))-diag(vcv(t))),PP[match(t$tip.label,rownames(PP)),i], pch = 21, col = "black",
+             bg = "red")
+
+      title(xlab = "age", ylab = "y.multi",
+            line = 1.5)
+      if (class(node) != "NULL") {
+        for (j in 1:length(node)) {
+          cols <- suppressWarnings(RColorBrewer::brewer.pal(length(node), "Set2"))
+          points(max(PPtot[,dim(PPtot)[2]])-trend.reg.age.sel[[j]], trend.reg.y.sel[[j]][,
+                                                                                         i], lwd = 4, col = cols[j], type = "l")
+        }
+        abline(lm(PP[, i] ~ age, data = PP), lwd = 3,
+               col = "blue", lty = 2)
+        legend(max(PP$age), max(PP[, i]), legend = node,
+               fill = cols, bg = rgb(0, 0, 0, 0), box.col = rgb(0,
+                                                                0, 0, 0), border = NA, x.intersp = 0.25)
+      }else {
+        abline(lm(PP[, i] ~ age, data = PP), lwd = 4,
+               col = "blue")
+      }
+    }
+    dev.off()
+  }else {#### p Phenotypic Trend Uni and pdf ####
+    trend.slopes <- do.call(rbind, lapply(lapply(res, "[[", 1),function(x) x[2,1]))
+
+    p.trend <- (nsim-length(which(trend.slopes<trend.reg[2,1])))/nsim
+
+    p.trend <- c(trend.reg[2, c(1, 4)],  p.trend, dev)
+    names(p.trend) <- c("slope", "p.real", "p.random","dev")
+    pdf(file = paste(filename, "Phenotypes.pdf",sep = "-"),width=4.7,height=7)
+    par(mfrow = c(2, 1),mar = c(2.5, 3, 2, 1))
+    obj <- hist(trend.slopes, xlab = "simulated slopes",
+                ylab = "frequency", main = "Phenotypic Trend Test",
+                cex.axis=0.8,mgp = c(1.2, 0.4, 0))
+    text(quantile(trend.slopes, 0.01), max(obj$counts) *
+           0.8, labels = paste("p=", p.trend[3]), cex = 1)
+    abline(v = trend.reg[2, 1], lwd = 3, col = "red")
+    max(PPtot[,2])-PP[,2]->PP[,2]
+    par(mar = c(3, 3, 1, 1))
+    plot(PP[, c(2, 1)],cex.axis=0.8,mgp = c(1.2, 0.4, 0),xlim=c(max(PP[,2]),min(PP[,2])))
+    PPci <- apply(do.call(cbind, lapply(lapply(res, "[[",3),function(x) x[, 1])), 1, function(u) quantile(u,c(0.025, 0.975)))
+    colnames(PPci) <- lapply(lapply(res, "[[", 3), rownames)[[1]]
+    CIphenotype <- t(PPci)
+    PPci <- cbind(PP, t(PPci[, match(rownames(PP), colnames(PPci))]))
+    PPci <- PPci[order(PPci[, 2]), ]
+    polygon(c(PPci[, 2], rev(PPci[, 2])), c(PPci[, 3], rev(PPci[,
+                                                                4])), col = rgb(0.5, 0.5, 0.5, 0.4), border = NA)
+    # points((max(diag(vcv(t)))-diag(vcv(t))), y, pch = 21, col = "black", bg = "red")
+    points((max(diag(vcv(t)))-diag(vcv(t))), PP[match(t$tip.label,rownames(PP)),1], pch = 21, col = "black", bg = "red")
+    if (!is.null(node)) {
+      for (j in 1:length(node)) {
+        cols <- suppressWarnings(RColorBrewer::brewer.pal(length(node), "Set2"))
+        points(max(PPtot[,2])-trend.reg.age.sel[[j]], trend.reg.y.sel[[j]],
+               lwd = 4, col = cols[j], type = "l")
+      }
+      abline(lm(PP), lwd = 3, col = "blue", lty = 2)
+      legend(max(PP[, 2]), max(PP[, 1]), legend = node,
+             fill = cols, bg = rgb(0, 0, 0, 0), box.col = rgb(0,
+                                                              0, 0, 0), border = NA, x.intersp = 0.25)
+    }else {
+      abline(lm(PP), lwd = 4, col = "blue")
+    }
+    dev.off()
+  }
+
+  if (!is.null(node)) {
+    p.trend.sel <- list()
+    for (u in 1:length(node)) {
+      if (length(y) > Ntip(t)) {#### p Phenotypic Trend Node Multi ####
+        p.sele <- list()
+        for (i in 1:(dim(y)[2] + 1)) {
+          slopeR <- unlist(lapply(lapply(lapply(lapply(res,
+                                                       "[[", 9), "[[", u), "[[", i), function(x) x[2,
+                                                                                                   1]))
+
+          p.sel <- (nsim-length(which(slopeR<trend.reg.sel[[u]][[i]][2,1])))/nsim
+
+          p.sele[[i]] <- c(slope = trend.reg.sel[[u]][[i]][2,1],
+                           p.slope = p.sel,emm.difference=PPmeans.multi[[i]][match(names(trend.reg.sel)[u],rownames(PPmeans.multi[[i]])),1],
+                           p.emm=PPmeans.multi[[i]][match(names(trend.reg.sel)[u],rownames(PPmeans.multi[[i]])),2])
+
+        }
+        names(p.sele) <- names(trend.reg.sel[[u]])
+        p.selt <- do.call(rbind, p.sele)
+        p.trend.sel[[u]] <- p.selt
+      } else {#### p Phenotypic Trend Node Uni ####
+        slopeR <- unlist(lapply(lapply(lapply(res, "[[",
+                                              9), "[[", u), function(x) x[2,1]))
+
+        p.sel <- (nsim-length(which(slopeR<trend.reg.sel[[u]][2,1])))/nsim
+        p.trend.sel[[u]] <- c(slope = trend.reg.sel[[u]][2,1],p.slope = p.sel,
+                              emm.difference=unname(PPmeans[match(names(trend.reg.sel)[u],rownames(PPmeans)),1]),
+                              p.emm=unname(PPmeans[match(names(trend.reg.sel)[u],rownames(PPmeans)),2]))
+      }
+    }
+    names(p.trend.sel) <- names(trend.reg.sel)
+
+
     p.rbi.slopeA.sel<-rbi.slopeA.sel
     p.smaA <- sma.resA
-
     if(!is.null(sma.resPP)){
       if (length(y) > Ntip(t)) {#### p Phenotypic Slope Comparison Multi  ####
         p.smaPP<-list()
@@ -1312,349 +1737,10 @@ search.trend<-function (RR,y,
     }else{
       p.smaPP<-NULL
     }
+
+    data.frame(scalrat.data,group=rbiRES[match(rownames(scalrat.data),rownames(rbiRES)),]$group)->scalrat.data
   }
 
-  p.trend <- array()
-  # PP <- PPtot
-  if (length(y) > Ntip(t)) { #### p Phenotypic Trend Multi and pdf ####
-    trend.slopes <- matrix(ncol = dim(y)[2] + 1, nrow = nsim)
-    CIphenotype <- list()
-    for (i in 1:(dim(y)[2] + 1)) {
-      trend.slopes[, i] <- unlist(lapply(lapply(lapply(res,
-                                                       "[[", 1), "[[", i), function(x) x[2,1]))
-
-      p.trend[i] <- (nsim-length(which(trend.slopes[, i]<trend.reg[[i]][2,1])))/nsim
-
-      trend.real <- do.call(rbind, lapply(trend.reg, function(x) x[2,
-                                                                   c(1, 4)]))
-
-
-      PPci <- apply(do.call(cbind, lapply(lapply(res,
-                                                 "[[", 3), function(x) x[, i])), 1, function(u) quantile(u,
-                                                                                                         c(0.025, 0.975)))
-      colnames(PPci) <- lapply(lapply(res, "[[",
-                                      3), rownames)[[1]]
-      CIphenotype[[i]] <- t(PPci)
-    }
-    p.trend <- cbind(trend.real, p.trend,dev)
-    colnames(p.trend) <- c("slope", "p.real",
-                           "p.random","dev")
-
-    PP[,dim(PP)[2]]<-max(PP[,dim(PP)[2]])-PP[,dim(PP)[2]]
-    if (dim(y)[2] <= 3) {
-      pdf(file = paste(filename, "Phenotypes.pdf",
-                       sep = "-"))
-      par(mar = c(3.5, 3.5, 1, 2))
-      par(mfrow = c(dim(y)[2] + 1, 2))
-      for (i in 1:(dim(y)[2] + 1)) {
-        PPci <- cbind(PP[, c(i, dim(PP)[2])], CIphenotype[[i]])
-        PPci <- PPci[order(PPci[, 2]), ]
-        obj <- hist(trend.slopes[, i], xlab = "",
-                    ylab = "", main = names(trend.reg[i]), mgp = c(2,
-                                                                   0.5, 0))
-        title(xlab = "simulated slopes", ylab = "frequency",
-              line = 1.5)
-        if(p.trend[i,3]>0.5) 1-p.trend[i,3]->pp else p.trend[i,3]->pp
-        text(quantile(trend.slopes[, i], 0.01), max(obj$counts) *
-               0.9, labels = paste("p=", pp),
-             cex = 1)
-        abline(v = trend.reg[[i]][2, 1], lwd = 3,
-               col = "red")
-        plot(PP[, c(dim(PP)[2], i)], xlab = "", ylab = "",
-             mgp = c(2, 0.5, 0),xlim=c(max(PP[,dim(PP)[2]]),min(PP[,dim(PP)[2]])))
-        polygon(c(PPci[,2], rev(PPci[, 2])), c(PPci[,3], rev(PPci[, 4])), col = rgb(0.5, 0.5,0.5, 0.4), border = NA)
-        title(xlab = "age", ylab = paste(colnames(PP)[i]),
-              line = 1.5)
-        # points((max(diag(vcv(t)))-diag(vcv(t))), yTot[, i],xlim=c(max(PP[,dim(PP)[2]]),min(PP[,dim(PP)[2]])), pch = 21, col = "black",
-        #        bg = "red")
-        points((max(diag(vcv(t)))-diag(vcv(t))), PP[match(t$tip.label,rownames(PP)),i],xlim=c(max(PP[,dim(PP)[2]]),min(PP[,dim(PP)[2]])), pch = 21, col = "black",
-               bg = "red")
-        if (class(node) != "NULL") {
-          for (j in 1:length(node)) {
-            cols <- suppressWarnings(RColorBrewer::brewer.pal(length(node), "Set2"))
-            points(max(PP[,dim(PP)[2]])-trend.reg.age.sel[[j]], trend.reg.y.sel[[j]][,
-                                                                                     i], lwd = 4, col = cols[j], type = "l")
-          }
-          abline(lm(PP[, i] ~ age, data = PP), lwd = 3,
-                 col = "blue", lty = 2)
-          if (i == 1)
-            legend(max(PP$age),max(PP[, i]), legend = node,
-                   fill = cols, bg = rgb(0, 0, 0, 0), box.col = rgb(0,
-                                                                    0, 0, 0), border = NA, x.intersp = 0.25)
-        }else {
-          abline(lm(PP[, i] ~ age, data = PP), lwd = 4,
-                 col = "blue")
-        }
-
-      }
-    }else {
-      pdf(file = paste(filename, "Phenotypes.pdf",
-                       sep = "-"))
-      par(mar = c(3.5, 3.5, 1, 2))
-      par(mfrow = c(2, 1))
-      i <- dim(yTot)[2]
-      obj <- hist(trend.slopes[, i], xlab = "", ylab = "",
-                  main = "Phenotypic Trend Test", mgp = c(2, 0.5,
-                                                          0))
-      title(xlab = "simulated slopes", ylab = "frequency",
-            line = 1.5)
-      if(p.trend[i,3]>0.5) 1-p.trend[i,3]->pp else p.trend[i,3]->pp
-      text(quantile(trend.slopes[, i], 0.01), max(obj$counts) *
-             0.9, labels = paste("p=", pp), cex = 1)
-      abline(v = trend.reg[[i]][2, 1], lwd = 3, col = "red")
-      plot(PP[, c(dim(PP)[2], i)], xlab = "", ylab = "",mgp = c(2, 0.5, 0),xlim=c(max(PP[,dim(PP)[2]]),min(PP[,dim(PP)[2]])))
-      # points((max(diag(vcv(t)))-diag(vcv(t))), yTot[, i], pch = 21, col = "black",
-      #        bg = "red")
-      points((max(diag(vcv(t)))-diag(vcv(t))),PP[match(t$tip.label,rownames(PP)),i], pch = 21, col = "black",
-             bg = "red")
-
-      title(xlab = "age", ylab = "y.multi",
-            line = 1.5)
-      if (class(node) != "NULL") {
-        for (j in 1:length(node)) {
-          cols <- suppressWarnings(RColorBrewer::brewer.pal(length(node), "Set2"))
-          points(max(PP[, dim(PP)[2]])-trend.reg.age.sel[[j]], trend.reg.y.sel[[j]][,
-                                                                                    i], lwd = 4, col = cols[j], type = "l")
-        }
-        abline(lm(PP[, i] ~ age, data = PP), lwd = 3,
-               col = "blue", lty = 2)
-        legend(max(PP$age), max(PP[, i]), legend = node,
-               fill = cols, bg = rgb(0, 0, 0, 0), box.col = rgb(0,
-                                                                0, 0, 0), border = NA, x.intersp = 0.25)
-      }else {
-        abline(lm(PP[, i] ~ age, data = PP), lwd = 4,
-               col = "blue")
-      }
-    }
-    dev.off()
-  }else {#### p Phenotypic Trend Uni and pdf ####
-    trend.slopes <- do.call(rbind, lapply(lapply(res, "[[", 1),function(x) x[2,1]))
-
-    p.trend <- (nsim-length(which(trend.slopes<trend.reg[2,1])))/nsim
-
-    p.trend <- c(trend.reg[2, c(1, 4)],  p.trend, dev)
-    names(p.trend) <- c("slope", "p.real", "p.random","dev")
-    pdf(file = paste(filename, "Phenotypes.pdf",
-                     sep = "-"))
-    par(mar = c(3.5, 3.5, 1, 2))
-    par(mfrow = c(2, 1))
-    obj <- hist(trend.slopes, xlab = "simulated slopes",
-                ylab = "frequency", main = "Phenotypic Trend Test",
-                mgp = c(2, 0.5, 0))
-    text(quantile(trend.slopes, 0.01), max(obj$counts) *
-           0.8, labels = paste("p=", p.trend[3]), cex = 1)
-    abline(v = trend.reg[2, 1], lwd = 3, col = "red")
-    max(PP[,2])-PP[,2]->PP[,2]
-    plot(PP[, c(2, 1)], mgp = c(2, 0.5, 0),xlim=c(max(PP[,2]),min(PP[,2])))
-    PPci <- apply(do.call(cbind, lapply(lapply(res, "[[",3),function(x) x[, 1])), 1, function(u) quantile(u,c(0.025, 0.975)))
-    colnames(PPci) <- lapply(lapply(res, "[[", 3), rownames)[[1]]
-    CIphenotype <- t(PPci)
-    PPci <- cbind(PP, t(PPci[, match(rownames(PP), colnames(PPci))]))
-    PPci <- PPci[order(PPci[, 2]), ]
-    polygon(c(PPci[, 2], rev(PPci[, 2])), c(PPci[, 3], rev(PPci[,
-                                                                4])), col = rgb(0.5, 0.5, 0.5, 0.4), border = NA)
-    # points((max(diag(vcv(t)))-diag(vcv(t))), y, pch = 21, col = "black", bg = "red")
-    points((max(diag(vcv(t)))-diag(vcv(t))), PP[match(t$tip.label,rownames(PP)),1], pch = 21, col = "black", bg = "red")
-    if (class(node) != "NULL") {
-      for (j in 1:length(node)) {
-        cols <- suppressWarnings(RColorBrewer::brewer.pal(length(node), "Set2"))
-        points(max(PP[,2])-trend.reg.age.sel[[j]], trend.reg.y.sel[[j]],
-               lwd = 4, col = cols[j], type = "l")
-      }
-      abline(lm(PP), lwd = 3, col = "blue", lty = 2)
-      legend(max(PP[, 2]), max(PP[, 1]), legend = node,
-             fill = cols, bg = rgb(0, 0, 0, 0), box.col = rgb(0,
-                                                              0, 0, 0), border = NA, x.intersp = 0.25)
-    }else {
-      abline(lm(PP), lwd = 4, col = "blue")
-    }
-    dev.off()
-  }
-
-
-  if (class(node) != "NULL") {
-    p.trend.sel <- list()
-    for (u in 1:length(node)) {
-      if (length(y) > Ntip(t)) {#### p Phenotypic Trend Node Multi ####
-        p.sele <- list()
-        for (i in 1:(dim(y)[2] + 1)) {
-          slopeR <- unlist(lapply(lapply(lapply(lapply(res,
-                                                       "[[", 9), "[[", u), "[[", i), function(x) x[2,
-                                                                                                   1]))
-
-          p.sel <- (nsim-length(which(slopeR<trend.reg.sel[[u]][[i]][2,1])))/nsim
-
-          p.sele[[i]] <- c(slope = trend.reg.sel[[u]][[i]][2,1],
-                           p.slope = p.sel,emm.difference=PPmeans.multi[[i]][match(names(trend.reg.sel)[u],rownames(PPmeans.multi[[i]])),1],
-                           p.emm=PPmeans.multi[[i]][match(names(trend.reg.sel)[u],rownames(PPmeans.multi[[i]])),2])
-
-        }
-        names(p.sele) <- names(trend.reg.sel[[u]])
-        p.selt <- do.call(rbind, p.sele)
-        p.trend.sel[[u]] <- p.selt
-      } else {
-        slopeR <- unlist(lapply(lapply(lapply(res, "[[",
-                                              9), "[[", u), function(x) x[2,1]))
-
-        p.sel <- (nsim-length(which(slopeR<trend.reg.sel[[u]][2,1])))/nsim
-        p.trend.sel[[u]] <- c(slope = trend.reg.sel[[u]][2,1],p.slope = p.sel,
-                              emm.difference=unname(PPmeans[match(names(trend.reg.sel)[u],rownames(PPmeans)),1]),
-                              p.emm=unname(PPmeans[match(names(trend.reg.sel)[u],rownames(PPmeans)),2]))
-      }
-    }
-    names(p.trend.sel) <- names(trend.reg.sel)
-  }
-
-  # rbi <- rbi[, -4]
-  if (length(y) > Ntip(t)) { #### Rate pdf Multi ####
-    # A <- rbi[, 4:dim(rbi)[2]]
-    A <- data
-    CIabsolute <- list()
-    for (i in 1:(dim(y)[2] + 1)) {
-      # RBTAci <- apply(do.call(cbind, lapply(lapply(lapply(res,
-      #                                                     "[[", 4), function(x) x[, c(5:dim(x)[2])]),
-      #                                       function(k) abs(k[, i]))), 1, function(u) quantile(u,
-      #                                                                                          c(0.025, 0.975)))
-      RBTAci <- apply(do.call(cbind, lapply(lapply(res,
-                                                   "[[", 4),
-                                            function(k) abs(k[, i]))), 1, function(u) quantile(u,
-                                                                                               c(0.025, 0.975)))
-      colnames(RBTAci) <- lapply(lapply(res,"[[", 4), rownames)[[1]]
-      CIabsolute[[i]] <- t(RBTAci)
-    }
-    if (dim(y)[2] <= 3) {
-      pdf(file = paste(filename, "Absolute Rates.pdf",
-                       sep = "-"))
-      par(mfrow = c(dim(y)[2] + 1, 1))
-      par(mar = c(3.5, 3.5, 1, 1))
-      for (i in 1:(dim(y)[2] + 1)) {
-        if (i == dim(y)[2] + 1) ynam <- "rate" else ynam <- paste("betas", i, sep = "")
-        if(is.null(x1)) {
-          bet <- A[, i]
-          age <- max(A[, dim(A)[2]])-A[, dim(A)[2]]
-          names(bet)<-names(age)<-rownames(A)
-          CIabsolute[[i]]->RBTAci
-        }else{
-          bet<-A[-which(rownames(A)==(Ntip(t)+1)),i]
-          age <- max(A[-which(rownames(A)==(Ntip(t)+1)), dim(A)[2]])-A[-which(rownames(A)==(Ntip(t)+1)), dim(A)[2]][]
-          names(bet)<-names(age)<-rownames(A)[-which(rownames(A)==(Ntip(t)+1))]
-          CIabsolute[[i]][-which(rownames(CIabsolute[[i]])==(Ntip(t)+1)),]->RBTAci
-        }
-        cbind(bet,age,RBTAci)->RBTAci
-        RBTAci <- RBTAci[order(RBTAci[, 2]), ]
-        plot(abs(bet) ~ age, main = " ",
-             ylab = ynam, mgp = c(2, 0.5, 0),xlim=c(max(age),min(age)))
-        polygon(c(RBTAci[, 2], rev(RBTAci[, 2])), c(RBTAci[,
-                                                           3], rev(RBTAci[, 4])), col = rgb(0.5, 0.5,
-                                                                                            0.5, 0.4), border = NA)
-        points(age[which(names(age)%in%t$tip.label)], abs(bet[which(names(bet)%in%t$tip.label)]), pch = 21, col = "black",
-               bg = "red")
-
-        if (class(node) != "NULL") {
-          for (j in 1:length(node)) {
-            cols <- suppressWarnings(RColorBrewer::brewer.pal(length(node), "Set2"))
-            points(max(age)-REG.betas.age.sel[[j]][[i]], REGabs.betas.y.sel[[j]][[i]],
-                   lwd = 4, col = cols[j], type = "l")
-          }
-          abline(lm(abs(bet) ~ age), lwd = 3, col = "blue",
-                 lty = 2)
-          if (i == 1)
-            legend(max(age), max(abs(bet)), legend = node,
-                   fill = cols, bg = rgb(0, 0, 0, 0), box.col = rgb(0,
-                                                                    0, 0, 0), border = NA, x.intersp = 0.25)
-        } else {
-          abline(lm(abs(bet) ~ age), lwd = 4, col = "blue")
-        }
-
-      }
-    } else {
-      pdf(file = paste(filename, "Absolute Rates.pdf",
-                       sep = "-"))
-      if(is.null(x1)) {
-        bet <- A[, i]
-        age <- max(A[, dim(A)[2]])-A[, dim(A)[2]]
-        names(bet)<-names(age)<-rownames(A)
-        CIabsolute[[length(CIabsolute)]]->RBTAci
-      }else{
-        bet<-A[-which(rownames(A)==(Ntip(t)+1)),i]
-        age <- max(A[-which(rownames(A)==(Ntip(t)+1)), dim(A)[2]])-A[-which(rownames(A)==(Ntip(t)+1)), dim(A)[2]][]
-        names(bet)<-names(age)<-rownames(A)[-which(rownames(A)==(Ntip(t)+1))]
-        CIabsolute[[length(CIabsolute)]][-which(rownames(CIabsolute[[length(CIabsolute)]])==(Ntip(t)+1)),]->RBTAci
-      }
-      cbind(bet,age,RBTAci)->RBTAci
-      RBTAci <- RBTAci[order(RBTAci[, 2]), ]
-      plot(abs(bet) ~ age, ylab = "absolute rate", mgp = c(2,
-                                                           0.5, 0),xlim=c(max(age),min(age)))
-      polygon(c(RBTAci[, 2], rev(RBTAci[, 2])), c(RBTAci[,
-                                                         3], rev(RBTAci[, 4])), col = rgb(0.5, 0.5, 0.5,
-                                                                                          0.4), border = NA)
-
-      points(age[which(names(age)%in%t$tip.label)], abs(bet[which(names(bet)%in%t$tip.label)]), pch = 21, col = "black",
-             bg = "red")
-      if (!is.null(node)) {
-        for (j in 1:length(node)) {
-          cols <- suppressWarnings(RColorBrewer::brewer.pal(length(node), "Set2"))
-          points(max(age)-REG.betas.age.sel[[j]][[(dim(y) + 1)[2]]],
-                 REGabs.betas.y.sel[[j]][[(dim(y) + 1)[2]]],
-                 lwd = 4, col = cols[j], type = "l")
-        }
-        abline(lm(abs(bet)~age), lwd = 3,
-               col = "blue", lty = 2)
-        legend(max(age), max(abs(bet)), legend = node,
-               fill = cols, bg = rgb(0, 0, 0, 0), box.col = rgb(0,
-                                                                0, 0, 0), border = NA, x.intersp = 0.25)
-      }else {
-        abline(lm(abs(bet)~age), lwd = 4,
-               col = "blue")
-      }
-    }
-    names(CIabsolute) <- c(paste("betas",seq(1, dim(y)[2]), sep = ""), "rate")
-    dev.off()
-  }else {#### Rate pdf Uni ####
-    # A <- rbi
-    # AA <- A[, 4:5]
-    AA<-data
-    max(AA$age)-AA$age->AA$age
-    # RBTAci <- apply(do.call(cbind, lapply(lapply(res, "[[",
-    #                                              4), function(x) abs(x[, 5]))), 1, function(u) quantile(u,
-    #                                                                                                     c(0.025, 0.975)))
-    RBTAci <- apply(do.call(cbind,lapply(lapply(res, "[[",4),function(x) abs(x[, 1]))), 1,
-                    function(u) quantile(u,c(0.025, 0.975)))
-    colnames(RBTAci) <- lapply(lapply(res,"[[", 4), rownames)[[1]]
-    CIabsolute <- t(RBTAci)
-    RBTAci <- cbind(AA, t(RBTAci[, match(rownames(AA), colnames(RBTAci))]))
-    RBTAci <- RBTAci[order(RBTAci[, 2]), ]
-    if(is.null(x1)==FALSE){
-      AA[-which(rownames(AA)==(Ntip(t)+1)),]->AA
-      RBTAci[-which(rownames(RBTAci)==(Ntip(t)+1)),]->RBTAci
-    }
-    pdf(file = paste(filename, "Absolute Rates.pdf",
-                           sep = "-"))
-    plot(abs(rate) ~ age, data = AA, ylab = "absolute rate",
-         mgp = c(2, 0.5, 0),xlim=c(max(AA$age),min(AA$age)))
-    polygon(c(RBTAci[, 2], rev(RBTAci[, 2])), c(RBTAci[,
-                                                       3], rev(RBTAci[, 4])), col = rgb(0.5, 0.5, 0.5,
-                                                                                        0.4), border = NA)
-
-    points(AA$age[which(rownames(AA)%in%t$tip.label)], abs(AA$rate[which(rownames(AA)%in%t$tip.label)]), pch = 21, col = "black",
-           bg = "red")
-
-    if (class(node) != "NULL") {
-      for (j in 1:length(node)) {
-        cols <- suppressWarnings(RColorBrewer::brewer.pal(length(node), "Set2"))
-        points(max(AA$age)-REG.betas.age.sel[[j]], REGabs.betas.y.sel[[j]],
-               lwd = 4, col = cols[j], type = "l")
-      }
-      abline(lm(abs(rate) ~ age, data = AA), col = "blue", lwd = 3, lty = 2)
-      legend(max(AA$age), max(abs(AA$rate)), legend = node,
-             fill = cols, bg = rgb(0, 0, 0, 0), box.col = rgb(0,
-                                                              0, 0, 0), border = NA, x.intersp = 0.25)
-    }else {
-      abline(lm(abs(rate) ~ age, data = AA), col = "blue", lwd = 4)
-    }
-    dev.off()
-  }
-  # colnames(rbi)[1] <- "branch"
 
   if (length(y) > Ntip(t)) {
     for (i in 1:dim(y)[2]) {
@@ -1684,8 +1770,15 @@ search.trend<-function (RR,y,
     #p.rbi.slopeA[3]*2->p.rbi.slopeA[3]
   }
 
+  CInts <- list(CIphenotype, CIabsolute,scalrat.CI)
+  names(CInts) <- c("phenotype", "absolute rate","rescaled rate")
+  class(CInts)<-"RRphyloList"
 
-  if (class(node) != "NULL") {
+  list(PPtot,rbiRES,scalrat.data)->tabs
+  names(tabs) <- c("phenotypeVStime", "absrateVStime","rescaledrateVStime")
+  class(tabs)<-"RRphyloList"
+
+  if (!is.null(node)) {
     if (length(y) > Ntip(t)) {
       for (i in 1:length(p.rbi.slopeA.sel)) {
         for(k in 1:dim(p.rbi.slopeA.sel[[i]])[1]){
@@ -1810,35 +1903,32 @@ search.trend<-function (RR,y,
       SMA.res <- list(p.smaPP, p.smaA)
       names(SMA.res) <- c("phenotype", "rate")
     }
-    CInts <- list(CIphenotype, CIabsolute)
-    names(CInts) <- c("phenotype", "rate")
-    if (ConfInt == TRUE) {
-      res <- list(rbiRES, PPtot, p.trend, p.rbi.slopeA,
+
+    if (isTRUE(ConfInt)) {
+      res <- list(tabs, p.trend, p.rbi.slopeA,
                   p.trend.sel, p.rbi.slopeA.sel,
                   SMA.res, CInts)
-      names(res) <- c("rbt", "pbt", "phenotypic.regression", "rate.regression",
+      names(res) <- c("trend.data", "phenotypic.regression", "rate.regression",
                       "node.phenotypic.regression", "node.rate.regression",
                       "group.comparison", "ConfInts")
     }else {
-      res <- list(rbiRES, PPtot, p.trend, p.rbi.slopeA,
+      res <- list(tabs, p.trend, p.rbi.slopeA,
                   p.trend.sel, p.rbi.slopeA.sel,
                   SMA.res)
-      names(res) <- c("rbt", "pbt", "phenotypic.regression", "rate.regression",
+      names(res) <- c("trend.data", "phenotypic.regression", "rate.regression",
                       "node.phenotypic.regression", "node.rate.regression",
                       "group.comparison")
     }
 
   }else {
     if (ConfInt == TRUE) {
-      CInts <- list(CIphenotype, CIabsolute)
-      names(CInts) <- c("phenotype", "abs.rate")
-      res <- list(rbiRES, PPtot, p.trend, p.rbi.slopeA,
+      res <- list(tabs, p.trend, p.rbi.slopeA,
                   CInts)
-      names(res) <- c("rbt", "pbt", "phenotypic.regression", "rate.regression",
+      names(res) <- c("trend.data", "phenotypic.regression", "rate.regression",
                       "ConfInts")
     }else {
-      res <- list(rbiRES, PPtot, p.trend, p.rbi.slopeA)
-      names(res) <- c("rbt", "pbt", "phenotypic.regression", "rate.regression")
+      res <- list(tabs, p.trend, p.rbi.slopeA)
+      names(res) <- c("trend.data", "phenotypic.regression", "rate.regression")
     }
   }
 
@@ -1846,4 +1936,3 @@ search.trend<-function (RR,y,
     res<-res[-which(sapply(res,function(x) is.null(x)))]
   return(res)
 }
-

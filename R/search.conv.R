@@ -137,14 +137,14 @@
 #' ## Case 1. searching convergence between clades
 #' # by setting min.dist as node distance
 #' search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="node9",
-#'             filename = tempdir(),clus=cc)
+#'             filename = paste(tempdir(), "SCclade_nd", sep="/"),clus=cc)
 #' # by setting min.dist as time distance
 #' search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="time38",
-#'             filename = tempdir(),clus=cc)
+#'             filename = paste(tempdir(), "SCclade_td", sep="/"),clus=cc)
 #'
 #' ## Case 2. searching convergence within a single state
 #' search.conv(tree=treefel, y=PCscoresfel, state=statefel,declust=TRUE,
-#'             filename = tempdir(),clus=cc)
+#'             filename = paste(tempdir(), "SCstate", sep="/"),clus=cc)
 #'   }
 
 search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,

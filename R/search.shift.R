@@ -142,23 +142,27 @@
 #'
 #' # Case 1.1 "clade" condition
 #' # with auto-recognize
-#' search.shift(RR=dinoRates,status.type="clade",filename=tempdir())
+#' search.shift(RR=dinoRates,status.type="clade",
+#'              filename=paste(tempdir(), "SSauto", sep="/"))
 #' # testing two hypothetical clades
-#' search.shift(RR=dinoRates,status.type="clade",node=c(696,746),filename=tempdir())
+#' search.shift(RR=dinoRates,status.type="clade",node=c(696,746),
+#'              filename=paste(tempdir(), "SSclade", sep="/"))
 #'
 #' # Case 1.2 "sparse" condition
 #' # testing the sparse condition.
-#' search.shift(RR=dinoRates,status.type= "sparse",state=statedino,filename=tempdir())
+#' search.shift(RR=dinoRates,status.type= "sparse",state=statedino,
+#'              filename=paste(tempdir(), "SSsparse", sep="/"))
 #'
 #'
 #' # Case 2. Accounting for the effect of a covariate
 #'
 #' # Case 2.1 "clade" condition
-#' search.shift(RR=dinoRates,status.type= "clade",cov=massdino,filename=tempdir())
+#' search.shift(RR=dinoRates,status.type= "clade",cov=massdino,
+#'              filename=paste(tempdir(), "SSclade_cov", sep="/"))
 #'
 #' # Case 2.2 "sparse" condition
 #' search.shift(RR=dinoRates,status.type="sparse",state=statedino,cov=massdino,
-#'              filename=tempdir())
+#'              filename=paste(tempdir(), "SSstate_cov", sep="/"))
 #'     }
 
 

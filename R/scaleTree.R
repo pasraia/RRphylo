@@ -122,7 +122,7 @@ scaleTree<- function(tree, tip.ages=NULL, node.ages=NULL, min.branch=0.1)
       if(as.numeric(names(moms[which(moms<=age.vec[i])][1]))==(Ntip(tree)+1)) warning("The tree root has been moved, tree height has changed")
       if(!is.null(node.ages)&names(moms[which(moms<=age.vec[i])][1])%in%names(node.ages)){
         names(age.vec[i])->nam
-        if(as.numeric(nam)<=Ntip(tree)|nam%in%names(node.ages)) stop(paste("The age for",nam,"cannot be older than the age indicated for",names(moms[which(moms<age.vec[i])][1])))
+        if(as.numeric(nam)<=Ntip(tree)|nam%in%names(node.ages)) stop(paste("The age for",nam,"cannot be older than the age indicated for",names(moms[which(moms<=age.vec[i])][1])))
         tree$edge[which(tree$edge[,1]==nam),2]->des
         age.vec[i]<-mean(c(max(age.vec[as.character(des)]),moms[which(moms<=age.vec[i])][1]))
       }else age.vec[names(moms[which(moms<=age.vec[i])][1])]<- age.vec[i] + min.diff

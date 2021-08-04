@@ -416,8 +416,10 @@ tree.merger<-function(backbone,data,source.tree=NULL,age.offset=NULL,
 
       names(clades.plot)<-dat[,1]
 
-      manipulate::manipulate(plot(clades.plot[[which(names(clades.plot)==j)]][[1]],edge.color=clades.plot[[which(names(clades.plot)==j)]][[2]],cex=.6),
-                             j=manipulate::picker(as.list(dat[,1])))
+
+      taxon<-manipulate::picker(as.list(dat[,1]))
+      manipulate::manipulate(plot(clades.plot[[which(names(clades.plot)==taxon)]][[1]],edge.color=clades.plot[[which(names(clades.plot)==taxon)]][[2]],cex=.6),
+                             taxon=taxon)
 
   }
 
