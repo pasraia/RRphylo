@@ -1,3 +1,19 @@
+# RRphylo 2.5.8
+What's new in version 2.5.8
+
+New function added!
+
+The auxilliary function node.paths collates nodes along individual lineages from the youngest (i.e. furthest from the tree root) to the oldest.
+
+search.trend received some makeover. It now returns phenotypic values, absolute rate values, and rescaled rate values, all collated into a 'trend.data' object of class 'RRphyloList'. It stores a plot of both rescaled absolute rates and unscaled absolute rates versus time according to the argument filename.
+
+fix.poly includes two new arguments: at resolving polytomies, tol lets specify the tolerance to consider a branch length significantly greater than zero, and random indicates whether polytomies are to be resolved randomly.
+
+# RRphylo 2.5.7
+What's new in version 2.5.7
+
+overfitRR is implemented to test for the robustness of PGLS_fossil results. The output of overfitRR is now stored as a handy kind of list of class 'RRphyloList'.
+
 # RRphylo 2.5.4
 What's new in version 2.5.4
 
