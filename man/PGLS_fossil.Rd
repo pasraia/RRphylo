@@ -52,15 +52,26 @@ fastBM(tree,nsim=3)->resp.multi
 fastBM(tree)->pred1
 fastBM(tree)->pred2
 
-PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp,x2=pred1,x1=pred2),tree=tree)
+PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp,x2=pred1,x1=pred2),tree=tree)->pgls_noRR
 
 RRphylo::RRphylo(tree,resp)->RR
-PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp,x2=pred1,x1=pred2),tree=tree,RR=RR)
+PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp,x2=pred1,x1=pred2),tree=tree,RR=RR)->pgls_RR
 
-PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp.multi,x2=pred1,x1=pred2),tree=tree)
+# To derive log-likelihood and AIC for PGLS_fossil outputs performed on univariate data
+# without including the RR object, the function AIC can be applied
+AIC(pgls_noRR)
+
+# For univarite with RR and multivariate models, the function "model.comparison"
+# from the package RRPP must be used.
+RRPP::model.comparison(pgls_RR,type = "logLik")
+
+PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp.multi,x2=pred1,x1=pred2),tree=tree)->pgls2_noRR
 cc<- 2/parallel::detectCores()
 RRphylo::RRphylo(tree,resp.multi,clus=cc)->RR
-PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp.multi,x2=pred1,x1=pred2),tree=tree,RR=RR)
+PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp.multi,x2=pred1,x1=pred2),tree=tree,RR=RR)->pgls2_RR
+
+RRPP::model.comparison(pgls2_noRR,pgls2_RR,type = "logLik")
+
 }
 }
 \references{

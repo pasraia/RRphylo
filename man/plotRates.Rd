@@ -4,7 +4,7 @@
 \alias{plotRates}
 \title{Plot RRphylo rates at a specified node}
 \usage{
-plotRates(RR,node,export.tiff =TRUE,foldername=NULL,filename)
+plotRates(RR,node,export.tiff =FALSE,foldername=NULL,filename=NULL)
 }
 \arguments{
 \item{RR}{an object produced by \code{\link{RRphylo}}.}
@@ -19,7 +19,7 @@ inside the working directory. It is \code{TRUE} by default.}
 
 \item{filename}{a character indicating the name of the tiff file and the path
 where it is to be saved. If no path is indicated the file is stored in the
-working directory}
+working directory.}
 }
 \value{
 The function produces two barplots. On the left side, the rates (in
@@ -44,7 +44,7 @@ cc<- 2/parallel::detectCores()
 
 RRphylo(tree=Tstage,y=PCstage,clus=cc)->RR
 
-plotRates(RR,node=72,filename=tempdir(),export.tiff = TRUE)
+plotRates(RR,node=72,export.tiff = FALSE)
 }
 }
 \seealso{

@@ -5,7 +5,7 @@
 \title{Testing RRphylo methods overfit}
 \usage{
 overfitRR(RR,y,s=0.25,swap.args=NULL,trend.args=NULL,shift.args=NULL,conv.args=NULL,
-aces=NULL,x1=NULL,aces.x1=NULL,cov=NULL,rootV=NULL,nsim=100,clus=.5)
+pgls.args=NULL,aces=NULL,x1=NULL,aces.x1=NULL,cov=NULL,rootV=NULL,nsim=100,clus=.5)
 }
 \arguments{
 \item{RR}{an object produced by \code{\link{RRphylo}}.}
@@ -20,9 +20,9 @@ aces=NULL,x1=NULL,aces.x1=NULL,cov=NULL,rootV=NULL,nsim=100,clus=.5)
 automatically sets both \code{si} and \code{si2} to 0.1.}
 
 \item{trend.args}{a list of arguments specific to the function
-\code{search.trend}, including \code{list(node=NULL,x1.residuals=FALSE)}. If a trend for the
-whole tree is to be tested, type \code{trend.args = list()}. No trend is
-tested if left unspecified.}
+\code{search.trend}, including \code{list(node=NULL,x1.residuals=FALSE)}.
+If a trend for the whole tree is to be tested, type \code{trend.args =
+list()}. No trend is tested if left unspecified.}
 
 \item{shift.args}{a list of arguments specific to the function
 \code{search.shift}, including \code{list(node=NULL,} \code{state=NULL)}.
@@ -32,6 +32,14 @@ Arguments \code{node} and \code{state} can be specified at the same time.}
 \code{search.conv}, including \code{list(node=NULL,} \code{state=NULL,
 declust=FALSE)}. Arguments \code{node} and \code{state} can be specified at
 the same time.}
+
+\item{pgls.args}{a list of arguments specific to the function
+\code{PGLS_fossil}, including \code{list(modform,} \code{data,
+tree=FALSE,RR=TRUE)}. If \code{tree=TRUE}, \code{PGLS_fossil} is performed
+by using the RRphylo output tree as \code{tree} argument. If
+\code{RR=TRUE}, \code{PGLS_fossil} is performed by using the RRphylo
+output as \code{RR} argument. Arguments \code{tree} and \code{RR} can be
+\code{TRUE} at the same time.}
 
 \item{aces}{if used to produce the \code{RR} object, the vector of those
 ancestral character values at nodes known in advance must be specified.
@@ -64,15 +72,22 @@ default.}
 run the single-threaded version of \code{overfitRR} set \code{clus} = 0.}
 }
 \value{
-The function returns a 'list' containing:
+The function returns a 'RRphyloList' objec containing:
 
 \strong{$mean.sampling} the mean proportion of species actually
   removed from the tree over the iterations.
 
+\strong{$tree.list} a 'multiPhylo' list including the trees generated
+  within \code{overfitRR}
+
+\strong{$RR.list} a 'RRphyloList' including the results of each
+  \code{RRphylo} performed within \code{overfitRR}
+
 \strong{$rootCI} the 95\% confidence interval around the root value.
 
-\strong{$ace.regressions} the results of linear regression between
-  ancestral state estimates before and after the subsampling.
+\strong{$ace.regressions} a 'RRphyloList' including the results of
+  linear regression between ancestral state estimates before and after the
+  subsampling.
 
 \strong{$conv.results} a list including results for
   \code{search.conv} performed under \code{clade} and \code{state}
@@ -100,30 +115,35 @@ The function returns a 'list' containing:
   slope sign ($tree). If one or more nodes are specified within
   \code{trend.args}, the list also includes the same results at nodes ($node)
   and the results for comparison between nodes ($comparison).
+
+\strong{$pgls.results} two 'RRphyloList' objects including results of
+  \code{PGLS_fossil} performed by using the phylogeny as it is (\code{$tree})
+  or rescaled according to the \code{RRphylo} rates (\code{$RR}).
 }
 \description{
 Testing the robustness of \code{\link{search.trend}}
   (\cite{Castiglione et al. 2019a}), \code{\link{search.shift}}
-  (\cite{Castiglione et al. 2018}), and  \code{\link{search.conv}}
-  (\cite{Castiglione et al. 2019b}) results to sampling effects and
-  phylogenetic uncertainty.
+  (\cite{Castiglione et al. 2018}),  \code{\link{search.conv}}
+  (\cite{Castiglione et al. 2019b}), and \code{\link{PGLS_fossil}}
+   results to sampling effects and phylogenetic uncertainty.
 }
 \details{
 Methods using a large number of parameters risk being overfit. This
   usually translates in poor fitting with data and trees other than the those
   originally used. With \code{RRphylo} methods this risk is usually very low.
   However, the user can assess how robust the results got by applying
-  \code{search.shift}, \code{search.trend} or \code{search.conv} are by
-  running \code{overfitRR}. With the latter, the original tree and data are
-  subsampled by specifying a \code{s} parameter, that is the proportion of
-  tips to be removed from the tree. In some cases, though, removing as many
-  tips as imposed by \code{s} would delete too many tips right in clades
-  and/or states under testing. In these cases, the function maintains no less
-  than 5 species at least in each clade/state under testing (or all species
-  if there is less), reducing the sampling parameter \code{s} if necessary.
-  Internally, \code{overfitRR} further shuffles the tree by using the
-  function \code{\link{swapONE}}. Thereby, both the potential for overfit and
-  phylogenetic uncertainty are accounted for straight away.
+  \code{search.shift}, \code{search.trend}, \code{search.conv} or
+  \code{PGLS_fossil} are by running \code{overfitRR}. With the latter, the
+  original tree and data are subsampled by specifying a \code{s} parameter,
+  that is the proportion of tips to be removed from the tree. In some cases,
+  though, removing as many tips as imposed by \code{s} would delete too many
+  tips right in clades and/or states under testing. In these cases, the
+  function maintains no less than 5 species at least in each clade/state
+  under testing (or all species if there is less), reducing the sampling
+  parameter \code{s} if necessary. Internally, \code{overfitRR} further
+  shuffles the tree by using the function \code{\link{swapONE}}. Thereby,
+  both the potential for overfit and phylogenetic uncertainty are accounted
+  for straight away.
 }
 \examples{
 \dontrun{
@@ -144,26 +164,28 @@ RRphylo(tree=treedino,y=massdino)->dinoRates
 RRphylo(tree=treeptero,y=log(massptero))->RRptero
 
 # Case 1 search.shift under both "clade" and "sparse" condition
-search.shift(RR=dinoRates, status.type= "clade",filename=tempdir())->SSnode
+search.shift(RR=dinoRates, status.type= "clade",
+             filename=paste(tempdir(),"SSnode",sep="/"))->SSnode
 search.shift(RR=dinoRates, status.type= "sparse", state=statedino,
-             filename=tempdir())->SSstate
+             filename=paste(tempdir(),"SSstate",sep="/"))->SSstate
 
 overfitRR(RR=dinoRates,y=massdino,swap.args =list(si=0.2,si2=0.2),
           shift.args = list(node=rownames(SSnode$single.clades),state=statedino),
-          nsim=10,clus=cc)
+          nsim=10,clus=cc)->orr.ss
 
 # Case 2 search.trend on the entire tree
-search.trend(RR=RRptero, y=log(massptero),nsim=100,clus=cc,
-             filename=tempdir(),cov=NULL,ConfInt=FALSE,node=NULL)->STtree
+search.trend(RR=RRptero, y=log(massptero),nsim=100,clus=cc,cov=NULL,node=NULL,
+             filename=paste(tempdir(),"STtree",sep="/"),ConfInt=FALSE)->STtree
 
 overfitRR(RR=RRptero,y=log(massptero),swap.args =list(si=0.2,si2=0.2),
-          trend.args = list(),nsim=10,clus=cc)
+          trend.args = list(),nsim=10,clus=cc)->orr.st1
 
-# Case 3 search.trend at specified nodes
-search.trend(RR=RRptero, y=log(massptero),node=143,clus=cc,filename=tempdir(),
-             cov=NULL,ConfInt=FALSE)->STnode
+# Case 3 search.trend at specified nodescov=NULL,
+search.trend(RR=RRptero, y=log(massptero),node=143,clus=cc,
+             filename=paste(tempdir(),"STtree",sep="/"),ConfInt=FALSE)->STnode
 
-overfitRR(RR=RRptero,y=log(massptero),trend.args = list(node=143),nsim=10,clus=cc)
+overfitRR(RR=RRptero,y=log(massptero),
+          trend.args = list(node=143),nsim=10,clus=cc)->orr.st2
 
 # Case 4 overfitRR on multiple RRphylo
 data("DataCetaceans")
@@ -181,13 +203,15 @@ RRmass.multi$aces[,1]->acemass.multi
 c(acemass.multi,masscet.multi)->x1.mass
 
 RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass)->RRmulti
-search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,clus=cc,filename=tempdir())->STcet
-overfitRR(RR=RRmulti,y=brainmasscet,trend.args = list(),x1=x1.mass,nsim=10,clus=cc)
+search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,clus=cc,
+             filename=paste(tempdir(),"STtree",sep="/"))->STcet
+overfitRR(RR=RRmulti,y=brainmasscet,trend.args = list(),
+          x1=x1.mass,nsim=10,clus=cc)->orr.st3
 
 search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,x1.residuals=TRUE,
-             clus=cc,filename=tempdir())->STcet.resi
+             clus=cc,filename=paste(tempdir(),"STcet.resi",sep="/"))->STcet.resi
 overfitRR(RR=RRmulti,y=brainmasscet,trend.args = list(x1.residuals=TRUE),
-          x1=x1.mass,nsim=10,clus=cc)
+          x1=x1.mass,nsim=10,clus=cc)->orr.st4
 
 # Case 5 searching convergence between clades and within a single state
 data("DataFelids")
@@ -197,11 +221,37 @@ DataFelids$statefel->statefel
 
 RRphylo(tree=treefel,y=PCscoresfel,clus=cc)->RRfel
 search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="node9",
-            filename = tempdir(),clus=cc)->SC.clade
+            filename = paste(tempdir(),"SC.clade",sep="/"),clus=cc)->SC.clade
 as.numeric(c(rownames(SC.clade[[1]])[1],as.numeric(as.character(SC.clade[[1]][1,1]))))->conv.nodes
 
 overfitRR(RR=RRfel, y=PCscoresfel,conv.args =
-list(node=conv.nodes,state=statefel,declust=TRUE),nsim=10,clus=cc)
+list(node=conv.nodes,state=statefel,declust=TRUE),nsim=10,clus=cc)->orr.sc
+
+# Case 6 overfitRR on PGLS_fossil
+library(phytools)
+rtree(100)->tree
+fastBM(tree)->resp
+fastBM(tree,nsim=3)->resp.multi
+fastBM(tree)->pred1
+fastBM(tree)->pred2
+
+PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp,x2=pred1,x1=pred2),tree=tree)->pgls_noRR
+
+RRphylo::RRphylo(tree,resp)->RR
+PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp,x2=pred1,x1=pred2),tree=tree,RR=RR)->pgls_RR
+
+overfitRR(RR=RR,y=resp,
+          pgls.args=list(modform=y1~x1+x2,data=list(y1=resp,x2=pred1,x1=pred2),
+                         tree=TRUE,RR=TRUE),nsim=10,clus=cc)->orr.pgls1
+
+PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp.multi,x2=pred1,x1=pred2),tree=tree)->pgls2_noRR
+cc<- 2/parallel::detectCores()
+RRphylo::RRphylo(tree,resp.multi,clus=cc)->RR
+PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp.multi,x2=pred1,x1=pred2),tree=tree,RR=RR)->pgls2_RR
+
+overfitRR(RR=RR,y=resp.multi,
+          pgls.args=list(modform=y1~x1+x2,data=list(y1=resp.multi,x2=pred1,x1=pred2),
+                         tree=TRUE,RR=TRUE),nsim=10,clus=cc)->orr.pgls2
 
 
 }

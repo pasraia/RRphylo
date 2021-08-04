@@ -4,17 +4,26 @@
 \alias{fix.poly}
 \title{Resolving polytomies to non-zero length branches}
 \usage{
-fix.poly(tree,type=c("collapse","resolve"),node=NULL)
+fix.poly(tree,type=c("collapse","resolve"),node=NULL,tol=1e-10,random=TRUE)
 }
 \arguments{
 \item{tree}{a phylogenetic tree.}
 
-\item{type}{either 'collapse' to create or 'resolve' to resolve (fix) a
-polytomy to a specific node indicated by the argument \code{node}.}
+\item{type}{either 'collapse' to create polytomies to one or more specific
+nodes or 'resolve' to resolve (fix) all the polytomies within the tree or
+to one or more specific nodes.}
 
-\item{node}{the node in the tree where a polytomy should be resolved of
-fixed, either. If \code{type='resolve'} and \code{node} is left unspecified
-all the polytomies present in the tree are resolved.}
+\item{node}{the node in the tree where a polytomy should be created or fixed,
+either. If \code{type='resolve'} and \code{node=NULL} all the polytomies
+present in the tree are resolved.}
+
+\item{tol}{the tolerance to consider a branch length significantly greater
+than zero, set at 1e-10 by default. If \code{type='resolve'}, all the
+branch lengths smaller than \code{tol} are treated as polytomies.}
+
+\item{random}{a logical value specifying whether to resolve the polytomies
+randomly (the default) or in the order they appear in the tree (if
+\code{random = FALSE}).}
 }
 \value{
 A phylogenetic tree with randomly fixed (i.e. \code{type='resolve'})
@@ -63,8 +72,9 @@ Castiglione, S., Serio, C., Piccolo, M., Mondanaro, A.,
   of the Linnean Society},in press. doi:10.1093/biolinnean/blaa186
 }
 \seealso{
-\href{../doc/Tree-Manipulation.html#fix.poly}{\code{fix.poly} vignette};
+\href{../doc/Tree-Manipulation.html#fix.poly}{\code{fix.poly}
+  vignette};
 }
 \author{
-Pasquale Raia, Silvia Castiglione, Carmela Serio
+Silvia Castiglione, Pasquale Raia, Carmela Serio
 }

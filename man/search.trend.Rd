@@ -5,7 +5,7 @@
 \title{Searching for evolutionary trends in phenotypes and rates}
 \usage{
 search.trend(RR,y,x1=NULL,x1.residuals = FALSE,
-  node=NULL,cov=NULL,nsim=100,clus=0.5,ConfInt=FALSE,foldername=NULL,filename)
+ node=NULL,cov=NULL,nsim=100,clus=0.5,ConfInt=FALSE,foldername=NULL,filename)
 }
 \arguments{
 \item{RR}{an object produced by \code{\link{RRphylo}}.}
@@ -24,8 +24,8 @@ once can be specified.}
 between \code{y} and \code{x1} should be inspected for a phenotypic trend
 (see details and examples below). Default is \code{FALSE}.}
 
-\item{node}{the node number of individual clades to be specifically tested
-and contrasted to each other. It is \code{NULL} by default. Notice the node
+\item{node}{the node number of individual clades to be specifically tested and
+contrasted to each other. It is \code{NULL} by default. Notice the node
 number must refer to the dichotomic version of the original tree, as
 produced by \code{RRphylo}.}
 
@@ -46,105 +46,112 @@ run the single-threaded version of \code{search.trend} set \code{clus} = 0.}
 around phenotypes and rates produced according to the Brownian motion model
 of evolution. It is \code{FALSE} by default.}
 
-\item{foldername}{has been deprecated; please see the argument
-\code{filename} instead.}
+\item{foldername}{has been deprecated; please see the argument \code{filename}
+instead.}
 
 \item{filename}{a character indicating the name of the pdf file and the path
 where it is to be saved. If no path is indicated the file is stored in the
 working directory}
 }
 \value{
-The function returns a list object including:
+The function returns a list object containing:
 
-\strong{$rbt} for each branch of the tree, there are the
-  \code{RRphylo} rates and the distance from the tree root (age). If y is
-  multivariate, it also includes the multiple rates for each y vector. If
-  \code{node} is specified, each branch is classified as belonging or not to
-  the indicated clades.
-
-\strong{$pbt} a data frame of phenotypic values (or \code{y} versus
-  \code{x1} regression residuals if \code{x1.residuals=TRUE}) and their
-  distance from the tree root for each node (i.e. ancestral states) and tip
-  of the tree.
+\strong{$trends.data} a 'RRphyloList' object including:
+ \enumerate{\item{\code{$phenotypeVStime}}: a data frame of phenotypic values (or
+ \code{y} versus \code{x1} regression residuals if \code{x1.residuals=TRUE})
+ and their distance from the tree root for each node (i.e. ancestral states)
+ and tip of the tree. \item{\code{$absrateVStime}}: a data frame of
+ \code{RRphylo} rates and the distance from the tree root (age). If y is
+ multivariate, it also includes the multiple rates for each y vector. If
+ \code{node} is specified, each branch is classified as belonging to an
+ indicated clade. \item{\code{$rescaledrateVStime}}: a data frame of rescaled
+ \code{RRphylo} rates and the distance from the tree root (age). If y is
+ multivariate, it also includes the multiple rates for each y vector. If
+ \code{node} is specified, each branch is classified as belonging to an
+ indicated clade. NAs correspond either to very small values or to outliers
+ which are excluded from the analysis.}
 
 \strong{$phenotypic.regression} results of phenotype (\code{y} versus
-  \code{x1} regression residuals) versus age regression. It reports a p-value
-  for the regression slope between the variables (p.real), a p-value computed
-  contrasting the real slope to Brownian motion simulations (p.random), and a
-  parameter indicating the deviation of the phenotypic mean from the root
-  value in terms of the number of standard deviations of the trait
-  distribution (dev). dev is 0 under Brownian Motion. Only p.random should be
-  inspected to assess significance.
+ \code{x1} regression residuals) versus age regression. It reports a p-value
+ for the regression slope between the variables (p.real), a p-value computed
+ contrasting the real slope to Brownian motion simulations (p.random), and a
+ parameter indicating the deviation of the phenotypic mean from the root
+ value in terms of the number of standard deviations of the trait
+ distribution (dev). dev is 0 under Brownian Motion. Only p.random should be
+ inspected to assess significance.
 
-\strong{$rate.regression} results of the rates (absolute values)
-  versus age regression. It reports a p-value for the regression between the
-  variables (p.real), a p-value computed contrasting the real slope to
-  Brownian motion simulations (p.random), and a parameter indicating the
-  ratio between the range of phenotypic values and the range of such values
-  halfway along the tree height, divided to the same figure under Brownian
-  motion (spread). spread is 1 under Brownian Motion. Only p.random should be
-  inspected to assess significance.
+\strong{$rate.regression} results of the rates (rescaled absolute
+ values) versus age regression. It reports a p-value for the regression
+ between the variables (p.real), a p-value computed contrasting the real
+ slope to Brownian motion simulations (p.random), and a parameter indicating
+ the ratio between the range of phenotypic values and the range of such
+ values halfway along the tree height, divided to the same figure under
+ Brownian motion (spread). spread is 1 under Brownian Motion. Only p.random
+ should be inspected to assess significance.
 
-\strong{$ConfInts} the 95\% confidence intervals around phenotypes
-  and rates produced according to the Brownian motion model of evolution.
+\strong{$ConfInts} a 'RRphyloList' object including the 95\%
+ confidence intervals around phenotypes and rates (both rescaled and unscaled
+ absolute rates) produced according to the Brownian motion model of
+ evolution.
 
 If specified, individual nodes are tested as the whole tree, the
-  results are summarized in the objects:
+ results are summarized in the objects:
 
-\strong{$node.phenotypic.regression} results of phenotype (or
-  \code{y} versus \code{x1} regression residuals) versus age regression
-  through node. It reports the slope for the regression between the variables
-  at node (slope), a p-value computed contrasting the real slope to Brownian
-  motion simulations (p.random), the difference between estimated marginal
-  means predictions for the group and for the rest of the tree
-  (emm.difference), and a p-value for the emm.difference (p.emm).
+\strong{$node.phenotypic.regression} results of phenotype (or \code{y}
+ versus \code{x1} regression residuals) versus age regression through node.
+ It reports the slope for the regression between the variables at node
+ (slope), a p-value computed contrasting the real slope to Brownian motion
+ simulations (p.random), the difference between estimated marginal means
+ predictions for the group and for the rest of the tree (emm.difference), and
+ a p-value for the emm.difference (p.emm).
 
 \strong{$node.rate.regression} results of the rates (absolute values)
-  versus age regression through node. It reports the difference between
-  estimated marginal means predictions for the group and for the rest of the
-  tree (emm.difference), a p-value for the emm.difference (p.emm), the
-  difference between regression slopes for the group and for the rest of the
-  tree (slope.difference), and a p-value for the slope.difference (p.slope).
+ versus age regression through node. It reports the difference between
+ estimated marginal means predictions for the group and for the rest of the
+ tree (emm.difference), a p-value for the emm.difference (p.emm), the
+ difference between regression slopes for the group and for the rest of the
+ tree (slope.difference), and a p-value for the slope.difference (p.slope).
 
 If more than one node is specified, the object
-  \strong{$group.comparison} reports the same results as
-  $node.phenotypic.regression and $node.rate.regression obtained by comparing
-  individual clades to each other.
+ \strong{$group.comparison} reports the same results as
+ $node.phenotypic.regression and $node.rate.regression obtained by comparing
+ individual clades to each other.
 }
 \description{
 This function searches for evolutionary trends in the phenotypic
-  mean and the evolutionary rates for the entire tree and individual clades.
+ mean and the evolutionary rates for the entire tree and individual clades.
 }
 \details{
 The function simultaneously returns the regression of phenotypes and
-  phenotypic evolutionary rates against age tested against Brownian motion
-  simulations to assess significance. It stores the rates (absolute values)
-  versus age regression and the phenotype versus age regression plots as .pdf
-  files. In the plots, the 95\% confidence intervals of phenotypes and rates
-  simulated under the Brownian motion for each node are plotted as shaded
-  areas. Regression lines are printed for all regressions. To assess
-  significance, slopes are compared to a family of simulated slopes
-  (BMslopes, where the number of simulations is equal to \code{nsim}),
-  generated under the Brownian motion, using the \code{fastBM} function in
-  the package \pkg{phytools}. Individual nodes are compared to the rest of
-  the tree in different ways depending on whether phenotypes or rates versus
-  age regressions are tested. With the former, the regression slopes for
-  individual clades and the slope difference between clades is contrasted to
-  slopes obtained through Brownian motion simulations. For the latter,
-  regression models are tested and contrasted to each other referring to
-  estimated marginal means, by using the \code{emmeans} function in the
-  package \pkg{emmeans}.
+ phenotypic evolutionary rates against age tested against Brownian motion
+ simulations to assess significance. To this aim rates are rescaled in the
+ 0-1 range and then logged. The function stores the rates (both rescaled and
+ unscaled absolute values) versus age regression and the phenotype versus age
+ regression plots as .pdf files. In the plots, the 95\% confidence intervals
+ of phenotypes and rates simulated under the Brownian motion for each node
+ are plotted as shaded areas. Regression lines are printed for all
+ regressions. To assess significance, slopes are compared to a family of
+ simulated slopes (BMslopes, where the number of simulations is equal to
+ \code{nsim}), generated under the Brownian motion, using the \code{fastBM}
+ function in the package \pkg{phytools}. Individual nodes are compared to the
+ rest of the tree in different ways depending on whether phenotypes or rates
+ (always unscaled in this case) versus age regressions are tested. With the
+ former, the regression slopes for individual clades and the slope difference
+ between clades is contrasted to slopes obtained through Brownian motion
+ simulations. For the latter, regression models are tested and contrasted to
+ each other referring to estimated marginal means, by using the
+ \code{emmeans} function in the package \pkg{emmeans}.
 
-  The \href{../doc/RRphylo.html#predictor}{multiple regression version of RRphylo} allows
-  to incorporate the effect of an additional predictor in the computation of
-  evolutionary rates without altering the ancestral character estimation.
-  Thus, when a multiple \code{RRphylo} output is fed to \code{search.trend}, the
-  predictor effect is accounted for on the absolute evolutionary rates, but
-  not on the phenotype. However, in some situations the user might want to
-  ‘factor out’ the predictor effect on phenotypes as well. Under the latter
-  circumstance, by setting the argument \code{x1.residuals = TRUE}, the residuals
-  of the response to predictor regression are used as to represent the
-  phenotype.
+ The \href{../doc/RRphylo.html#predictor}{multiple regression version of
+ RRphylo} allows to incorporate the effect of an additional predictor in the
+ computation of evolutionary rates without altering the ancestral character
+ estimation. Thus, when a multiple \code{RRphylo} output is fed to
+ \code{search.trend}, the predictor effect is accounted for on the absolute
+ evolutionary rates, but not on the phenotype. However, in some situations
+ the user might want to factor out the predictor effect on phenotypes
+ as well. Under the latter circumstance, by setting the argument
+ \code{x1.residuals = TRUE}, the residuals of the response to predictor
+ regression are used as to represent the phenotype.
 }
 \examples{
  \dontrun{
@@ -164,11 +171,11 @@ RRphylo(tree=treeptero,y=log(massptero))->RRptero
 
 # Case 1.1. "search.trend" whitout indicating nodes to be tested for trends
 search.trend(RR=RRptero, y=log(massptero), nsim=100, clus=cc,
-             filename=tempdir(),cov=NULL,ConfInt=FALSE,node=NULL)
+             filename=paste(tempdir(), "ST", sep="/"),cov=NULL,ConfInt=FALSE,node=NULL)
 
 # Case 1.2. "search.trend" indicating nodes to be specifically tested for trends
 search.trend(RR=RRptero, y=log(massptero), nsim=100, node=143, clus=cc,
-             filename=tempdir(),cov=NULL,ConfInt=FALSE)
+             filename=paste(tempdir(), "STnode", sep="/"),cov=NULL,ConfInt=FALSE)
 
 
 # Case 2. "RRphylo" accounting for the effect of a covariate
@@ -180,11 +187,11 @@ RRphylo(tree=treeptero,y=log(massptero),cov=cov.values)->RRpteroCov
 
 # Case 2.1. "search.trend" whitout indicating nodes to be tested for trends
 search.trend(RR=RRpteroCov, y=log(massptero), nsim=100, clus=cc,
-             filename=tempdir(),ConfInt=FALSE,cov=cov.values)
+             filename=paste(tempdir(), "ST_cov", sep="/"),ConfInt=FALSE,cov=cov.values)
 
 # Case 2.2. "search.trend" indicating nodes to be specifically tested for trends
 search.trend(RR=RRpteroCov, y=log(massptero), nsim=100, node=143, clus=cc,
-             filename=tempdir(),ConfInt=FALSE,cov=cov.values)
+             filename=paste(tempdir(), "STnode_cov", sep="/"),ConfInt=FALSE,cov=cov.values)
 
 
 # Case 3. "search.trend" on multiple "RRphylo"
@@ -204,25 +211,27 @@ c(acemass.multi,masscet.multi)->x1.mass
 RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass)->RRmulti
 
 # incorporating the effect of body size at inspecting trends in absolute evolutionary rates
-search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,clus=cc,filename=tempdir())
+search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,clus=cc,
+             filename=paste(tempdir(), "STmulti_rate", sep="/"))
 
 # incorporating the effect of body size at inspecting trends in both absolute evolutionary
 # rates and phenotypic values (by using brain versus body mass regression residuals)
-search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,x1.residuals=TRUE,clus=cc,filename=tempdir())
+search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,x1.residuals=TRUE,clus=cc,
+             filename=paste(tempdir(), "STmulti", sep="/"))
    }
 }
 \references{
 Castiglione, S., Serio, C., Mondanaro, A., Di Febbraro, M.,
-  Profico, A., Girardi, G., & Raia, P. (2019) Simultaneous detection of
-  macroevolutionary patterns in phenotypic means and rate of change with and
-  within phylogenetic trees including extinct species. \emph{PLoS ONE}, 14:
-  e0210101. https://doi.org/10.1371/journal.pone.0210101
+ Profico, A., Girardi, G., & Raia, P. (2019) Simultaneous detection of
+ macroevolutionary patterns in phenotypic means and rate of change with and
+ within phylogenetic trees including extinct species. \emph{PLoS ONE}, 14:
+ e0210101. https://doi.org/10.1371/journal.pone.0210101
 }
 \seealso{
 \href{../doc/search.trend.html}{\code{search.trend} vignette}
 }
 \author{
 Silvia Castiglione, Carmela Serio, Pasquale Raia, Alessandro
-  Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
-  Carotenuto
+ Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
+ Carotenuto
 }
