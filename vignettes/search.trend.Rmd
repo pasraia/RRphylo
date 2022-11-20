@@ -189,7 +189,7 @@ abline(lm(phen[,1]~rootD),lwd=2,col="#ff00ff")
 
 
 
-as.data.frame(rbind(c(st.rates[[4]],NA),c(st.phen[[3]][1:3],NA,st.phen[[3]][4])))->res
+as.data.frame(rbind(c(st.rates[[3]],NA),c(st.phen[[2]][1:3],NA,st.phen[[2]][4])))->res
 
 colnames(res)[4:5]<-c("spread","dev")
 rownames(res)<-c("absolute rate regression","phenotypic regression")
@@ -210,7 +210,7 @@ As in the table above, `search.trend` results for phenotypic (`$phenotypic.regre
 The output of `search.trend` also includes two metrics specifically designed to quantify the magnitude of the phenotypic/absolute rates deviation from BM. The **spread** represents the deviation from BM produced by a trend in absolute rates. It is calculated as the ratio between the range of phenotypic values and the range of such values halfway along the tree height, divided to the same metric value generated under BM. **spread** is 1 under BM.
 The **dev** quantifies the deviation from BM produced by a trend in phenotypic means. It represents the deviation of the phenotypic mean from the root value in terms of the number of standard deviations of the trait distribution. **dev** is zero under the BM.
 
-Therefore, the example above produced significant results for both phenotypic and absolute rates temporal trends (**p.random** are both < 0.05). Absolute rates increase over time is significant (**p.real** < 0.05) and twice as much (**dev** = 1.941) as expected under BM. The increase in phenotypic means through time is significant (**p.real** < 0.05) and significantly different from the BM simulation, describing a deviation in mean phenotype some one half of the standard deviation of the phenotype (**spread** = 0.542).
+Therefore, the example above produced significant results for both phenotypic and absolute rates temporal trends (**p.random** are both < 0.05). Absolute rates increase over time is significant (**p.real** < 0.05) and twice as much (**spread** = 1.886) as expected under BM. The increase in phenotypic means through time is significant (**p.real** < 0.05) and significantly different from the BM simulation, describing a deviation in mean phenotype some one half of the standard deviation of the phenotype (**dev** = 0.542).
 
 
 ## Temporal trends at clade level{#nodes}
@@ -354,8 +354,8 @@ ablineclip(lm(phen[which(names(phen)%in%desn2)]~I(max(ages)-ages[which(names(age
            col="aquamarine",lwd=3)
 legend("topleft",legend=c("node 275","node 198","entire tree"),fill=c("aquamarine3","aquamarine","gray20"),bty="n",x.intersp = .5)
 
-cbind(data.frame(node=names(STrates[[6]]),do.call(rbind,STrates[[6]])),
-      data.frame(node=names(STphen[[5]]),do.call(rbind,STphen[[5]])))->res
+cbind(data.frame(node=names(STrates[[5]]),do.call(rbind,STrates[[5]])),
+      data.frame(node=names(STphen[[4]]),do.call(rbind,STphen[[4]])))->res
 ```
 ```{r,eval=FALSE,message=FALSE,warning=FALSE}
 search.trend(RR=RR,y=y,node=c(275,198),filename="st nodes")->ST
@@ -376,11 +376,11 @@ In the example above, the absolute rates versus age regression through the clade
 Please note, the dark gray line in both figures represents the whole tree, inclusive of both clades under testing.
 
 ```{r,echo=FALSE,message=FALSE,warning=FALSE}
-knitr::kable(STrates[[7]][[2]],digits=3,align="c") %>%
+knitr::kable(STrates[[6]][[2]],digits=3,align="c") %>%
 kable_styling(full_width = F, position = "center") %>%
 add_header_above(c("Comparison of trends in absolute rates" = 6))
 
-knitr::kable(STphen[[7]][[1]],digits=3,align="c") %>%
+knitr::kable(STphen[[6]][[1]],digits=3,align="c") %>%
 kable_styling(full_width = F, position = "center") %>%
 add_header_above(c("Comparison of trends in phenotypic means" = 6))
 
