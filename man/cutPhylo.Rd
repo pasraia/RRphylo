@@ -19,7 +19,8 @@ tree must be cut}
 }
 \value{
 The function returns the cut phylogeny and plots it into the graphic
-  device. The time axis keeps the root age of the original tree.
+  device. The time axis keeps the root age of the original tree. Note,
+  tip labels are ordered according to their position in the tree.
 }
 \description{
 The function cuts all the branches of the phylogeny which are

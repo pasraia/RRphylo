@@ -4,36 +4,47 @@
 \alias{plotRates}
 \title{Plot RRphylo rates at a specified node}
 \usage{
-plotRates(RR,node,export.tiff =FALSE,foldername=NULL,filename=NULL)
+plotRates(RR,node,export.tiff=NULL,filename=NULL)
 }
 \arguments{
 \item{RR}{an object produced by \code{\link{RRphylo}}.}
 
 \item{node}{the node subtending the clade of interest.}
 
-\item{export.tiff}{if \code{TRUE} the function save a "rate_bars.tiff" file
-inside the working directory. It is \code{TRUE} by default.}
+\item{export.tiff}{is deprecated.}
 
-\item{foldername}{has been deprecated; please see the argument
-\code{filename} instead.}
-
-\item{filename}{a character indicating the name of the tiff file and the path
-where it is to be saved. If no path is indicated the file is stored in the
-working directory.}
+\item{filename}{is deprecated.}
 }
 \value{
-The function produces two barplots. On the left side, the rates (in
- absolute values) computed for the focal clade (blue) are plotted against the
- rates of the rest of the tree (green). On the right side, the absolute rates
- of individual branches of the focal clade are collated in increasing rate
- value (blue bars), and contrasted to the average rate computed over the rest
- of the tree branches (the vertical red line). It also returns the rate
- values for both nodes and species descending from the focal node.
+The function returns a list of functions:
+
+\strong{$plotHist} returns the histograms of rates (in ln absolute
+ values) computed for the focal clade against rates computed the rest of the
+ tree. The usage is:
+ \code{...$plotHist(hist.args=list(col1,col2),legend.args=list())}, where
+ \code{legend.args} is a list of additional arguments passed to the function
+ \code{legend} (if \code{= NULL} the legend is not plotted) and
+ \code{hist.args} is a list of further arguments passed to the function
+ \code{plot.histogram}. \code{hist.args} default arguments include histogram
+ colors for background rates (\code{col1}) and rates of the clade under
+ inspection (\code{col2}).
+
+\strong{$plotLollipop} returns the lollipop chart of the rates of
+ individual branches of the focal clade collated in increasing rate value,
+ and contrasted to the average rate computed over the rest of the tree
+ branches (the vertical line). The usage is:
+ \code{...$plotLollipop(lollipop.args=NULL,line.args=NULL)}, where
+ \code{lollipop.args} is a list of further arguments passed to the function
+ \code{\link{lollipoPlot}}  and \code{line.args} is a list of additional
+ arguments passed to the function \code{line}. This function additionally
+ returns the vector of rates for the focal clade, collated in increasing
+ order.
 }
 \description{
-The function \code{plotRates} plots the \code{\link{RRphylo}}
- rates computed for a given clade as compared to the rates computed for the
- rest of the tree.
+This function generates customized functions to produce
+ histograms and lollipop charts of the \code{\link{RRphylo}} rates computed
+ for a given clade as compared to the rates computed for the rest of the
+ tree.
 }
 \examples{
 \donttest{
@@ -44,9 +55,21 @@ cc<- 2/parallel::detectCores()
 
 RRphylo(tree=Tstage,y=PCstage,clus=cc)->RR
 
-plotRates(RR,node=72,export.tiff = FALSE)
+plotRates(RR,node=72)->pR
+pR$plotHist(hist.args=list(col1="cyan1",col2="blue"),legend.args=list(x="topright"))
+pR$plotLollipop(lollipop.args=list(col="chartreuse",bg="chartreuse"),
+                line.args=list(col="deeppink",lwd=2))
 }
 }
 \seealso{
 \href{../doc/RRphylo.html}{\code{RRphylo} vignette}
+
+\href{../doc/Plotting-tools.html}{\code{plotRates} vignette}
+
+\href{../doc/RRphylo.html}{\code{RRphylo} vignette}
+
+\href{../doc/Plotting-tools.html}{\code{plotRates} vignette}
+}
+\author{
+Silvia Castiglione, Pasquale Raia
 }

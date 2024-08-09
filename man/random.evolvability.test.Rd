@@ -46,7 +46,7 @@ The function is a wrapper around the function
   to calculate: Mean Squared Correlation, ICV, Autonomy,
   ConditionalEvolvability, Constraints, Evolvability, Flexibility,
   Pc1Percent, and Respondability. To assess the importance of phylogenetic
-  structuring (signal) on Respondability Evolvability, and Flexibility, the
+  structuring (signal) on Respondability Evolvability, and Flexibility. The
   function performs a randomization test by randomly shuffling the species on
   tree and replicating the analyses \code{nsim} times. A p-value is computed
   by contrasting the real metrics to the ones derived by randomization.

@@ -27,7 +27,8 @@ randomly (the default) or in the order they appear in the tree (if
 }
 \value{
 A phylogenetic tree with randomly fixed (i.e. \code{type='resolve'})
-  polytomies or created polytomies (i.e. \code{type='collapse'}).
+  polytomies or created polytomies (i.e. \code{type='collapse'}).Note,
+  tip labels are ordered according to their position in the tree.
 }
 \description{
 The function either collapses clades under a polytomy or
@@ -69,7 +70,7 @@ Castiglione, S., Serio, C., Piccolo, M., Mondanaro, A.,
   Melchionna, M., Di Febbraro, M., Sansalone, G., Wroe, S., & Raia, P.
   (2020). The influence of domestication, insularity and sociality on the
   tempo and mode of brain size evolution in mammals. \emph{Biological Journal
-  of the Linnean Society},in press. doi:10.1093/biolinnean/blaa186
+  of the Linnean Society},132: 221-231. doi:10.1093/biolinnean/blaa186
 }
 \seealso{
 \href{../doc/Tree-Manipulation.html#fix.poly}{\code{fix.poly}

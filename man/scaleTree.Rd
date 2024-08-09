@@ -4,7 +4,7 @@
 \alias{scaleTree}
 \title{Phylogenetic tree calibration}
 \usage{
-scaleTree(tree, tip.ages, node.ages=NULL, min.branch=0.1)
+scaleTree(tree, tip.ages=NULL, node.ages=NULL,min.branch=NULL)
 }
 \arguments{
 \item{tree}{a phylogenetic tree. The tree needs not to be ultrametric and
@@ -16,14 +16,13 @@ function assumes all the tips are correctly placed with respect to the root.}
 
 \item{node.ages}{a named vector including the ages (i.e. distance from the
 youngest tip within the tree) of the nodes to be changed. If no calibration
-date for nodes is supplied, the function shifts node position only where
-needed to fit tip ages.}
+date for nodes is supplied, the tree root is fixed and the function shifts
+node position only where needed to fit tip ages.}
 
-\item{min.branch}{the minimum branch length that will be imposed for shifted
-nodes.}
+\item{min.branch}{has been deprecated.}
 }
 \value{
-Rescaled phylogentic tree.
+Rescaled phylogentic tree with tip labels ordered according to their position in the tree.
 }
 \description{
 The function is a wrapper around the functions "scalePhylo",
@@ -35,7 +34,6 @@ The function is a wrapper around the functions "scalePhylo",
 \donttest{
 library(ape)
 library(phytools)
-library(geiger)
 
 data("DataFelids")
 DataFelids$treefel->tree

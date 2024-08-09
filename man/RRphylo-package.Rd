@@ -14,20 +14,8 @@
   to plot and test rate shifts at particular nodes.
 
 The complete list of functions can be displayed with
-  \code{library(help = RRphylo)}
-}
-\references{
-Castiglione, S., Tesone, G., Piccolo, M., Melchionna, M.,
-Mondanaro, A., Serio, C., Di Febbraro, M., & Raia, P.(2018). A new method for
-testing evolutionary rate variation and shifts in phenotypic evolution.
-\emph{Methods in Ecology and Evolution}, 9:
-974-983.doi:10.1111/2041-210X.12954
-
-Piras, P., Silvestro, D., Carotenuto, F., Castiglione, S.,
-Kotsakis, A., Maiorino, L., Melchionna, M., Mondanaro, A., Sansalone, G.,
-Serio, C., Vero, V.A., & Raia, P. (2018). Evolution of the sabertooth
-mandible: A deadly ecomorphological specialization. \emph{Palaeogeography,
-Palaeoclimatology, Palaeoecology}, 496: 166-174.
+  \code{library(help = RRphylo)}. Citations to individual functions are
+  available by typing \code{citation("RRphylo")}.
 }
 \author{
 Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro

@@ -4,16 +4,13 @@
 \alias{getMommy}
 \title{Upward tip or node to root path}
 \usage{
-getMommy(tree,N,curr=NULL)
+getMommy(tree,N)
 }
 \arguments{
 \item{tree}{a phylogenetic tree. The tree needs not to be ultrametric and
 fully dichotomous.}
 
-\item{N}{the number of node or tip to perform the function on. Notice the
-function only works with number, not tip labels.}
-
-\item{curr}{has not to be provided by the user.}
+\item{N}{the number of node or tip to perform the function on. The function also works with tip labels.}
 }
 \value{
 The function produces a vector of node numbers as integers, collated
@@ -23,10 +20,6 @@ The function produces a vector of node numbers as integers, collated
 This function is a wrapper around \pkg{phytools}
   \code{getDescendants} (\cite{Revell 2012}). It returns the node path from a
   given node or species to the root of the phylogeny.
-}
-\details{
-The object \code{'curr'} is created inside the function in order to
-  produce an array of nodes on the path.
 }
 \examples{
 data("DataApes")

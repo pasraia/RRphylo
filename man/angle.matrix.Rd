@@ -106,8 +106,8 @@ The \code{angle.matrix} function takes as objects a phylogenetic
   DataApes$PCstage->PCstage
   DataApes$Tstage->Tstage
   DataApes$CentroidSize->CS
-
   cc<- 2/parallel::detectCores()
+
   RRphylo(tree=Tstage,y=PCstage,clus=cc)->RR
 # Case 1. without accounting for the effect of a covariate
 

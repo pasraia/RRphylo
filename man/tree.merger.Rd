@@ -34,13 +34,12 @@ distance from the tree root (i.e. the present if the tips are extant).}
 \item{node.ages}{as in \code{scaleTree}, a named vector including the ages
 (i.e. the time distance from the youngest tip within the tree) of the
 nodes. The nodes must be defined by collating the names of the two
-phylogenetically furthest tips it subtends to, separated by a "-" (see
+phylogenetically furthest tips it subtends to, separated by the "-" symbol (see
 examples). If no calibration date for nodes is supplied, the function may
 shift the node position back in time as to place new tips/clades and to fit
 tip ages.}
 
-\item{min.branch}{as in \code{scaleTree}, the minimum branch length that will
-be imposed for shifted nodes.}
+\item{min.branch}{has been deprecated.}
 
 \item{plot}{if \code{TRUE}, the function produces an interactive plotting
 device to check the placing of each \code{bind}.}
@@ -61,41 +60,47 @@ The function attaches tips and/or clades from the \code{source} tree
   to the \code{backbone} tree according to the \code{data} object. Within the
   latter, a clade, either to be bound or to be the reference, must be
   indicated by collating the names of the two phylogenetically furthest tips
-  belonging to it, separated by a "-". Duplicated 'bind' produce error.
-  Tips/clades set to be attached to the same 'reference' are considered to
-  represent a polytomy. Tips set as 'bind' which are already on the backbone
-  tree are removed from the latter and placed according to the 'reference'.
-  See examples and
+  belonging to it, separated by the "-" symbol. Alternatively, if
+  \code{backbone$node.label}/\code{source.tree$node.label} is not
+  \code{NULL}, a bind/reference clade can be indicated as "Clade
+  NAMEOFTHECLADE" when appropriate. Similarly, an entire genus on both the
+  \code{backbone} and the \code{source.tree} can be indicated as "Genus
+  NAMEOFTHEGENUS" (see examples below). Duplicated 'bind' produce error.
+  Tips/clades set to be attached to the same 'reference' with
+  'poly=FALSE' are considered to represent a polytomy. Tips set as 'bind'
+  which are already on the backbone tree are removed from the latter and
+  placed according to the 'reference'. See examples and
   \href{../doc/Tree-Manipulation.html#tree.merger.html}{vignette} for
   clarifications.
 }
 \examples{
  \dontrun{
  require(ape)
- require(geiger)
  DataCetaceans$treecet->tree
- data.frame(bind=c("Balaena_mysticetus-Caperea_marginata",
+ tree$node.label[131-Ntip(tree)]<-"Crown_Mysticeti"
+
+ data.frame(bind=c("Clade Crown_Mysticeti",
                    "Aetiocetus_weltoni",
                    "Saghacetus_osiris",
                    "Zygorhiza_kochii",
                    "Ambulocetus_natans",
-                   "Kentriodon_pernix",
-                   "Kentriodon_schneideri",
-                   "Kentriodon_obscurus",
+                   "Genus Kentriodon",
                    "Tursiops_truncatus-Delphinus_delphis",
                    "Kogia_sima",
-                   "Grampus_griseus"),
+                   "Eurhinodelphis_cristatus",
+                   "Grampus_griseus",
+                   "Eurhinodelphis_bossi"),
             reference=c("Fucaia_buelli-Aetiocetus_weltoni",
                         "Aetiocetus_cotylalveus",
                         "Fucaia_buelli-Tursiops_truncatus",
                         "Saghacetus_osiris-Fucaia_buelli",
                         "Dalanistes_ahmedi-Fucaia_buelli",
-                        "Kentriodon_schneideri",
-                        "Phocoena_phocoena-Delphinus_delphis",
-                        "Kentriodon_schneideri",
+                        "Clade Delphinida",
                         "Stenella_attenuata-Stenella_longirostris",
                         "Kogia_breviceps",
-                        "Globicephala_melas-Pseudorca_crassidens"),
+                        "Eurhinodelphis_longirostris",
+                        "Globicephala_melas-Pseudorca_crassidens",
+                        "Eurhinodelphis_longirostris"),
             poly=c(FALSE,
                    FALSE,
                    FALSE,
@@ -114,7 +119,9 @@ The function attaches tips and/or clades from the \code{source} tree
    Ambulocetus_natans=40.4,
    Kentriodon_pernix=15.9,
    Kentriodon_schneideri=11.61,
-   Kentriodon_obscurus=13.65)->tip.ages
+   Kentriodon_obscurus=13.65,
+   Eurhinodelphis_bossi=13.65,
+   Eurhinodelphis_cristatus=5.33)->tip.ages
  c("Ambulocetus_natans-Fucaia_buelli"=52.6,
    "Balaena_mysticetus-Caperea_marginata"=21.5)->node.ages
 
@@ -135,7 +142,10 @@ The function attaches tips and/or clades from the \code{source} tree
    }
 }
 \references{
-aaa
+Castiglione, S., Serio, C., Mondanaro, A., Melchionna, M., &
+  Raia, P. (2022). Fast production of large, time-calibrated, informal
+  supertrees with tree.merger. \emph{Palaeontology}, 65:
+  e12588.https://doi.org/10.1111/pala.12588
 }
 \seealso{
 \href{../doc/Tree-Manipulation.html#tree.merger.html}{\code{tree.merger}

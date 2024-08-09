@@ -6,7 +6,7 @@
 \usage{
 search.conv(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
   min.dim=NULL,max.dim=NULL,min.dist=NULL,declust=FALSE,nsim=1000,rsim=1000,
-   clus=.5,foldername=NULL,filename)
+  clus=0.5,filename=NULL)
 }
 \arguments{
 \item{RR}{an object produced by \code{\link{RRphylo}}. This is not indicated
@@ -77,12 +77,8 @@ distribution of theta values. It is set at 1000 by default.}
 \item{clus}{the proportion of clusters to be used in parallel computing. To
 run the single-threaded version of \code{search.conv} set \code{clus} = 0.}
 
-\item{foldername}{has been deprecated; please see the argument
-\code{filename} instead.}
-
-\item{filename}{a character indicating the name of the pdf file and the path
-where it is to be saved. If no path is indicated the file is stored in the
-working directory}
+\item{filename}{is deprecated. \code{search.conv} does not return plots
+anymore, check the function \code{\link{plotConv}} instead.}
 }
 \value{
 If convergence between clades is tested, the function returns a list
@@ -105,39 +101,20 @@ If convergence between clades is tested, the function returns a list
   phenotypes within the pair. }
 
 If convergence between (or within a single state) states is tested,
-  the function returns a dataframe including for each pair of states (or
-  single state): \itemize{ \item ang.state: the mean theta angle between
-  species belonging to different states (or within a single state). \item
-  ang.state.time: the mean of theta angle between species belonging to
-  different states (or within a single state) divided by time distance. \item
-  p.ang.state: the p-value computed for ang.state. \item p.ang.state.time:
-  the p-value computed for ang.state.time. }
+  the function returns a list including: \itemize{\item\strong{state.res} a
+  dataframe including for each pair of states (or single state): \itemize{
+  \item ang.state: the mean theta angle between species belonging to
+  different states (or within a single state). \item ang.state.time: the mean
+  of theta angle between species belonging to different states (or within a
+  single state) divided by time distance. \item p.ang.state: the p-value
+  computed for ang.state. \item p.ang.state.time: the p-value computed for
+  ang.state.time.}} \itemize{\item\strong{plotData} a dataframe including
+  data to plot the results via \code{\link{plotConv}}}.
 }
 \description{
 The function scans a phylogenetic tree looking for morphological
   convergence between entire clades or species evolving under specific
   states.
-}
-\details{
-Regardless the case (either 'state' or 'clade'), the function stores
-  a plot into the folder specified by \code{filename}. If convergence among
-  clades is tested, the clade pair plotted corresponds to those clades with
-  the smallest \code{$average distance from group centroid}. The figure shows
-  the Euclidean distances computed between the MRCAs of the clades and the
-  mean Euclidean distance computed between all the tips belonging to the
-  converging clades, as compared to the distribution of these same figures
-  across the rest of the tree. Furthermore, the function stores the PC1/PC2
-  plot obtained by PCA of the species phenotypes. Convergent clades are
-  indicated by colored convex hulls. Large colored dots represent the mean
-  phenotypes per clade (i.e. their group centroids). Eventually, a modified
-  traitgram plot is produced, highlighting the branches of the clades found
-  to converge. In both PCA and traitgram, asterisks represent the ancestral
-  phenotypes of the individual clades. If convergence among states is tested,
-  the function produces a PC plot with colored convex hulls enclosing species
-  belonging to different states. Furthermore, it generates circular plots of
-  the mean angle between states (blue lines) and the range of random angles
-  (gray shaded area). The p-value for the convergence test is printed within
-  the circular plots.
 }
 \examples{
 \dontrun{
@@ -152,15 +129,12 @@ RRphylo(treefel,PCscoresfel,clus=cc)->RRfel
 
 ## Case 1. searching convergence between clades
 # by setting min.dist as node distance
-search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="node9",
-            filename = paste(tempdir(), "SCclade_nd", sep="/"),clus=cc)
+search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="node9",clus=cc)
 # by setting min.dist as time distance
-search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="time38",
-            filename = paste(tempdir(), "SCclade_td", sep="/"),clus=cc)
+search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="time38",clus=cc)
 
 ## Case 2. searching convergence within a single state
-search.conv(tree=treefel, y=PCscoresfel, state=statefel,declust=TRUE,
-            filename = paste(tempdir(), "SCstate", sep="/"),clus=cc)
+search.conv(tree=treefel, y=PCscoresfel, state=statefel,declust=TRUE,clus=cc)
   }
 }
 \references{
@@ -172,6 +146,8 @@ Castiglione, S., Serio, C., Tamagnini, D., Melchionna, M.,
 }
 \seealso{
 \href{../doc/search.conv.html}{\code{search.conv} vignette}
+
+\href{../doc/Plotting-tools.html}{\code{plotConv} vignette}
 }
 \author{
 Silvia Castiglione, Carmela Serio, Pasquale Raia, Alessandro

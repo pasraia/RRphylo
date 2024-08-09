@@ -4,16 +4,16 @@
 \alias{RRphylo}
 \title{Evolutionary rates computation along phylogenies}
 \usage{
-RRphylo(tree,y,cov=NULL,rootV=NULL,aces=NULL,x1=NULL,aces.x1=NULL,clus=0.5)
+RRphylo(tree,y,cov=NULL,rootV=NULL,aces=NULL,x1=NULL,
+  aces.x1=NULL,clus=0.5,verbose=FALSE)
 }
 \arguments{
 \item{tree}{a phylogenetic tree. The tree needs not to be ultrametric or
 fully dichotomous.}
 
-\item{y}{either a single vector variable or a multivariate dataset of class
-\sQuote{matrix}. In any case, \code{y} must be named. In case of
-categorical variable, this sholud be supplied to the function as a numeric
-vector.}
+\item{y}{either a single vector variable or a multivariate dataset. In any
+case, \code{y} must be named. In case of categorical variable, this should
+be supplied to the function as a numeric vector.}
 
 \item{cov}{the covariate to be indicated if its effect on the rates must be
 accounted for. In this case residuals of the covariate versus the rates are
@@ -47,15 +47,18 @@ predictor} for details.}
 for \code{x1}. It must be indicated if both \code{aces} and \code{x1} are
 specified. Names/rownames correspond to the nodes in the tree.}
 
-\item{clus}{the proportion of clusters to be used in parallel computing (only
-if \code{y} is multivariate). To run the single-threaded version of
-\code{RRphylo} set \code{clus} = 0.}
+\item{clus}{the proportion of clusters to be used in parallel computing.
+Default is 0.5. To run the single-threaded version of \code{RRphylo} set
+\code{clus} = 0.}
+
+\item{verbose}{logical indicating whether a "RRlog.txt" printing progresses
+should be stored into the working directory.}
 }
 \value{
 \strong{tree} the tree used by \code{RRphylo}. The fully dichotomous
   version of the tree argument. For trees with polytomies, the tree is
-  resolved by using \code{multi2di} function in the package \pkg{ape}. If the
-  latter is a dichotomous tree, the two trees will be identical.
+  resolved by using \code{multi2di} function in the package \pkg{ape}. Note,
+  tip labels are ordered according to their position in the tree.
 
 \strong{tip.path} a \eqn{n * m} matrix, where n=number of tips and
   m=number of branches (i.e. 2*n-1). Each row represents the branch lengths
@@ -107,16 +110,17 @@ The function \code{\link{RRphylo}} (\cite{Castiglione et al.
 data("DataOrnithodirans")
 DataOrnithodirans$treedino->treedino
 DataOrnithodirans$massdino->massdino
+cc<- 2/parallel::detectCores()
 
 # Case 1. "RRphylo" without accounting for the effect of a covariate
-RRphylo(tree=treedino,y=massdino)->RRcova
+RRphylo(tree=treedino,y=massdino,clus=cc)->RRcova
 
 # Case 2. "RRphylo" accounting for the effect of a covariate
 # "RRphylo" on the covariate in order to retrieve ancestral state values
 c(RRcova$aces,massdino)->cov.values
 c(rownames(RRcova$aces),names(massdino))->names(cov.values)
 
-RRphylo(tree=treedino,y=massdino,cov=cov.values)->RR
+RRphylo(tree=treedino,y=massdino,cov=cov.values,clus=cc)->RR
 
 # Case 3. "RRphylo" specifying the ancestral states
 data("DataCetaceans")
@@ -125,22 +129,21 @@ DataCetaceans$masscet->masscet
 DataCetaceans$brainmasscet->brainmasscet
 DataCetaceans$aceMyst->aceMyst
 
-RRphylo(tree=treecet,y=masscet,aces=aceMyst)->RR
+RRphylo(tree=treecet,y=masscet,aces=aceMyst,clus=cc)->RR
 
 # Case 4. Multiple "RRphylo"
 library(ape)
 drop.tip(treecet,treecet$tip.label[-match(names(brainmasscet),treecet$tip.label)])->treecet.multi
 masscet[match(treecet.multi$tip.label,names(masscet))]->masscet.multi
 
-RRphylo(tree=treecet.multi, y=masscet.multi)->RRmass.multi
+RRphylo(tree=treecet.multi, y=masscet.multi,clus=cc)->RRmass.multi
 RRmass.multi$aces[,1]->acemass.multi
 c(acemass.multi,masscet.multi)->x1.mass
 
-RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass)->RR
+RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass,clus=cc)->RR
 
 # Case 5. Categorical and multiple "RRphylo" with 2 additional predictors
 library(phytools)
-library(geiger)
 
 set.seed(1458)
 rtree(50)->tree
@@ -150,9 +153,9 @@ rep(1,length(y))->y2
 y2[sample(1:50,20)]<-2
 names(y2)<-names(y)
 
-c(RRphylo(tree,y1)$aces[,1],y1)->x1
+c(RRphylo(tree,y1,clus=cc)$aces[,1],y1)->x1
 
-RRphylo(tree,y2)->RRcat ### this is the RRphylo on the categorical variable
+RRphylo(tree,y2,clus=cc)->RRcat ### this is the RRphylo on the categorical variable
 c(RRcat$aces[,1],y2)->x2
 
 cbind(c(jitter(mean(y1[tips(tree,83)])),1),
@@ -160,7 +163,7 @@ cbind(c(jitter(mean(y1[tips(tree,83)])),1),
 c(jitter(mean(y[tips(tree,83)])),jitter(mean(y[tips(tree,53)])))->acesy
 names(acesy)<-rownames(acex)<-c(83,53)
 
-RRphylo(tree,y,aces=acesy,x1=cbind(x1,x2),aces.x1 = acex)
+RRphylo(tree,y,aces=acesy,x1=cbind(x1,x2),aces.x1 = acex,clus=cc)
 
     }
 }
@@ -185,13 +188,13 @@ Melchionna, M., Mondanaro, A., Serio, C., Castiglione, S., Di
 Castiglione, S., Serio, C., Mondanaro, A., Melchionna, M.,
   Carotenuto, F., Di Febbraro, M., Profico, A., Tamagnini, D., & Raia, P.
   (2020). Ancestral State Estimation with Phylogenetic Ridge Regression.
-  \emph{Evolutionary Biology}, 47 (3), 220-232. doi:10.1007/s11692-020-09505-x
+  \emph{Evolutionary Biology}, 47: 220-232. doi:10.1007/s11692-020-09505-x
 
 Castiglione, S., Serio, C., Piccolo, M., Mondanaro, A.,
   Melchionna, M., Di Febbraro, M., Sansalone, G., Wroe, S., & Raia, P.
   (2020). The influence of domestication, insularity and sociality on the
   tempo and mode of brain size evolution in mammals. \emph{Biological Journal
-  of the Linnean Society},in press. doi:10.1093/biolinnean/blaa186
+  of the Linnean Society},132: 221-231. doi:10.1093/biolinnean/blaa186
 }
 \author{
 Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro

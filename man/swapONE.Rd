@@ -23,7 +23,8 @@ positions appear in red. Nodes with altered ages appear in green.}
 }
 \value{
 The function returns a list containing the 'swapped' version of the
-  original tree, and the Kuhner-Felsenstein distance between the trees.
+  original tree, and the Kuhner-Felsenstein distance between the trees. Note,
+  tip labels are ordered according to their position in the tree.
 }
 \description{
 The function produces an alternative phylogeny with altered
