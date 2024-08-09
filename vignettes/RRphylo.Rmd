@@ -4,12 +4,18 @@ author: "Silvia Castiglione, Carmela Serio, Pasquale Raia"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{RRphylo}
-  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEngine{knitr::rmarkdown_notangle}
   %\VignetteEncoding{UTF-8}
   
 ---
 
 ```{r, include = FALSE}
+if (!requireNamespace("rmarkdown", quietly = TRUE) ||
+     !rmarkdown::pandoc_available()) {
+   warning(call. = FALSE, "Pandoc not found, the vignettes is not built")
+   knitr::knit_exit()
+}
+
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
@@ -118,7 +124,8 @@ plot(acey,ace,pch=21,bg="gray80",cex=1.5,mgp=c(1.8,0.5,0),
 In Kratsch and McHardy (2014), `λ` is estimated through L2 (quadratic) penalization. Within RRphylo (Castiglione et al. 2018), `λ` is fitted by an inner function `optL`, which is written as to minimize the rate variation within clades, thereby acting conservatively in terms of the chance to find rate shifts and introducing phylogenetic autocorrelation in evolutionary rates (Sakamoto & Venditti, Eastmann et al. 2011) . 
 
 ```{r, fig.show="hold",fig.width=8, fig.height=4,fig.align='center',out.width='100%',dpi=220}
-RRphylo(tree,y)->RR
+cc<-2/parallel::detectCores()
+RRphylo(tree,y,clus=cc)->RR
 RR$rates[,1]->betas
 RR$predicted.phenotype[,1]->y.pred
 RR$aces[,1]->ace
@@ -142,7 +149,7 @@ fastBM(tree,sig2=2)->y
 
 # perform RRphylo on the covariate to retrieve ancestral character values 
 # and collate them to tip values to create the covariate vector
-RRphylo(tree,y)->RR
+RRphylo(tree,y,clus=cc)->RR
 RR$rates[,1]->betas
 c(RR$aces[,1],y)->cov
 
@@ -172,7 +179,7 @@ require(ape)
 set.seed(76)
 rtree(5)->tree
 fastBM(tree)->pred
-RRphylo(tree,pred)->RRpred
+RRphylo(tree,pred,clus=cc)->RRpred
 
 makeL(tree)->L
 makeL1(tree)->L1
@@ -208,7 +215,6 @@ Given a vector (or matrix in case of multivariate data) of $n$ known phenotypic 
 ```{r,message = FALSE,echo=FALSE,out.width='47%',dpi=220}
 require(ape)
 require(phytools)
-require(geiger)
 set.seed(76)
 rtree(8)->tree
 tree$node.label<-9:15
@@ -251,7 +257,6 @@ DataCetaceans$brainmasscet->brainmasscet # logged brain mass data
 DataCetaceans$aceMyst->aceMyst # known phenotypic value for the most recent 
                                # common ancestor of Mysticeti
 
-require(geiger)
 par(mar=c(0,0,0,1))
 plot(ladderize(treecet,FALSE),show.tip.label = FALSE,edge.color = "gray40",edge.width = 1.5)
 plotinfo<-get("last_plot.phylo",envir =ape::.PlotPhyloEnv)
@@ -356,7 +361,7 @@ RRphylo(tree,y,aces=acesy,x1=x1mat,aces.x1 = acex)->RRcat.multi
 
 Castiglione, S., Tesone, G., Piccolo, M., Melchionna, M., Mondanaro, A., Serio, C., Di Febbraro, M., & Raia, P.(2018). A new method for testing evolutionary rate variation and shifts in phenotypic evolution. Methods in Ecology and Evolution, 9, 974-983.
 
-Castiglione, S., Serio, C., Piccolo, M., Mondanaro, A., Melchionna, M., Di Febbraro, M., Sansalone, G., Wroe, S.,& Raia, P. (2020a). The influence of domestication, insularity and sociality on the tempo and mode of brain size evolution in mammals. Biological Journal of the Linnean Society, in press.
+Castiglione, S., Serio, C., Piccolo, M., Mondanaro, A., Melchionna, M., Di Febbraro, M., Sansalone, G., Wroe, S.,& Raia, P. (2020a). The influence of domestication, insularity and sociality on the tempo and mode of brain size evolution in mammals. Biological Journal of the Linnean Society, 132, 221-231.
         
 Castiglione, S., Serio, C., Mondanaro, A., Melchionna, M., Carotenuto, F., Di Febbraro, M., Profico, A., Tamagnini, D., & Raia, P. (2020b). Ancestral State Estimation with Phylogenetic Ridge Regression. Evolutionary Biology, 47, 220-232.
 

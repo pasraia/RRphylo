@@ -1,14 +1,4 @@
----
-title: "Creating alternative phylogenetic hypotheses from a starting tree"
-author: "Silvia Castiglione, Carmela Serio, Pasquale Raia"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{swapONE}
-  %\VignetteEngine{knitr::rmarkdown_notangle}
-  %\VignetteEncoding{UTF-8}
----
-
-```{r, include = FALSE}
+## ----include = FALSE----------------------------------------------------------
 if (!requireNamespace("rmarkdown", quietly = TRUE) ||
      !rmarkdown::pandoc_available()) {
    warning(call. = FALSE, "Pandoc not found, the vignettes is not built")
@@ -22,25 +12,8 @@ knitr::opts_chunk$set(
 
 require(RRphylo)
 options(rmarkdown.html_vignette.check_title = FALSE)
-```
 
-## Index
-1. [swapONE basics](#basics)
-2. [Swapping species positions](#species)
-3. [Shifting node ages](#nodes)
-4. [Guided examples](#examples)
-
-
-## swapONE basics {#basics}
-Phylogenetic trees represent hypothesis about the history of clades. No phylogeny could be taken as ground truth, since both the age of common ancestors and the actual tree topology may differ substantially from reality, and usually differ across studies. Hence, accounting for phylogenetic uncertainty is much appropriate in comparative studies. 
-
-The function `swapONE` provides a fast and effective way to produce alternative tree topologies and node ages, swapping a specified proportion of the tree tips and changing the ages of a specified proportion of common ancestors (nodes). The user, though, may indicate whether and which clades have to be kept monophyletic depending on the recognition of well-supported clades. Tips within the monophyletic clades can still be swapped. The function also returns the Kuhner-Felsenstein (Kuhner & Felsenstein 1994) distance between original and 'swapped' tree (`$Kuhner-Felsenstein distance`). The use may ask to plot the swapped tree, highlighting the species and nodes with changed positions by coloring their branches and labels.
-
-
-## Swapping species positions {#species}
-When species position has to be swapped, the function selects exchangeable species pairs based on phylogenetic covariance and proximity. In order to be swapped a species pair should share a certain amount of phylogenetic time (which depends on phylogenetic structure) and being less than 3 nodes apart. Then, a given proportion of these pairs (indicated through the argument `si`) is randomly sampled to switch position. In some cases, also depending on tree topology, the proportion of species actually swapping is less then the imposed `si` value. This happens when the age (meant distance from the youngest species in the tree) of one of the species in the pair is older then the age of the ancestors (i.e. nodes) of the other species, which makes it impossible to swap them (see t3 and t1 in the figure below).
-In any case, the switching never changes the distance of the species from the tree root.
-```{r echo=3,fig.dim=c(6,3), message=FALSE, warning=FALSE, dpi=200, out.width='98%',fig.align="center"}
+## ----echo=3,fig.dim=c(6,3), message=FALSE, warning=FALSE, dpi=200, out.width='98%',fig.align="center"----
 {require(ape)
 require(phytools)
 
@@ -154,12 +127,8 @@ plot(tree1,edge.color = colo,edge.width=1.5)
 plotinfo <- get("last_plot.phylo", envir = .PlotPhyloEnv)
 points(plotinfo$xx[4]+0.09,plotinfo$yy[4],col="blue",cex=3,lwd=1.5)
 points(plotinfo$xx[2]+0.09,plotinfo$yy[2],col="blue",cex=3,lwd=1.5)
-```
 
-## Shifting node ages {#nodes}
-The argument `si2` specify the proportion of internal nodes whose age should be shifted. Nodes are randomly sampled within the tree, excluding the tree root. For each of them, the new age is derived from a random uniform distribution ranging between the age of the ancestor and the age of the closest descendant.
-
-```{r echo=3,fig.dim=c(6,3), message=FALSE, warning=FALSE, dpi=200, out.width='98%',fig.align="center"}
+## ----echo=3,fig.dim=c(6,3), message=FALSE, warning=FALSE, dpi=200, out.width='98%',fig.align="center"----
 {set.seed(14)
 tree->tree2
 data.frame(tree$edge,nodeHeights(tree),tree$edge.length)->nodedge
@@ -185,11 +154,8 @@ axisPhylo(tck=-0.02,cex.axis=0.8)
 plot(tree2,edge.color = "gray40",edge.width=1.5)
 nodelabels(node=N,bg="red",frame="circle",text=rep("",length(N)),cex=.5)
 axisPhylo(tck=-0.02,cex.axis=0.8)
-```
 
-
-## Guided examples
-```{r message=FALSE, warning=FALSE}
+## ----message=FALSE, warning=FALSE---------------------------------------------
 # load the RRphylo example dataset including Felids tree
 data("DataFelids")
 DataFelids$treefel->tree
@@ -198,7 +164,4 @@ DataFelids$treefel->tree
 # and also keeping the genus Panthera monophyletic
 swapONE(tree,si=0.5,si2=0.5,node=131,plot.swap = FALSE)->sw
 
-```
 
-## References
-Kuhner, M. K. & Felsenstein, J. (1994). A simulation comparison of phylogeny algorithms under equal and unequal evolutionary rates, Molecular Biology and Evolution, 11: 459-468.
