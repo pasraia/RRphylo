@@ -6,16 +6,15 @@ deg2rad <- function(deg) (deg * pi)/(180)
 
 rad2deg <- function(rad)  (rad * 180)/(pi)
 
-traitgram = function(
-  x, phy,
-  xaxt='s',
-  underscore = FALSE,
-  show.names = TRUE,
-  show.xaxis.values = TRUE,
-  method = c('ML','pic'),
-  col=NULL,
-  lwd=NULL,
-  mgp=NULL,...)
+traitgram <- function(x, phy,
+                      xaxt='s',
+                      underscore = FALSE,
+                      show.names = TRUE,
+                      show.xaxis.values = TRUE,
+                      method = c('ML','pic'),
+                      col=NULL,
+                      lwd=NULL,
+                      mgp=NULL,...)
 {
 
   method <- match.arg(method)
@@ -40,13 +39,11 @@ traitgram = function(
     xx = xx[match(phy$tip.label,names(xx))]
   } else umar = 0.1
 
-  lmar = 0.2
-  if (xaxt=='s') if (show.xaxis.values) lmar = 1 else lmar = 0.5
   xanc <- ape::ace(xx, phy, method=method)$ace
   xall = c(xx,xanc)
 
-  a0 = ages[phy$edge[,1]]
-  a1 = ages[phy$edge[,2]]
+  a0 = max(ages)-ages[phy$edge[,1]]
+  a1 = max(ages)-ages[phy$edge[,2]]
   x0 = xall[phy$edge[,1]]
   x1 = xall[phy$edge[,2]]
 
@@ -56,10 +53,6 @@ traitgram = function(
     ylim = c(min(ages),max(ages)*(1+maxNameLength/50))
     if (!underscore) names(xx) = gsub('_',' ',names(xx))
   } else ylim = range(ages)
-
-  if(is.null(mgp)) magp<-NULL else{
-    mgp->magp
-  }
 
   if(is.null(col)) colo<-par("fg") else{
     col->colo
@@ -74,43 +67,44 @@ traitgram = function(
     rownames(dato)->names(x1)->names(x0)->names(a1)->names(a0)->names(colo)
   }
 
-  par(mar = c(3, 2.5, 2, 1))
-  plot(range(c(a0,a1)),range(c(x0,x1)),
+  plot.args<-list(...)
 
-       type='n',xaxt='n',yaxt='n',
-       xlab='',ylab='',bty='n',cex.axis=0.8)
-  if (xaxt=='s') if (show.xaxis.values) axis(1,labels=TRUE,mgp=magp) else axis(1,labels=FALSE,mgp=magp)
+  if(!"xlab"%in%names(plot.args)) plot.args$xlab<-""
+  if(!"ylab"%in%names(plot.args)) plot.args$ylab<-""
+  if(!"bty"%in%names(plot.args)) plot.args$bty<-"n"
+  if(!"cex.axis"%in%names(plot.args)) plot.args$cex.axis<-0.8
+  if(!"yaxt"%in%names(plot.args)) plot.args$yaxt<-"n"
+  if(!"lwd"%in%names(plot.args)) plot.args$lwd<-2
 
-  if(is.null(lwd)) linwd<-1 else{
-    lwd->linwd
-    linwd[match(names(x1),names(linwd))]->linwd
-  }
+  do.call(plot,c(list(x=NA,xlim=rev(range(c(a0,a1))),ylim=range(c(x0,x1))),plot.args))
+  do.call(segments,c(list(x0=a0,y0=x0,x1=a1,y1=x1,col=colo),
+                     plot.args[which(names(plot.args)%in%c("lwd","lty","lend","ljoin","lmitre"))]))
 
-  segments(a0,x0,a1,x1,col=colo,lwd=linwd)
 
   if (show.names) {
     text(max(ages),sort(xx),
          labels = names(xx)[order(xx)],
          adj = -0,
          srt=90,
-         cex=.3)
+         cex=0.3)
   }
 
   return(data.frame(a1,x1))
 }
 
-Plot_ConvexHull<-function(xcoord, ycoord, lcolor,lwd=NULL, lty=NULL,col.p=NULL){
+Plot_ConvexHull<-function(xcoord, ycoord,...){
   hpts <- chull(x = xcoord, y = ycoord)
   hpts <- c(hpts, hpts[1])
-  lines(xcoord[hpts], ycoord[hpts], col = lcolor,lwd=lwd, lty=lty)
-  polygon(xcoord[hpts], ycoord[hpts], col=col.p, border=NA)
+
+  poly.args<-list(...)
+  do.call(polygon,c(list(x=xcoord[hpts],y=ycoord[hpts]),poly.args))
 }
 
 dosur <- function(scores,pcs,sel=NULL,mshape,radius=0){
   if(is.null(sel)==TRUE) {
-    temp<-Morpho::showPC(scores,pcs,mshape)
+    temp<-Morpho::restoreShapes(scores,pcs,mshape)
   } else {
-    temp<-Morpho::showPC(scores[sel],pcs[,sel],mshape)
+    temp<-Morpho::restoreShapes(scores[sel],pcs[,sel],mshape)
   }
   mshape<-Rvcg::vcgBallPivoting(mshape, radius = radius)
   sur<-mshape
@@ -227,4 +221,3 @@ localmeshdiff <- function(mesh1, mesh2, ploton, paltot = rainbow(200),
     return(list(ash1 = area_shape1, ash2 = area_shape2,
                 dareas = diff_areas, mesh = mesh))
 }
-

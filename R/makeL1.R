@@ -21,11 +21,9 @@
 makeL1<-function (tree)
 {
 
-  if(!identical(tree$tip.label,tips(tree,(Ntip(tree)+1)))){
-    data.frame(tree$tip.label,N=seq(1,Ntip(tree)))->dftips
-    tree$tip.label<-tips(tree,(Ntip(tree)+1))
-    data.frame(dftips,Nor=match(dftips[,1],tree$tip.label))->dftips
-    tree$edge[match(dftips[,2],tree$edge[,2]),2]<-dftips[,3]
+  if(!identical(tree$edge[tree$edge[,2]<=Ntip(tree),2],seq(1,Ntip(tree)))){
+    tree$tip.label<-tree$tip.label[tree$edge[tree$edge[,2]<=Ntip(tree),2]]
+    tree$edge[tree$edge[,2]<=Ntip(tree),2]<-seq(1,Ntip(tree))
   }
   t <- tree
   internals <- unique(c(t$edge[, 1], t$edge[, 2][which(t$edge[,
@@ -64,9 +62,8 @@ makeL1<-function (tree)
     d <- data.frame(L1.match, br.len)
     L1[match(pathN[[j]][length(pathN[[j]])],rownames(L1)), match(d[, 1], colnames(L1))] <- d[, 2]
   }
-  if (is.null(t$root.edge) || t$root.edge == 0)
-    L1[, 1] <- 1
-  else L1[, 1] <- t$root.edge
+  if (is.null(tree$root.edge) || tree$root.edge==0) L1[, 1] <- median(tree$edge.length) else L1[, 1] <- tree$root.edge
   L1[which(is.na(L1))] <- 0
+  L1[match(unique(t$edge[,1]),rownames(L1)),match(unique(t$edge[,1]),colnames(L1))]->L1
   return(L1)
 }

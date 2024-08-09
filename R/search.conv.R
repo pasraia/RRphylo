@@ -4,7 +4,7 @@
 #'   states.
 #' @usage search.conv(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
 #'   min.dim=NULL,max.dim=NULL,min.dist=NULL,declust=FALSE,nsim=1000,rsim=1000,
-#'    clus=.5,foldername=NULL,filename)
+#'   clus=0.5,filename=NULL)
 #' @param RR an object produced by \code{\link{RRphylo}}. This is not indicated
 #'   if convergence among states is tested.
 #' @param tree a phylogenetic tree. The tree needs not to be ultrametric or
@@ -60,14 +60,12 @@
 #'   distribution of theta values. It is set at 1000 by default.
 #' @param clus the proportion of clusters to be used in parallel computing. To
 #'   run the single-threaded version of \code{search.conv} set \code{clus} = 0.
-#' @param foldername has been deprecated; please see the argument
-#'   \code{filename} instead.
-#' @param filename a character indicating the name of the pdf file and the path
-#'   where it is to be saved. If no path is indicated the file is stored in the
-#'   working directory
+#' @param filename is deprecated. \code{search.conv} does not return plots
+#'  anymore, check the function \code{\link{plotConv}} instead.
 #' @export
 #' @seealso \href{../doc/search.conv.html}{\code{search.conv} vignette}
-#' @importFrom grDevices chull
+#' @seealso \href{../doc/Plotting-tools.html}{\code{plotConv} vignette}
+#' @importFrom grDevices chull rgb
 #' @importFrom graphics axis layout lines segments
 #' @importFrom stats TukeyHSD aov princomp
 #' @importFrom ape vcv cophenetic.phylo
@@ -89,32 +87,15 @@
 #'   from group centroids}: smaller average distances mean less variable
 #'   phenotypes within the pair. }
 #' @return If convergence between (or within a single state) states is tested,
-#'   the function returns a dataframe including for each pair of states (or
-#'   single state): \itemize{ \item ang.state: the mean theta angle between
-#'   species belonging to different states (or within a single state). \item
-#'   ang.state.time: the mean of theta angle between species belonging to
-#'   different states (or within a single state) divided by time distance. \item
-#'   p.ang.state: the p-value computed for ang.state. \item p.ang.state.time:
-#'   the p-value computed for ang.state.time. }
-#' @details Regardless the case (either 'state' or 'clade'), the function stores
-#'   a plot into the folder specified by \code{filename}. If convergence among
-#'   clades is tested, the clade pair plotted corresponds to those clades with
-#'   the smallest \code{$average distance from group centroid}. The figure shows
-#'   the Euclidean distances computed between the MRCAs of the clades and the
-#'   mean Euclidean distance computed between all the tips belonging to the
-#'   converging clades, as compared to the distribution of these same figures
-#'   across the rest of the tree. Furthermore, the function stores the PC1/PC2
-#'   plot obtained by PCA of the species phenotypes. Convergent clades are
-#'   indicated by colored convex hulls. Large colored dots represent the mean
-#'   phenotypes per clade (i.e. their group centroids). Eventually, a modified
-#'   traitgram plot is produced, highlighting the branches of the clades found
-#'   to converge. In both PCA and traitgram, asterisks represent the ancestral
-#'   phenotypes of the individual clades. If convergence among states is tested,
-#'   the function produces a PC plot with colored convex hulls enclosing species
-#'   belonging to different states. Furthermore, it generates circular plots of
-#'   the mean angle between states (blue lines) and the range of random angles
-#'   (gray shaded area). The p-value for the convergence test is printed within
-#'   the circular plots.
+#'   the function returns a list including: \itemize{\item\strong{state.res} a
+#'   dataframe including for each pair of states (or single state): \itemize{
+#'   \item ang.state: the mean theta angle between species belonging to
+#'   different states (or within a single state). \item ang.state.time: the mean
+#'   of theta angle between species belonging to different states (or within a
+#'   single state) divided by time distance. \item p.ang.state: the p-value
+#'   computed for ang.state. \item p.ang.state.time: the p-value computed for
+#'   ang.state.time.}} \itemize{\item\strong{plotData} a dataframe including
+#'   data to plot the results via \code{\link{plotConv}}}.
 #' @author Silvia Castiglione, Carmela Serio, Pasquale Raia, Alessandro
 #'   Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
 #'   Carotenuto, Paolo Piras, Davide Tamagnini
@@ -136,24 +117,19 @@
 #'
 #' ## Case 1. searching convergence between clades
 #' # by setting min.dist as node distance
-#' search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="node9",
-#'             filename = paste(tempdir(), "SCclade_nd", sep="/"),clus=cc)
+#' search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="node9",clus=cc)
 #' # by setting min.dist as time distance
-#' search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="time38",
-#'             filename = paste(tempdir(), "SCclade_td", sep="/"),clus=cc)
+#' search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="time38",clus=cc)
 #'
 #' ## Case 2. searching convergence within a single state
-#' search.conv(tree=treefel, y=PCscoresfel, state=statefel,declust=TRUE,
-#'             filename = paste(tempdir(), "SCstate", sep="/"),clus=cc)
+#' search.conv(tree=treefel, y=PCscoresfel, state=statefel,declust=TRUE,clus=cc)
 #'   }
 
 search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
                       min.dim=NULL,max.dim=NULL,min.dist=NULL,
-                      declust=FALSE,nsim=1000,rsim=1000,clus=.5,foldername=NULL,
-                      filename)
+                      declust=FALSE,nsim=1000,rsim=1000,clus=0.5,filename=NULL)
 {
   # require(ape)
-  # require(geiger)
   # require(phytools)
   # require(foreach)
   # require(doParallel)
@@ -184,10 +160,8 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
          call. = FALSE)
   }
 
-  if(!missing(foldername)){
-    stop("argument foldername is deprecated; please use filename instead.",
-            call. = FALSE)
-  }
+  if(!missing(filename))
+    warning("The argument filename is deprecated. Check the function plotConv to plot results",immediate. = TRUE)
 
   phylo.run.test<-function(tree,state,st,nsim=100){
     cophenetic.phylo(tree)->cop
@@ -238,13 +212,14 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
 
     RR$tree->tree1
     RR$aces->RRaces
-    if(is.null(aceV)==FALSE){
+    if(!is.null(aceV)){
       if (inherits(aceV,"data.frame")) aceV <- as.matrix(aceV)
       RRaces[match(rownames(aceV),rownames(RRaces)),]<-aceV
     }
 
     #if (inherits(y,"data.frame"))
-    y <- treedata(tree1, y, sort = TRUE)[[2]]
+    # y <- treedata(tree1, y, sort = TRUE)[[2]]
+    y <- as.matrix(treedataMatch(tree1, y)[[1]])
 
     RR$tip.path->L
     RR$rates->betas
@@ -252,9 +227,8 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
     rbind(RRaces,y)->phen
 
     if(is.null(nodes)){
-      if(is.null(min.dim)) min.dim<-Ntip(tree1)*0.1 else min.dim<-min.dim
-
-      if(is.null(min.dist)) {
+      if(is.null(min.dim)) min.dim<-Ntip(tree1)*0.1
+      if(is.null(min.dist)){
         min.dist<-Ntip(tree1)*0.1
         dist.type<-"node"
       }else{
@@ -266,81 +240,53 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
           dist.type<-"node"
         }
       }
-
-      if(is.null(max.dim))  max.dim<-Ntip(tree1)/5 else max.dim<-max.dim
-
-    }else{
-      distNodes(tree1,nodes)->matDist
-      if(matDist[,1]<Ntip(tree1)*0.15) print("clades are close to each other. Similarity might not represent convergence")
-      if(is.null(min.dim)) min.dim<-min(c(length(tips(tree1,nodes[1])),length(tips(tree1,nodes[2])))) else min.dim<-min.dim
-      if(is.null(min.dist)) min.dist<-matDist[,1] else min.dist<-min.dist
-      if(is.null(max.dim)){
-        if (max(c(length(tips(tree1,nodes[1])),length(tips(tree1,nodes[2]))))>min.dim*2) max.dim<-max(c(length(tips(tree1,nodes[1])),length(tips(tree1,nodes[2])))) else max.dim<-min.dim*2
-      } else max.dim<-max.dim
-    }
-
-
-
-    if(is.null(nodes)){
+      if(is.null(max.dim))  max.dim<-Ntip(tree1)/5
 
       subtrees(tree1)->subT->subTN
-      if(length(sapply(subT,Ntip)>max.dim)>0){
-        subT[-c(which(sapply(subT,Ntip)<min.dim),which(sapply(subT,Ntip)>max.dim))]->subT
-
-      }else{
-        subT[-which(unlist(lapply(subT,Ntip))<min.dim)]->subT
-      }
-
+      if(any(sapply(subT,Ntip)>max.dim))
+        subT[c(which(sapply(subT,Ntip)>=min.dim&sapply(subT,Ntip)<=max.dim))]->subT else
+          subT[which(unlist(lapply(subT,Ntip))>=min.dim)]->subT
       sapply(subT,function(x) getMRCA(tree1,x$tip.label))->names(subT)
-      as.numeric(names(subT))->nod
-      c(nod,Ntip(tree1)+1)->nod
+      c(as.numeric(names(subT)),Ntip(tree1)+1)->nod
       subT[[length(subT)+1]]<-tree1
       names(subT)[length(subT)]<-Ntip(tree1)+1
 
       RRaces[match(nod,rownames(RR$aces)),]->aces
 
-      res<-list()
       if(round((detectCores() * clus), 0)==0) cl<-makeCluster(1, setup_strategy = "sequential") else
         cl <- makeCluster(round((detectCores() * clus), 0), setup_strategy = "sequential")
       registerDoParallel(cl)
       res <- foreach(i = 1:(length(nod)-1),
-                     .packages = c("ape", "geiger", "phytools", "doParallel")) %dopar%
+                     .packages = c("ape", "phytools", "doParallel","RRphylo")) %dopar%
         {
           gc()
           nod[i]->sel1
           tips(tree1,sel1)->tt1
 
-          if(length(which(nod%in%getDescendants(tree1,sel1)))>0)
+          if(any(nod%in%getDescendants(tree1,sel1)))
             nod[-which(nod%in%getDescendants(tree1,sel1))]->mean.sel else
               nod->mean.sel
 
-          if(length(which(mean.sel%in%getMommy(tree1,sel1)))>0)
+          if(any(mean.sel%in%getMommy(tree1,sel1)))
             mean.sel[-which(mean.sel%in%getMommy(tree1,sel1))]->mean.sel else
               mean.sel->mean.sel
           mean.sel[-which(mean.sel==sel1)]->mean.sel
 
           if(dist.type=="time") {
-            distNodes(tree1,sel1)[1:Nnode(tree1),]->distN
+            distNodes(tree1,sel1,clus=cl)[1:Nnode(tree1),]->distN
             distN[,2]->matDist
             distN[,1]->matN
-          }else{
-            distNodes(tree1,sel1)[1:Nnode(tree1),1]->matDist
-          }
+          }else distNodes(tree1,sel1,clus=cl)[1:Nnode(tree1),1]->matDist
 
           matDist->matNod
-          if (length(which(mean.sel %in% names(matDist[which(matDist<min.dist)])))>0) mean.sel[-which(mean.sel %in% names(matDist[which(matDist<min.dist)]))]->mean.sel else mean.sel->mean.sel
+          if (any(mean.sel %in% names(matDist[which(matDist<min.dist)])))
+            mean.sel[-which(mean.sel%in%names(matDist[which(matDist<min.dist)]))]->mean.sel
 
 
-          if(length(mean.sel)==0) {
-            c(dir.diff=NULL,diff=NULL,ang=NULL)->diff.p
-            nDD<-NULL
-            nTT<-NULL
-          }else{
-            nDD<-array()
-            nTT<-array()
+          if(length(mean.sel)>0){
+            nDD<-nTT<-array()
             diff.p<-matrix(ncol=6,nrow=length(mean.sel))
             for(k in 1:length(mean.sel)){
-
               if(dist.type=="time"){
                 matN[match(as.numeric(as.character(mean.sel[k])),names(matN))]->nD
                 matDist[match(as.numeric(as.character(mean.sel[k])),names(matDist))]->nT
@@ -354,35 +300,34 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
 
               tips(tree1,mean.sel[k])->TT
               expand.grid(tt1,TT)->ctt
-              aa<-array()
-              for(g in 1:dim(ctt)[1]){
-                phen[match(c(as.character(ctt[g,1]),as.character(ctt[g,2])),rownames(phen)),]->ppTT
-                as.matrix(ppTT)->ppTT
-                aa[g] <- rad2deg(acos((ppTT[1,]%*%ppTT[2,])/(unitV(ppTT[1,]) *unitV(ppTT[2,]))))
-              }
+              aa<-sapply(1:nrow(ctt),function(g){
+                as.matrix(phen[match(c(as.character(ctt[g,1]),as.character(ctt[g,2])),rownames(phen)),])->ppTT
+                ((ppTT[1,]%*%ppTT[2,])/(unitV(ppTT[1,]) *unitV(ppTT[2,])))->ppA
+                if((ppA-1)>0) ppA<-1
+                rad2deg(acos(ppA))
+                # rad2deg(acos((ppTT[1,]%*%ppTT[2,])/(unitV(ppTT[1,]) *unitV(ppTT[2,]))))
+              })
               mean(aa)->ang.tip
-
 
               aces[which(rownames(aces)%in%c(sel1,mean.sel[k])),]->ac
               rad2deg(acos((ac[1,] %*% ac[2,])/(unitV(ac[1,]) *unitV(ac[2,]))))->ang.ac
 
               c(dir.diff=ang.tip/nT,diff=(ang.tip+ang.ac)/nT,ang=ang.ac,ang.tip=ang.tip,nD=nD,nT=nT)->diff.p[k,]
-
-
             }
             rownames(diff.p)<-mean.sel
             colnames(diff.p)<-c("ang.bydist.tip","ang.conv","ang.ace","ang.tip","nod.dist","time.dist")
 
+          }else{
+            c(dir.diff=NULL,diff=NULL,ang=NULL)->diff.p
+            nDD<-NULL
+            nTT<-NULL
           }
-
           diff.p->mean.diff
 
-          res[[i]]<-list(matNod,mean.diff,mean.sel,nDD,nTT)
+          list(matNod,mean.diff,mean.sel,nDD,nTT)
         }
 
       stopCluster(cl)
-
-
 
       lapply(res,"[[",1)->matNod
       lapply(res,"[[",2)->mean.diff
@@ -391,17 +336,19 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       lapply(res,"[[",5)->nT.sel
 
 
-      nod[1:(length(nod)-1)]->names(mean.diff)->names(matNod)->names(nD.sel)->names(nT.sel)
+      names(mean.diff)<-names(matNod)<-names(nD.sel)<-names(nT.sel)<-nod[1:(length(nod)-1)]
 
       sapply(mean.diff,is.null)->nulls
-      if(length(which(nulls == TRUE))==length(mean.diff)) stop("There are no nodes distant enough to search convergence, consider using a smaller min.dist")
+      if(length(which(nulls))==length(mean.diff))
+        stop("There are no nodes distant enough to search convergence, consider using a smaller min.dist")
 
-      if(length(which(nulls==TRUE)>0)) mean.diff[-which(nulls==TRUE)]->mean.diff
-      if(length(which(nulls==TRUE)>0)) mean.sel[-which(nulls==TRUE)]->mean.sel
-      if(length(which(nulls==TRUE)>0)) matNod[-which(nulls==TRUE)]->matNod
-      if(length(which(nulls==TRUE)>0)) nD.sel[-which(nulls==TRUE)]->nD.sel
-      if(length(which(nulls==TRUE)>0)) nT.sel[-which(nulls==TRUE)]->nT.sel
-
+      if(any(nulls)){
+        mean.diff[which(!nulls)]->mean.diff
+        mean.sel[which(!nulls)]->mean.sel
+        matNod[which(!nulls)]->matNod
+        nD.sel[which(!nulls)]->nD.sel
+        nT.sel[which(!nulls)]->nT.sel
+      }
 
       mean.aRd<-array()
       AD<-matrix(ncol=5,nrow=rsim)
@@ -409,7 +356,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
         tree1$tip.label[sample(seq(1:length(tree1$tip.label)),2)]->tsam
 
         phen[match(c(as.character(tsam[1]),as.character(tsam[2])),rownames(phen)),]->ppt
-        tt <- rad2deg(acos((ppt[1,]%*%ppt[2,])/(unitV(ppt[1,]) *unitV(ppt[2,]))))
+        rad2deg(acos((ppt[1,]%*%ppt[2,])/(unitV(ppt[1,]) *unitV(ppt[2,]))))->tt
         getMommy(tree1,which(tree1$tip.label==as.character(tsam[1])))[1]->n1
         getMommy(tree1,which(tree1$tip.label==as.character(tsam[2])))[1]->n2
         phen[match(c(n1,n2),rownames(phen)),]->pp
@@ -417,39 +364,34 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
 
         dist.nodes(tree1)[n1,n2]->dt
 
-
         paste(n1,n2,sep="/")->cb
         c(diff=(aa+tt)/dt,dist=dt,n1=n1,n2=n2,combo=cb)->AD[h,]
         tt/dt->mean.aRd[h]
       })
 
-
       as.data.frame(AD)->AD
-      as.numeric(as.character(AD[,1]))->AD[,1]
-      as.numeric(as.character(AD[,2]))->AD[,2]
-      if(length(which(is.na(AD[,1])))>0){
-        which(is.na(AD[,1]))->outs
-        AD[-outs,]->AD
-        mean.aRd[-outs]->mean.aRd
+      apply(AD[,1:2],2,function(k) as.numeric(as.character(k)))->AD[,1:2]
+      # as.numeric(as.character(AD[,1]))->AD[,1]
+      # as.numeric(as.character(AD[,2]))->AD[,2]
+      if(any(is.na(AD[,1]))){
+        AD[which(!is.na(AD[,1])),]->AD
+        mean.aRd[which(!is.na(AD[,1]))]->mean.aRd
       }
 
-      if(length(which(AD[,1]=="Inf"))>0){
-        which(AD[,1]=="Inf")->outs
-        AD[-outs,]->AD
-        mean.aRd[-outs]->mean.aRd
+      if(any(AD[,1]=="Inf")>0){
+        AD[which(!AD[,1]=="Inf"),]->AD
+        mean.aRd[which(!AD[,1]=="Inf")]->mean.aRd
       }
 
       colnames(AD)<-c("ang.by.dist","dist","n1","n2","combo")
 
-      res.ran <- list()
       if(round((detectCores() * clus), 0)==0) cl<-makeCluster(1, setup_strategy = "sequential") else
         cl <- makeCluster(round((detectCores() * clus), 0), setup_strategy = "sequential")
       registerDoParallel(cl)
       res.ran <- foreach(k = 1:nsim,
-                         .packages = c("ape", "geiger", "phytools", "doParallel")) %dopar%
+                         .packages = c("ape", "phytools", "doParallel","RRphylo")) %dopar%
         {
           gc()
-
           mean.diffR<-list()
           for(u in 1:length(mean.diff)){
             names(mean.diff)[[u]]->sel1
@@ -460,22 +402,25 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
               msel[j]->sel2
 
               as.numeric(names(L1[,which(colnames(L1)==sel1)][which(L1[,which(colnames(L1)==sel1)]!=0)]))[-1]->des
-              ldes<-array()
-              for(i in 1:length(des)){
-                length(which(des%in%getMommy(tree1,des[i])))->ldes[i]
-              }
+              # ldes<-array()
+              # for(i in 1:length(des)){
+              #   length(which(des%in%getMommy(tree1,des[i])))->ldes[i]
+              # }
+              ldes<-sapply(1:length(des),function(i) length(which(des%in%getMommy(tree1,des[i]))))
               des[which(ldes<=1)]->des1
 
               as.numeric(names(L1[,which(colnames(L1)==sel2)][which(L1[,which(colnames(L1)==sel2)]!=0)]))[-1]->des
-              ldes<-array()
-              for(i in 1:length(des)){
-                length(which(des%in%getMommy(tree1,des[i])))->ldes[i]
-              }
+              # ldes<-array()
+              # for(i in 1:length(des)){
+              #   length(which(des%in%getMommy(tree1,des[i])))->ldes[i]
+              # }
+              ldes<-sapply(1:length(des),function(i) length(which(des%in%getMommy(tree1,des[i]))))
               des[which(ldes<=1)]->des2
 
               expand.grid(c(getMommy(tree1,sel1)[1:2],des1,sel1),c(getMommy(tree1,sel2)[1:2],des2,sel2))->ee
-              as.numeric(as.character(ee[,2]))->ee[,2]
-              as.numeric(as.character(ee[,1]))->ee[,1]
+              apply(ee,2,function(i) as.numeric(as.character(i)))->ee
+              # as.numeric(as.character(ee[,2]))->ee[,2]
+              # as.numeric(as.character(ee[,1]))->ee[,1]
               ee[,c(2,1)]->e2
               colnames(e2)<-colnames(ee)
               rbind(ee,e2)->ex
@@ -492,8 +437,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
             rownames(mean.diffR[[u]])<-names(msel)
           }
           names(mean.diffR)<-names(mean.diff)
-          mean.diffR->res.ran[[k]]
-
+          mean.diffR #->res.ran[[k]]
         }
       stopCluster(cl)
 
@@ -501,20 +445,18 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
 
       diff.rank<-list()
       for(i in 1:length(mean.diff)){
-        rnk<-matrix(ncol=2,nrow=dim(mean.diff[[i]])[1])
-        for(k in 1:dim(mean.diff[[i]])[1]){
-          apply(rbind(mean.diff[[i]][k,c(1,2)],do.call(rbind,lapply(lapply(res.ran,"[[",i),
-                                                                    function(x) x[k,c(1,2)]))[1:(nsim-1),]),2, function(x) rank(x)[1]/nsim )->rnk[k,]
+        rnk<-sapply(1:nrow(mean.diff[[i]]),function(k){
+          do.call(rbind,lapply(res.ran, function(xx) xx[[i]][k,c(1,2)]))[-nsim,]->kran
+          apply(rbind(mean.diff[[i]][k,c(1,2)],kran),2,function(x) rank(x)[1]/nsim)
 
-        }
-        data.frame(mean.diff[[i]],rnk)->diff.rank[[i]]
+        })
+        data.frame(mean.diff[[i]],t(rnk))->diff.rank[[i]]
         colnames(diff.rank[[i]])[c(7,8)]<-c("p.ang.bydist","p.ang.conv")
-
+        abs(diff.rank[[i]][order(abs(diff.rank[[i]][,1])),])->diff.rank[[i]]
       }
       names(mean.diff)->names(diff.rank)
 
-      lapply(diff.rank,function(x) abs(x[order(abs(x[,1])),]))->diff.rank
-
+      # lapply(diff.rank,function(x) abs(x[order(abs(x[,1])),]))->diff.rank
 
       as.data.frame(do.call(rbind,lapply(diff.rank,function(x) cbind(rownames(x)[1],x[1,]))))->df
       colnames(df)[1]<-"node"
@@ -530,7 +472,8 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
 
         i=1
         while(i<nrow(sc.sel)){
-          rbind(data.frame(n1=rownames(sc.sel)[i],n2=sc.sel[i,1]),data.frame(n1=sc.sel[,1],n2=rownames(sc.sel)))->dat
+          rbind(data.frame(n1=rownames(sc.sel)[i],n2=sc.sel[i,1]),
+                data.frame(n1=sc.sel[,1],n2=rownames(sc.sel)))->dat
           which(duplicated(dat))-1->out
           if(length(out>0))sc.sel[-out,]->sc.sel
           i<-i+1
@@ -625,6 +568,15 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       #####################################################################
     }else{
 
+      distNodes(tree1,nodes)->matDist
+      if(matDist[,1]<Ntip(tree1)*0.15) print("clades are close to each other. Similarity might not represent convergence")
+      if(is.null(min.dim)) min.dim<-min(c(length(tips(tree1,nodes[1])),length(tips(tree1,nodes[2]))))
+      if(is.null(min.dist)) min.dist<-matDist[,1]
+      if(is.null(max.dim)){
+        if (max(c(length(tips(tree1,nodes[1])),length(tips(tree1,nodes[2]))))>min.dim*2)
+          max.dim<-max(c(length(tips(tree1,nodes[1])),length(tips(tree1,nodes[2])))) else max.dim<-min.dim*2
+      }
+
       nodes[1]->sel1
       nodes[2]->sel2
 
@@ -659,7 +611,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
         cl <- makeCluster(round((detectCores() * clus), 0), setup_strategy = "sequential")
       registerDoParallel(cl)
       res <- foreach(i = 1:length(nod),
-                     .packages = c("ape", "geiger", "phytools", "doParallel")) %dopar%
+                     .packages = c("ape", "phytools", "doParallel","RRphylo")) %dopar%
         {
 
           gc()
@@ -687,13 +639,16 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
 
 
               tips(tree1,mean.sel[k])->TT
-              expand.grid(tt1,TT)->ctt
-              aa<-array()
-              for(g in 1:dim(ctt)[1]){
-                phen[match(c(as.character(ctt[g,1]),as.character(ctt[g,2])),rownames(phen)),]->ppTT
-                as.matrix(ppTT)->ppTT
-                aa[g] <- rad2deg(acos((ppTT[1,]%*%ppTT[2,])/(unitV(ppTT[1,]) *unitV(ppTT[2,]))))
-              }
+              expand.grid(tt1,TT, stringsAsFactors = FALSE)->ctt
+
+              aa<-sapply(1:nrow(ctt),function(g){
+                as.matrix(phen[match(c(as.character(ctt[g,1]),as.character(ctt[g,2])),rownames(phen)),])->ppTT
+                ((ppTT[1,]%*%ppTT[2,])/(unitV(ppTT[1,]) *unitV(ppTT[2,])))->ppA
+                if((ppA-1)>0) ppA<-1
+                rad2deg(acos(ppA))
+                # rad2deg(acos((ppTT[1,]%*%ppTT[2,])/(unitV(ppTT[1,]) *unitV(ppTT[2,]))))
+              })
+
               mean(aa)->ang.tip
 
 
@@ -778,7 +733,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
         cl <- makeCluster(round((detectCores() * clus), 0), setup_strategy = "sequential")
       registerDoParallel(cl)
       res.ran <- foreach(k = 1:nsim,
-                         .packages = c("ape", "geiger", "phytools", "doParallel")) %dopar%
+                         .packages = c("ape", "phytools", "doParallel","RRphylo")) %dopar%
         {
           gc()
 
@@ -957,79 +912,6 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       }
 
     }
-
-
-    #### Plot preparation ####
-    aceRR <- (L1 %*% betas[1:Nnode(tree1), ])
-    y.multi <- (L %*% betas)
-
-    c(aceRR[,1],y.multi[,1])->phen1
-    rep("gray",Ntip(tree1)+Nnode(tree1))->colo
-    strsplit(names(which.min(res.tot$`average distance from group centroids`)),"/")[[1]]->nn
-    as.numeric(nn)->nn
-    c(getMommy(tree1,nn[1]),getDescendants(tree1,nn[1]))->path1
-    path1[which(path1<(Ntip(tree1)+1))]<-tree1$tip.label[path1[which(path1<(Ntip(tree1)+1))]]
-
-    c(getMommy(tree1,nn[2]),getDescendants(tree1,nn[2]))->path2
-    path2[which(path2<(Ntip(tree1)+1))]<-tree1$tip.label[path2[which(path2<(Ntip(tree1)+1))]]
-
-
-    colo[which(names(phen1)%in%c(nn[1],path1))]<-"#E7298A"
-    colo[which(names(phen1)%in%c(nn[2],path2))]<-"#91003F"
-
-    names(colo)<-names(phen1)
-    linwd<-rep(2,length(colo))
-    linwd[which(colo!="gray")]<-3
-    names(linwd)<-names(colo)
-
-    if(ncol(phen)>nrow(phen)) phen[,1:nrow(phen)]->phen
-    princomp(phen)->a
-    a$scores[order(a$scores[,1]),]->bb
-    suppressWarnings(bb[match(c(nn[1],path1[-which(as.numeric(path1)<=nn[1])]),rownames(bb)),]->a1)
-    suppressWarnings(bb[match(c(nn[2],path2[-which(as.numeric(path2)<=nn[2])]),rownames(bb)),]->a2)
-
-    dist(RRaces)->dist.ace
-    dist(y)->dist.Y
-    as.matrix(dist.Y)->dist.Y
-    as.matrix(dist.ace)->dist.ace
-    mean(dist.Y[match(tips(tree1,nn[1]),rownames(dist.Y)),match(tips(tree1,nn[2]),colnames(dist.Y))])->dist.Ynn
-    dist.ace[match(nn[1],colnames(dist.ace)),][which(names(dist.ace[match(nn[1],colnames(dist.ace)),])%in%nn[2])]->dist.nod
-
-
-    pdf(file = paste(filename,".pdf",sep=""))
-
-    layout(matrix(c(1,3,2,4),ncol=2,nrow=2, byrow = TRUE),widths = c(1,2))
-
-    par(mar = c(3, 1, 2, 1))
-    hist(dist.ace[lower.tri(dist.ace)],xlab="",ylab="",axes=FALSE,main="", col=rgb(58/255,137/255,255/255,1))
-    title(main="ace distances",line=0.5,cex.main=1.5)
-    axis(1,mgp=c(1,0.5,0))
-    abline(v=dist.nod,col=rgb(255/255,213/255,0/255,1),lwd=4)
-
-
-    par(mar = c(3, 1, 2, 1))
-    hist(dist.Y[lower.tri(dist.Y)],main="",xlab="",ylab="",axes=FALSE,col=rgb(58/255,137/255,255/255,1))
-    title(main="tip distances",line=0.5,cex.main=1.5)
-    axis(1,mgp=c(1,0.5,0))
-    abline(v=dist.Ynn,col=rgb(255/255,213/255,0/255,1),lwd=3)
-
-    par(mar = c(3, 2.5, 2, 1))
-    plot(bb[-match(nn, rownames(bb)),1:2], ylab="PC2",xlab="PC1",cex=1.5,mgp=c(1.5,0.5,0),font.lab=2,pch=21,col="black",bg="gray",asp=1)
-    Plot_ConvexHull(xcoord = a1[,1], ycoord = a1[,2], lcolor = "#E7298A",lwd=3,lty=2, col.p = rgb(212/255,185/255,218/255,0.5))
-    Plot_ConvexHull(xcoord = a2[,1], ycoord = a2[,2], lcolor = "#91003F",lwd=3,lty=2, col.p = rgb(212/255,185/255,218/255,0.5))
-    points(cluster::pam(a1, 1)$medoids,xlim=range(bb[,1]),ylim=range(bb[,2]),bg="#E7298A",type = "p",pch=21,col="black", cex=2.5)
-    points(cluster::pam(a2, 1)$medoids,xlim=range(bb[,1]),ylim=range(bb[,2]),bg="#91003F",type = "p",pch=21,col="black", cex=2.5)
-    points(a1[1,1],a1[1,2],xlim=range(bb[,1]),ylim=range(bb[,2]),col="black",type = "p",pch=8, cex=1.5,lwd=2)
-    points(a2[1,1],a2[1,2],xlim=range(bb[,1]),ylim=range(bb[,2]),col="black",type = "p",pch=8, cex=1.5,lwd=2)
-
-
-
-    par(mar = c(2, 2.5, 2, 1))
-    suppressWarnings(traitgram(y.multi[,1],tree1,col=colo, method = 'ML',show.names = FALSE,lwd=linwd,mgp=c(0,0.5,0)))->traitres
-    points(traitres[match(nn,rownames(traitres)),],cex=1.5,col="black",pch=8,lwd=2)
-
-    dev.off()
-
   }else{
 
     if(!identical(tree$tip.label,tips(tree,(Ntip(tree)+1)))){
@@ -1041,11 +923,14 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
 
     tree->tree1
     #if (inherits(y,"data.frame"))
-    y <- treedata(tree1, y, sort = TRUE)[[2]]
+    # y <- treedata(tree1, y, sort = TRUE)[[2]]
+    y <- as.matrix(treedataMatch(tree1, y)[[1]])
 
     state[match(rownames(y),names(state))]->state
-    if("nostate"%in%state) state[-which(state=="nostate")]->state.real else state->state.real
-    if(sort(table(state.real),decreasing = TRUE)[1]>Ntip(tree1)*0.5) warning("one or more states apply to a large portion of the tree, this might be inappropriate for testing convergence")
+    if("nostate"%in%state) state[which(state!="nostate")]->state.real else state->state.real
+    if(max(table(state.real))>Ntip(tree1)*0.5)
+      warning("one or more states apply to a large portion of the tree,
+              this might be inappropriate for testing convergence",.immediate=TRUE)
 
     if(("nostate"%in%state)&length(unique(state.real))<2){
       y->yOri
@@ -1053,28 +938,32 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
 
       unique(state.real)->onestate
 
-      if(isFALSE(declust)&(length(which(state==onestate))>3))
-        if(phylo.run.test(tree1,state,onestate)$p<=0.05) print(paste("species within state",onestate,"are phylogenetically clustered; consider running search.conv with declust=TRUE"))
-
-      if(declust&(length(which(state==onestate))>3)){
-        declusterize(tree1,state,onestate)->decl
-        decl->remtips
-        if(!any(is.na(remtips)>0)){
-          y[-match(remtips,rownames(y)),]->y
-          state[-match(remtips,names(state))]->state
-          #drop.tip(tree1,remtips)->tree1
+      if(table(state.real)>3){
+        if(declust){
+          declusterize(tree1,state,onestate)->decl
+          decl->remtips
+          if(!any(is.na(remtips)>0)){
+            y[-match(remtips,rownames(y)),]->y
+            state[-match(remtips,names(state))]->state
+            #drop.tip(tree1,remtips)->tree1
+          }
+        }else{
+          if(phylo.run.test(tree1,state,onestate)$p<=0.05)
+            print(paste("species within state",onestate,
+                        "are phylogenetically clustered; consider running search.conv with declust=TRUE"))
         }
       }
 
       cophenetic.phylo(tree1)->cop
       mean(apply(y[which(state==onestate),],1,unitV))->vs1->vs2
       t(combn(names(state[which(state==onestate)]),2))->ctt
-      aa<-array()
-      dt<-array()
-      for(g in 1:dim(ctt)[1]){
-        y[match(c(as.character(ctt[g,1]),as.character(ctt[g,2])),rownames(y)),]->ppTT
-        as.matrix(ppTT)->ppTT
-        aa[g] <- rad2deg(acos((ppTT[1,]%*%ppTT[2,])/(unitV(ppTT[1,]) *unitV(ppTT[2,]))))
+      aa<-dt<-array()
+      for(g in 1:nrow(ctt)){
+        as.matrix(y[match(as.character(ctt[g,1:2]),rownames(y)),])->ppTT
+        ((ppTT[1,]%*%ppTT[2,])/(unitV(ppTT[1,]) *unitV(ppTT[2,])))->ppA
+        if((ppA-1)>0) ppA<-1
+        aa[g] <- rad2deg(acos(ppA))
+        # aa[g] <- rad2deg(acos((ppTT[1,]%*%ppTT[2,])/(unitV(ppTT[1,])*unitV(ppTT[2,]))))
         cop[match(as.character(ctt[g,1]),rownames(cop)),match(as.character(ctt[g,2]),rownames(cop))]->dt[g]
       }
       c(mean(aa),mean(aa/dt),vs1,vs2)->ang.by.state
@@ -1088,12 +977,13 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
           gc()
           sample(state,length(which(state==onestate)))->sam
           t(combn(names(sam),2))->ctt
-          aa<-array()
-          dt<-array()
+          aa<-dt<-array()
           for(g in 1:dim(ctt)[1]){
-            y[match(c(as.character(ctt[g,1]),as.character(ctt[g,2])),rownames(y)),]->ppTT
-            as.matrix(ppTT)->ppTT
-            aa[g] <- rad2deg(acos((ppTT[1,]%*%ppTT[2,])/(unitV(ppTT[1,]) *unitV(ppTT[2,]))))
+            as.matrix(y[match(as.character(ctt[g,1:2]),rownames(y)),])->ppTT
+            ((ppTT[1,]%*%ppTT[2,])/(unitV(ppTT[1,]) *unitV(ppTT[2,])))->ppA
+            if((ppA-1)>0) ppA<-1
+            aa[g] <- rad2deg(acos(ppA))
+            #aa[g] <- rad2deg(acos((ppTT[1,]%*%ppTT[2,])/(unitV(ppTT[1,])*unitV(ppTT[2,]))))
             cop[match(as.character(ctt[g,1]),rownames(cop)),match(as.character(ctt[g,2]),rownames(cop))]->dt[g]
           }
           c(mean(aa),mean(aa/dt))->ang.by.stateR
@@ -1101,7 +991,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       stopCluster(cl)
 
 
-      apply(rbind(ang.by.state[1:2],ang.by.stateR[1:(nsim-1),]),2,rank)[1,]/nsim->pval
+      apply(rbind(ang.by.state[1:2],ang.by.stateR[-nsim,]),2,rank)[1,]/nsim->pval
       quantile(ang.by.stateR[,1],c(0.05,0.95))->rlim
 
       c(ang.state=ang.by.state[1],ang.state.time=ang.by.state[2],ang.by.state[c(3,4)],p.ang.state=pval[1],p.ang.state.time=pval[2])->res.tot
@@ -1109,79 +999,34 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       if(res.tot[6]<=0.05) print(paste("species within group", onestate, "converge"))
 
       #### Plot preparation ####
+
       yOri->y
       stateOri->state
-      c(res.tot[1],rlim=rlim[1],res.tot[3:4])->bbb
-      c(bbb,l1=bbb[1]/2,l2=360-(bbb[1]/2),rlim1=bbb[2]/2,
-        rlim2=360-bbb[2]/2,p=res.tot[6])->ccc
-
-
-
-      pdf(file = paste(filename,".pdf",sep=""))
-
-      mat<-matrix(c(1,2),ncol=1,nrow=2,byrow=TRUE)
-      ht<-c(1,1)
-
-      layout(mat,heights = ht)
-
-      c("nostate",names(sort(table(state.real), decreasing = TRUE)))->statetoplot
-      if(ncol(y)>nrow(y)) y[,1:nrow(y)]->ypc else y->ypc
-      princomp(ypc)->compy
-      compy$scores[,1:2]->sco
-      #y[,1:2]->sco
-      sco[match(names(state),rownames(sco)),]->sco
-      RColorBrewer::brewer.pal(3,"Set2")[1]->cols
-      par(mar=c(2.5,2.5,1,1))
-      plot(sco, ylab="PC2",xlab="PC1",cex=1.5,mgp=c(1.5,0.5,0),font.lab=2,xlim=c(range(sco[,1])[1]*1.1,range(sco[,1])[2]),col="white",asp=1)
-      for(h in 1:length(statetoplot)){
-        if(h==1){
-          points(sco[which(state==statetoplot[h]),],pch=21,bg="gray",cex=1.5)
-          Plot_ConvexHull(xcoord=sco[which(state==statetoplot[h]),1], ycoord=sco[which(state==statetoplot[h]),2], lcolor = "#bebebe",lwd=3,lty=2, col.p = paste("#bebebe","4D",sep=""))
-        }else{
-          points(sco[which(state==statetoplot[h]),],pch=21,bg=cols,cex=1.5)
-          Plot_ConvexHull(xcoord=sco[which(state==statetoplot[h]),1], ycoord=sco[which(state==statetoplot[h]),2], lcolor = cols,lwd=3,lty=2, col.p = paste(cols,"4D",sep=""))
-        }
-      }
-      legend(min(sco[,1])*1.1,max(sco[,2])*1.1, legend = statetoplot,fill = c("#bebebe",cols), bg = rgb(0, 0, 0, 0),
-             box.col = rgb(0,0, 0, 0), border = NA, x.intersp = 0.25,y.intersp=0.8)
-
-
-      lp<-seq(0,340,20)
-      lbs<-seq(0,340,20)
-
-      par(cex.axis=.75)
-      plotrix::polar.plot(lengths=c(0,mean(unname(as.matrix(ccc)[c(3,4)])),mean(unname(as.matrix(ccc)[c(3,4)]))),
-                 polar.pos = c(0,ccc[7],ccc[8]),rp.type="p",line.col=rgb(0,0,0,0.6),
-                 poly.col=rgb(127/255,127/255,127/255,0.4),start=90,radial.lim=range(0,max(ccc[c(3,4)])),radial.labels=""
-                 ,boxed.radial = FALSE,mar=c(1,1,2,1),label.pos=lp,labels=lbs)
-      title(main=onestate,cex.main = 2)
-      plotrix::polar.plot(lengths=c(0,ccc[3],ccc[4]),polar.pos = c(0,ccc[5],ccc[6]),
-                 line.col="blue",lwd=4,start=90,add=TRUE,radial.labels="",boxed.radial = FALSE)
-      text(paste("p-value = ",ccc[9]),x=0,y=-max(ccc[c(3,4)])/2.3,cex=1.5,col="red")
-
-      dev.off()
+      reflim<-rlim[1]
+      data.frame(ang=res.tot[1],size.v1=res.tot[3],size.v2=res.tot[4])->bbb
+      data.frame(bbb,ang.l1=bbb[,1]/2,ang.l2=360-(bbb[,1]/2),CI5=reflim/2,
+                 CI95=360-reflim/2)->plotData
 
       res.tot[-c(3,4)]->res.tot
       t(as.data.frame(res.tot))->res.tot
       rownames(res.tot)<-onestate
+      list(state.res=res.tot,plotData=plotData)->res.tot
 
     }else{
 
       combn(unique(state.real),2)->stcomb1
       if("nostate"%in%state) combn(unique(state),2)->stcomb else stcomb1->stcomb
 
-      state2decl<-list()
-      for(k in 1:ncol(stcomb1)){
-        if(any(table(state[which(state%in%stcomb1[,k])])<4)) state2decl[[k]]<-NA else{
+      state2decl<-lapply(1:ncol(stcomb1),function(k){
+        if(any(table(state[which(state%in%stcomb1[,k])])<4)) NA else{
           replace(state,which(state%in%stcomb1[,k]),"A")->f
           replace(f,which(!state%in%stcomb1[,k]),"B")->f
-
-          state2decl[[k]]<-f
+          f
         }
-      }
+      })
 
       if(declust){
-        if(ncol(stcomb1)==1&("nostate"%in%state)==FALSE)
+        if(ncol(stcomb1)==1&!("nostate"%in%state))
           decl<-as.list(rep(NA,ncol(stcomb1))) else {
             decl<-list()
             for(k in 1:ncol(stcomb1)){
@@ -1194,7 +1039,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
                        length(table(state))==length(table(state[-which(names(state)%in%dec)]))) break
                   }else break
                 }),silent=TRUE)->rep.try
-                if(class(rep.try)=="try-error") decl[[k]]<-NA else decl[[k]]<-dec
+                if(inherits(rep.try,"try-error")) decl[[k]]<-NA else decl[[k]]<-dec
                 setTimeLimit(elapsed=Inf)
               }else decl[[k]]<-NA
             }
@@ -1205,10 +1050,11 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
           return(ret)
         })->prt
         if(any(prt<=0.05))
-          for(q in which(prt<=0.05) ) print(paste("species in state",
-                                                  stcomb1[1,q],"and",
-                                                  stcomb1[2,q],
-                                                  "are phylogenetically clustered; consider running search.conv with declust=TRUE"))
+          for(q in which(prt<=0.05) )
+            print(paste("species in state",
+                        stcomb1[1,q],"and",
+                        stcomb1[2,q],
+                        "are phylogenetically clustered; consider running search.conv with declust=TRUE"))
         decl<-as.list(rep(NA,ncol(stcomb1)))
       }
 
@@ -1231,20 +1077,23 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
         mean(apply(tt1,1,unitV))->vs1
         y[which(state==stcomb1[2,i]),]->TT
         mean(apply(TT,1,unitV))->vs2
-        expand.grid(rownames(tt1),rownames(TT))->ctt
-        aa<-array()
-        dt<-array()
+        expand.grid(rownames(tt1),rownames(TT), stringsAsFactors = FALSE)->ctt
+        aa<-dt<-array()
         for(g in 1:dim(ctt)[1]){
-          y[match(c(as.character(ctt[g,1]),as.character(ctt[g,2])),rownames(y)),]->ppTT
-          as.matrix(ppTT)->ppTT
-          aa[g] <- rad2deg(acos((ppTT[1,]%*%ppTT[2,])/(unitV(ppTT[1,]) *unitV(ppTT[2,]))))
+          as.matrix(y[match(as.character(ctt[g,1:2]),rownames(y)),])->ppTT
+          ((ppTT[1,]%*%ppTT[2,])/(unitV(ppTT[1,]) *unitV(ppTT[2,])))->ppA
+          if((ppA-1)>0) ppA<-1
+          aa[g] <- rad2deg(acos(ppA))
+          #aa[g] <- rad2deg(acos((ppTT[1,]%*%ppTT[2,])/(unitV(ppTT[1,])*unitV(ppTT[2,]))))
           cop[match(as.character(ctt[g,1]),rownames(cop)),match(as.character(ctt[g,2]),rownames(cop))]->dt[g]
         }
         c(mean(aa),mean(aa/dt),vs1,vs2)->ang.by.state[i,]
       }
-      data.frame(state1=t(stcomb1)[,1],state2=t(stcomb1)[,2],ang.state=ang.by.state[,1],ang.state.time=ang.by.state[,2],size.v1=ang.by.state[,3],size.v2=ang.by.state[,4])->ang2state
+      data.frame(state1=t(stcomb1)[,1],state2=t(stcomb1)[,2],
+                 ang.state=ang.by.state[,1],ang.state.time=ang.by.state[,2],
+                 size.v1=ang.by.state[,3],size.v2=ang.by.state[,4])->ang2state
 
-      ang2stateR <- list()
+
       if(round((detectCores() * clus), 0)==0) cl<-makeCluster(1, setup_strategy = "sequential") else
         cl <- makeCluster(round((detectCores() * clus), 0), setup_strategy = "sequential")
       registerDoParallel(cl)
@@ -1258,24 +1107,25 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
             sample(state)->state
             y[which(state==stcomb1[1,i]),]->tt1
             y[which(state==stcomb1[2,i]),]->TT
-            expand.grid(rownames(tt1),rownames(TT))->ctt
-            aa<-array()
-            dt<-array()
-            for(g in 1:dim(ctt)[1]){
-              y[match(c(as.character(ctt[g,1]),as.character(ctt[g,2])),rownames(y)),]->ppTT
-              as.matrix(ppTT)->ppTT
-              aa[g] <- rad2deg(acos((ppTT[1,]%*%ppTT[2,])/(unitV(ppTT[1,]) *unitV(ppTT[2,]))))
+            expand.grid(rownames(tt1),rownames(TT), stringsAsFactors = FALSE)->ctt
+            aa<-dt<-array()
+            for(g in 1:nrow(ctt)){
+              as.matrix(y[match(as.character(ctt[g,1:2]),rownames(y)),])->ppTT
+              ((ppTT[1,]%*%ppTT[2,])/(unitV(ppTT[1,]) *unitV(ppTT[2,])))->ppA
+              if((ppA-1)>0) ppA<-1
+              aa[g] <- rad2deg(acos(ppA))
+              #aa[g] <- rad2deg(acos((ppTT[1,]%*%ppTT[2,])/(unitV(ppTT[1,])*unitV(ppTT[2,]))))
               cop[match(as.character(ctt[g,1]),rownames(cop)),match(as.character(ctt[g,2]),rownames(cop))]->dt[g]
             }
             c(mean(aa),mean(aa/dt))->ang.by.stateR[i,]
           }
-          data.frame(state1=t(stcomb1)[,1],state2=t(stcomb1)[,2],ang.state=ang.by.stateR[,1],ang.state.time=ang.by.stateR[,2])->ang2stateR[[j]]
+          data.frame(state1=t(stcomb1)[,1],state2=t(stcomb1)[,2],ang.state=ang.by.stateR[,1],
+                     ang.state.time=ang.by.stateR[,2])
         }
       stopCluster(cl)
-      pval<-matrix(ncol=2,nrow=nrow(ang2state))
-      rlim<-matrix(ncol=2,nrow=nrow(ang2state))
+      pval<-rlim<-matrix(ncol=2,nrow=nrow(ang2state))
       for(k in 1:nrow(ang2state)){
-        apply(rbind(ang2state[k,3:4],do.call(rbind,lapply(ang2stateR,function(x) x[k,3:4]))[1:(nsim-1),]),2,rank)[1,]/nsim->pval[k,]
+        apply(rbind(ang2state[k,3:4],do.call(rbind,lapply(ang2stateR,function(x) x[k,3:4]))[-nsim,]),2,rank)[1,]/nsim->pval[k,]
         quantile(do.call(rbind,lapply(ang2stateR,function(x) x[k,]))[,3],c(0.05,0.95))->rlim[k,]
       }
       data.frame(ang2state,p.ang.state=pval[,1],p.ang.state.time=pval[,2])->res.tot
@@ -1287,77 +1137,13 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       #### Plot preparation ####
       yOri->y
       stateOri->state
-      data.frame(res.tot[,3],rlim=rlim[,1]*res.tot[,4]/res.tot[1,4],res.tot[,5:6])->bbb
-      data.frame(bbb,l1=bbb[,1]/2,l2=360-(bbb[,1]/2),rlim1=bbb[,2]/2,
-                 rlim2=360-bbb[,2]/2,p=res.tot[,8])->ccc
-
-      pdf(file = paste(filename,".pdf",sep=""))
-
-      if(nrow(res.tot)==1) {
-        mat<-matrix(c(1,2),ncol=1,nrow=2,byrow=TRUE)
-        ht<-c(1,1)
-      }else{
-        if(nrow(res.tot)%%2==0) matrix(ncol=nrow(res.tot)/2,nrow=3)->mat else matrix(ncol=(nrow(res.tot)/2+1),nrow=3)->mat
-        mat[1,]<-rep(1,ncol(mat))
-        if(nrow(res.tot)%%2==0) mat[2:nrow(mat),]<-seq(2,(nrow(res.tot))+1,1) else mat[2:nrow(mat),]<-seq(2,(nrow(res.tot))+2,1)
-        mat->mat
-        ht<-(c(1.5,1,1))
-
-      }
-      layout(mat,heights = ht)
-
-      if("nostate"%in%state) c("nostate",names(sort(table(state.real), decreasing = TRUE)))->statetoplot else names(sort(table(state.real), decreasing = TRUE))->statetoplot
-      if(ncol(y)>nrow(y)) y[,1:nrow(y)]->ypc else y->ypc
-      princomp(ypc)->compy
-      compy$scores[,1:2]->sco
-      #y[,1:2]->sco
-      sco[match(names(state),rownames(sco)),]->sco
-      RColorBrewer::brewer.pal(length(unique(state)),"Set2")->cols
-      par(mar=c(2.5,2.5,1,1))
-      plot(sco, ylab="PC2",xlab="PC1",cex=1.5,mgp=c(1.5,0.5,0),font.lab=2,xlim=c(range(sco[,1])[1]*1.1,range(sco[,1])[2]),col="white",asp=1)
-      for(h in 1:length(statetoplot)){
-        if("nostate"%in%statetoplot){
-          if(h==1){
-            points(sco[which(state==statetoplot[h]),],pch=21,bg="gray",cex=1.5)
-            Plot_ConvexHull(xcoord=sco[which(state==statetoplot[h]),1], ycoord=sco[which(state==statetoplot[h]),2], lcolor = "#bebebe",lwd=3,lty=2, col.p = paste("#bebebe","4D",sep=""))
-          }else{
-            points(sco[which(state==statetoplot[h]),],pch=21,bg=cols[h-1],cex=1.5)
-            Plot_ConvexHull(xcoord=sco[which(state==statetoplot[h]),1], ycoord=sco[which(state==statetoplot[h]),2], lcolor = cols[h-1],lwd=3,lty=2, col.p = paste(cols[h-1],"4D",sep=""))
-          }
-        }else{
-          points(sco[which(state==statetoplot[h]),],pch=21,bg=cols[h],cex=1.5)
-          Plot_ConvexHull(xcoord=sco[which(state==statetoplot[h]),1], ycoord=sco[which(state==statetoplot[h]),2], lcolor = cols[h],lwd=3,lty=2, col.p = paste(cols[h],"4D",sep=""))
-        }
-      }
-      if("nostate"%in%statetoplot){
-        legend(min(sco[,1])*1.1,max(sco[,2])*1.1, legend = statetoplot,fill = c("#bebebe",cols), bg = rgb(0, 0, 0, 0),
-               box.col = rgb(0,0, 0, 0), border = NA, x.intersp = 0.25,y.intersp=0.8)
-      }else{
-        legend(min(sco[,1])*1.1,max(sco[,2])*1.1, legend = statetoplot,fill = cols, bg = rgb(0, 0, 0, 0),
-               box.col = rgb(0,0, 0, 0), border = NA, x.intersp = 0.25,y.intersp=0.8)
-      }
-
-      if(nrow(res.tot)>6) {
-        lp<-seq(0,340,40)
-        lbs<-seq(0,340,40)
-      }else{
-        lp<-seq(0,340,20)
-        lbs<-seq(0,340,20)
-      }
-      for(i in 1:nrow(res.tot)){
-        par(cex.axis=.75)
-        plotrix::polar.plot(lengths=c(0,mean(unname(as.matrix(ccc)[i,c(3,4)])),mean(unname(as.matrix(ccc)[i,c(3,4)]))),
-                   polar.pos = c(0,ccc[i,7],ccc[i,8]),rp.type="p",line.col=rgb(0,0,0,0.6),
-                   poly.col=rgb(127/255,127/255,127/255,0.4),start=90,radial.lim=range(0,max(ccc[,c(3,4)])),radial.labels=""
-                   ,boxed.radial = FALSE,mar=c(1,1,2,1),label.pos=lp,labels=lbs)
-        title(main=paste(as.character(res.tot[i,1]),as.character(res.tot[i,2]),sep="-"),cex.main = 2)
-        plotrix::polar.plot(lengths=c(0,ccc[i,3],ccc[i,4]),polar.pos = c(0,ccc$l1[i],ccc$l2[i]),
-                   line.col="blue",lwd=4,start=90,add=TRUE,radial.labels="",boxed.radial = FALSE)
-        text(paste("p-value = ",ccc[i,9]),x=0,y=-max(ccc[i,c(3,4)])/2.3,cex=1.5,col="red")
-      }
-      dev.off()
+      reflim<-rlim[,1]*res.tot[,4]/res.tot[1,4]
+      data.frame(ang=res.tot[,3],res.tot[,5:6])->bbb
+      data.frame(bbb,ang.l1=bbb[,1]/2,ang.l2=360-(bbb[,1]/2),CI5=reflim/2,
+                 CI95=360-reflim/2)->plotData
 
       res.tot[,-c(5,6)]->res.tot
+      list(state.res=res.tot,plotData=plotData)->res.tot
     }
   }
   return(res.tot)

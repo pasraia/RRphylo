@@ -28,28 +28,18 @@
 sizedsubtree <-function(tree,Size=NULL,time.limit=10)
 {
   #require(R.utils)
+  #require(ape)
+  #require(geiger)
 
   if (!requireNamespace("R.utils", quietly = TRUE)) {
     stop("Package \"R.utils\" needed for this function to work. Please install it.",
          call. = FALSE)
   }
-
-
-  if(!identical(tree$tip.label,tips(tree,(Ntip(tree)+1)))){
-    data.frame(tree$tip.label,N=seq(1,Ntip(tree)))->dftips
-    tree$tip.label<-tips(tree,(Ntip(tree)+1))
-    data.frame(dftips,Nor=match(dftips[,1],tree$tip.label))->dftips
-    tree$edge[match(dftips[,2],tree$edge[,2]),2]<-dftips[,3]
-  }
-
   szs<-function(tree,size=Size){
-    #require(ape)
-    #require(geiger)
     if(is.null(size)) size<-Ntip(tree)/10
     nod <- array()
     repeat {
       i = 1
-
       node <- sample(seq(Ntip(tree)+2, dim(tree$edge)[1]-1), 1)
       a <- length(tips(tree, node))
       i = i + 1
@@ -60,7 +50,6 @@ sizedsubtree <-function(tree,Size=NULL,time.limit=10)
         break
       }
       if (is.na(sum(nod))) nod <- na.omit(nod) else nod <- nod
-
     }
     return(nod[2])
   }

@@ -78,16 +78,13 @@
 StableTraitsR<-function(tree,y,path,output=NULL,aces=NULL,argST=NULL,argSTS=NULL){
   # require(ape)
   # require(phytools)
-  # require(geiger)
 
-  if(!identical(tree$tip.label,tips(tree,(Ntip(tree)+1)))){
-    data.frame(tree$tip.label,N=seq(1,Ntip(tree)))->dftips
-    tree$tip.label<-tips(tree,(Ntip(tree)+1))
-    data.frame(dftips,Nor=match(dftips[,1],tree$tip.label))->dftips
-    tree$edge[match(dftips[,2],tree$edge[,2]),2]<-dftips[,3]
+  if(!identical(tree$edge[tree$edge[,2]<=Ntip(tree),2],seq(1,Ntip(tree)))){
+    tree$tip.label<-tree$tip.label[tree$edge[tree$edge[,2]<=Ntip(tree),2]]
+    tree$edge[tree$edge[,2]<=Ntip(tree),2]<-seq(1,Ntip(tree))
   }
 
-  if (is.binary.phylo(tree)) t <- tree else t <- multi2di(tree,random=FALSE)
+  if (is.binary(tree)) t <- tree else t <- multi2di(tree,random=FALSE)
   y[match(t$tip.label,names(y))]->y
   t->tree.start
 
@@ -103,7 +100,7 @@ StableTraitsR<-function(tree,y,path,output=NULL,aces=NULL,argST=NULL,argSTS=NULL
     aces->aceV
     L <- makeL(t)
     if(is.null(names(aceV))) stop("The vector of aces needs to be named")
-    if (is.binary.phylo(tree)==FALSE){
+    if (is.binary(tree)==FALSE){
       ac<-array()
       for(i in 1:length(aceV)){
         getMRCA(t,tips(tree,names(aceV)[i]))->ac[i]

@@ -1,46 +1,63 @@
-#' @title Phylogenetic Generalized Least Square with fossil phylogenies
-#' @description The function performs pgls for non-ultrametric trees using
-#'   either Pagel's lambda transform, Brownian Motion or \code{\link{RRphylo}}
-#'   rates to change the correlation structure.
-#' @usage PGLS_fossil(modform,data,tree,RR=NULL)
+#' @title Phylogenetic Generalized Least Square with phylogenies including
+#'   fossils
+#' @description The function performs pgls for non-ultrametric trees using a
+#'   variety of evolutionary models or \code{\link{RRphylo}} rates to change the
+#'   tree correlation structure.
+#' @usage PGLS_fossil(modform,data=NULL,tree=NULL,RR=NULL,GItransform=FALSE,
+#'   intercept=FALSE,model="BM",method=NULL,permutation="none",...)
 #' @param modform the formula for the regression model.
-#' @param data a list of named vectors including response and predictor
-#'   variables as named in \code{modform}.
-#' @param tree a phylogenetic tree. The tree needs not to be ultrametric and
-#'   fully dichotomous.
+#' @param data a data.frame or list including response and predictor variables
+#'   as named in \code{modform}. If not found in \code{data}, the variables are
+#'   taken from current environment.
+#' @param tree a phylogenetic tree to be indicated for any model except if
+#'   \code{RRphylo} is used to rescale tree branches. The tree needs not to be
+#'   ultrametric and fully dichotomous.
 #' @param RR the result of \code{RRphylo} performed on the response variable. If
-#'   \code{NULL} the function fits Pagel's lambda in the regression for
-#'   univariate data or uses the tree variance covariance matrix in the
-#'   multivariate case. If \code{RR} is specified, tree branches are rescaled to
-#'   the absolute branch-wise rate values calculated by \code{RRphylo} to
-#'   transform the variance-covariance matrix.
+#'   \code{RR} is specified, tree branches are rescaled to the absolute
+#'   branch-wise rate values calculated by \code{RRphylo} to transform the
+#'   variance-covariance matrix.
+#' @param GItransform logical indicating whether the PGLS approach as in Garland
+#'   and Ives (2000) must be applied.
+#' @param intercept under \code{GItransform = TRUE}, indicates whether the
+#'   intercept should be included in the model.
+#' @param model an evolutionary model as indicated in
+#'   \code{\link[phylolm]{phylolm}} (for univariate response variable) or
+#'   \code{\link[mvMORPH]{mvgls}} (for multivariate response variable).
+#' @param method optional argument to be passed to \code{phylolm} (for
+#'   univariate response variable) or \code{mvgls} (for multivariate response
+#'   variable). See individual functions for further details.
+#' @param permutation passed to \code{\link[mvMORPH]{manova.gls}}
+#' @param ... further argument passed to \code{phylolm}, \code{mvgls},
+#'   \code{manova.gls}, or \code{\link[stats]{lm}}.
 #' @importFrom ape corPagel
-#' @importFrom stats terms
-#' @details With univariate data, the user may want to use either Pagel's lambda
-#'   or \code{RRphylo} rates to transform the correlation structure. In the
-#'   former case, the lambda transform is fitted to the data (Revell, 2010). In
-#'   the latter case, branch lengths are multiplied by absolute rates as
-#'   computed by \code{RRphylo} to accommodate rate variation across the tree. In
-#'   the multivariate case, the variance-covariance structure is either left
-#'   unaltered by keeping \code{RR = NULL} (Adams and Collyer, 2015) or changed
-#'   according to the norm-2 vector of rates computed for each phenotype by
-#'   specifying the \code{RR} object.
+#' @importFrom stats terms model.frame update manova
 #' @export
-#' @seealso \href{../doc/RRphylo.html}{\code{RRphylo} vignette}
-#' @return Fitted pgls parameters and significance.
-#' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro
-#'   Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
-#'   Carotenuto
-#' @references Revell, L.J. (2010). Phylogenetic signal and linear regression on
-#'   species data. \emph{Methods in Ecology and Evolution}, 1, 319-329.
-#'   https://doi.org/10.1111/j.2041-210X.2010.00044.x
-#' @references Adams, D.C., & Collyer, M. L. (2017). Multivariate phylogenetic
-#'   comparative methods: evaluations, comparisons, and recommendations.
-#'   \emph{Systematic Biology}, 67, 14-31. https://doi.org/10.1093/sysbio/syx055
+#' @seealso \href{../doc/RRphylo.html}{\code{RRphylo} vignette};
+#'   \code{\link[mvMORPH]{mvgls}} ; \code{\link[mvMORPH]{manova.gls}}
+#'   ;\code{\link[phylolm]{phylolm}}
+#' @details The function is meant to work with both univariate or multivariate
+#'   data, both low- or high-dimensional. In the first case, \code{PGLS_fossil}
+#'   uses \code{phylolm}, returning an object of class "phylolm". In the latter,
+#'   regression coefficients are estimated by \code{mvgls}, and statistical
+#'   significance is obtained by means of permutations within \code{manova.gls}.
+#'   In this case, \code{PGLS_fossil} returns a list including the output of
+#'   both analyses. In all cases, for both univariate or multivariate data, if
+#'   \code{GItransform = TRUE} the functions returns a standard \code{lm}
+#'   output. In the latter case, the output additionally includes the result of
+#'   manova applied on the multivariate linear model.
+#' @return Fitted pgls parameters and significance. The class of the output
+#'   object depends on input data (see details).
+#' @author Silvia Castiglione, Pasquale Raia, Carmela Serio, Gabriele Sansalone,
+#'   Giorgia Girardi
+#' @references Garland, Jr, T., & Ives, A. R. (2000). Using the past to predict
+#'   the present: confidence intervals for regression equations in phylogenetic
+#'   comparative methods. \emph{The American Naturalist}, 155: 346-364.
+#'   doi:10.1086/303327
 #' @examples
 #' \dontrun{
 #' library(ape)
 #' library(phytools)
+#' cc<- 2/parallel::detectCores()
 #'
 #' rtree(100)->tree
 #' fastBM(tree)->resp
@@ -48,79 +65,108 @@
 #' fastBM(tree)->pred1
 #' fastBM(tree)->pred2
 #'
-#' PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp,x2=pred1,x1=pred2),tree=tree)
+#' PGLS_fossil(modform=resp~pred1+pred2,tree=tree)->pgls_noRR
+#' PGLS_fossil(modform=resp~pred1+pred2,tree=tree,GItransform=TRUE)->GIpgls_noRR
 #'
-#' RRphylo::RRphylo(tree,resp)->RR
-#' PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp,x2=pred1,x1=pred2),tree=tree,RR=RR)
+#' RRphylo(tree,resp,clus=cc)->RR
+#' PGLS_fossil(modform=resp~pred1+pred2,tree=tree,RR=RR)->pgls_RR
+#' PGLS_fossil(modform=resp~pred1+pred2,tree=tree,RR=RR,GItransform=TRUE)->GIpgls_RR
 #'
-#' PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp.multi,x2=pred1,x1=pred2),tree=tree)
-#' cc<- 2/parallel::detectCores()
-#' RRphylo::RRphylo(tree,resp.multi,clus=cc)->RR
-#' PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp.multi,x2=pred1,x1=pred2),tree=tree,RR=RR)
+#' # To derive log-likelihood and AIC for outputs of PGLS_fossil applied on univariate
+#' # response variables the function AIC can be applied
+#' AIC(pgls_noRR)
+#' AIC(pgls_RR)
+#' AIC(GIpgls_noRR)
+#' AIC(GIpgls_RR)
+#'
+#'
+#' PGLS_fossil(modform=resp.multi~pred1+pred2,tree=tree)->pgls2_noRR
+#' PGLS_fossil(modform=resp.multi~pred1+pred2,tree=tree,GItransform=TRUE)->GIpgls2_noRR
+#'
+#' # To evaluate statistical significance of multivariate models, the '$manova'
+#' # object must be inspected
+#' pgls2_noRR$manova
+#' summary(GIpgls2_noRR$manova)
+#'
+#' RRphylo(tree,resp.multi,clus=cc)->RR
+#' PGLS_fossil(modform=resp.multi~pred1+pred2,tree=tree,RR=RR)->pgls2_RR
+#' PGLS_fossil(modform=resp.multi~pred1+pred2,tree=tree,RR=RR,GItransform=TRUE)->GIpgls2_RR
+#'
+#' # To evaluate statistical significance of multivariate models, the '$manova'
+#' # object must be inspected
+#' pgls2_noRR$manova
+#' summary(GIpgls2_noRR$manova)
+#' pgls2_RR$manova
+#' summary(GIpgls2_RR$manova)
+#'
+#' logLik(pgls2_noRR$pgls)
+#' logLik(pgls2_RR$pgls)
 #' }
-
-PGLS_fossil<-function(modform,data,tree,RR=NULL)
-{
+PGLS_fossil<-function(modform,data=NULL,tree=NULL,RR=NULL,
+                      GItransform=FALSE,intercept=FALSE,model="BM",
+                      method=NULL,permutation="none",...){
   # require(nlme)
   # require(ape)
-  # require(geomorph)
-  # require(geiger)
-
-  if (!requireNamespace("nlme", quietly = TRUE)) {
-    stop("Package \"nlme\" needed for this function to work. Please install it.",
+  # require(phylolm)
+  if (!requireNamespace("phylolm", quietly = TRUE)) {
+    stop("Package \"phylolm\" needed for this function to work. Please install it.",
+         call. = FALSE)
+  }
+  if (!requireNamespace("mvMORPH", quietly = TRUE)) {
+    stop("Package \"mvMORPH\" needed for this function to work. Please install it.",
          call. = FALSE)
   }
 
-  if (!requireNamespace("geomorph", quietly = TRUE)) {
-    stop("Package \"geomorph\" needed for this function to work. Please install it.",
-         call. = FALSE)
+  if(!is.null(RR)){
+    rescaleRR(RR$tree,RR=RR)->tree
+    if(model!="BM") warning("The tree is rescaled by using RR rates, 'model' argument is not allowed",immediate. = TRUE)
+    model<-"BM"
   }
 
+  mf<-model.frame(modform,data=data)
+  treedataMatch(tree,mf)$y->mf
 
-  if(!identical(tree$tip.label,tips(tree,(Ntip(tree)+1)))){
-    data.frame(tree$tip.label,N=seq(1,Ntip(tree)))->dftips
-    tree$tip.label<-tips(tree,(Ntip(tree)+1))
-    data.frame(dftips,Nor=match(dftips[,1],tree$tip.label))->dftips
-    tree$edge[match(dftips[,2],tree$edge[,2]),2]<-dftips[,3]
-  }
-
-  for(k in 1:length(data)){
-    data[[k]]->sam
-    if(is.null(nrow(sam))) data[[k]] <- treedata(tree, sam, sort = TRUE)[[2]][,1] else data[[k]] <- treedata(tree, sam, sort = TRUE)[[2]]
-  }
-
-  vars <- rownames(attr(terms(modform), "factors"))
-
-  for(i in 1:length(vars)){
-    assign(vars[i],data[which(names(data)==vars[i])][[1]],envir = environment())
-  }
-
-  data[which(names(data)==vars[1])][[1]]->y
-
-  if(is.null(RR)){
-    if(length(y)>Ntip(tree)){
-      data->gdf
-      class(gdf)<-"geomorph.data.frame"
-      cova<- vcv(tree)
-      geomorph::procD.pgls(modform,data=gdf, Cov=cova)->res
+  if(!GItransform){
+    # treemod<-tree
+    data<-mf
+    if(!is.null(ncol(mf[[1]]))&&ncol(mf[[1]])>1){
+      resgls <-  mvMORPH::mvgls(modform,data=data,tree=tree,model=model,method=method,...)
+      resman<-mvMORPH::manova.gls(resgls,permutation=permutation,...)
+      res<-list(pgls=resgls,manova=resman)
     }else{
-      co <- corPagel(1, tree)
-      v <- diag(vcv(co))
-      vf <- nlme::varFixed(~ offset(v))
-      suppressWarnings(nlme::gls(modform, correlation=co, weights=vf)->res)
+      res <-phylolm::phylolm(modform,data=data,phy=tree,model=model,method=method,...)
     }
   }else{
-    tree->tree1
-    abs(RR$rates[,1])->rts
-    rts[-1]->rts
-    names(rts)[Nnode(tree):length(rts)]<-seq(1,Ntip(tree))
-    rts[match(tree$edge[,2],names(rts))]->rts
-    tree$edge.length*rts->tree1$edge.length
+    if(model!="BM") warning("Under GItransform, BM model is assumed")
+    vcv(tree)->C
+    U<-eigen(C)$vectors
+    W<-diag(sqrt(eigen(C)$values))
+    D<-solve(U%*%W%*%t(U))
 
-    data->gdf
-    class(gdf)<-"geomorph.data.frame"
-    cova<- vcv(tree1)
-    geomorph::procD.pgls(modform,data=gdf, Cov=cova)->res
+    y<-as.matrix(mf[,1,drop=FALSE])
+    x<-as.matrix(mf[,-1,drop=FALSE])
+
+    if(intercept){
+      x<-cbind("Intercept"=rep(1, nrow(x)), as.matrix(x))
+      modform<-update(modform,y~Intercept+.-1)
+    } else modform<-update(modform,y~.-1)
+
+    y <- D %*% y
+    x <- D %*% x
+
+    rownames(x)<-rownames(y)<-tree$tip.label
+    ddpcr::quiet(sapply(1:ncol(x),function(j) assign(colnames(x)[j],x[,j,drop=FALSE],envir = parent.env(environment()))))
+
+    data<-model.frame(modform,data=environment())
+    lmmod<-lm(modform,data=data,model=TRUE,method="qr",...)
+    if(!is.null(ncol(mf[[1]]))&&ncol(mf[[1]])>1){
+      resman<-manova(lmmod)
+      res<-list(pgls=lmmod,manova=resman)
+    } else res<-lmmod
   }
   return(res)
 }
+
+
+
+

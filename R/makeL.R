@@ -6,6 +6,7 @@
 #' @param tree a phylogenetic tree. The tree needs not to be ultrametric and
 #'   fully dichotomous.
 #' @export
+#' @importFrom stats median
 #' @return The function returns a \eqn{n * m} matrix of branch lengths for all
 #'   root-to-tip paths in the tree (one per species).
 #' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro
@@ -20,11 +21,9 @@
 
 makeL<-function(tree){
 
-  if(!identical(tree$tip.label,tips(tree,(Ntip(tree)+1)))){
-    data.frame(tree$tip.label,N=seq(1,Ntip(tree)))->dftips
-    tree$tip.label<-tips(tree,(Ntip(tree)+1))
-    data.frame(dftips,Nor=match(dftips[,1],tree$tip.label))->dftips
-    tree$edge[match(dftips[,2],tree$edge[,2]),2]<-dftips[,3]
+  if(!identical(tree$edge[tree$edge[,2]<=Ntip(tree),2],seq(1,Ntip(tree)))){
+    tree$tip.label<-tree$tip.label[tree$edge[tree$edge[,2]<=Ntip(tree),2]]
+    tree$edge[tree$edge[,2]<=Ntip(tree),2]<-seq(1,Ntip(tree))
   }
 
   internals <- unique(c(tree$edge[, 1], tree$edge[, 2][which(tree$edge[,
@@ -73,7 +72,7 @@ makeL<-function(tree){
     d <- data.frame(L.match, br.len)
     L[j, match(d[, 1], colnames(L))] <- d[, 2]
   }
-  if (is.null(tree$root.edge) || tree$root.edge==0) L[, 1] <- 1 else L[, 1] <- tree$root.edge
+  if (is.null(tree$root.edge) || tree$root.edge==0) L[, 1] <- median(tree$edge.length) else L[, 1] <- tree$root.edge
   L[which(is.na(L))] <- 0
   return(L)
 }

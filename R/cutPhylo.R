@@ -15,7 +15,8 @@
 #' @details When an entire lineage is cut (i.e. one or more nodes along a path) and \code{keep.lineages = TRUE},
 #'   the leaves left are labeled as "l" followed by a number.
 #' @return The function returns the cut phylogeny and plots it into the graphic
-#'   device. The time axis keeps the root age of the original tree.
+#'   device. The time axis keeps the root age of the original tree. Note,
+#'   tip labels are ordered according to their position in the tree.
 #' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro
 #'   Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
 #'   Carotenuto
@@ -35,7 +36,6 @@
 
 cutPhylo<-function(tree,age=NULL,node=NULL,keep.lineage=TRUE){
   # require(ape)
-  # require(geiger)
   # require(phytools)
   # require(picante)
 
@@ -44,14 +44,12 @@ cutPhylo<-function(tree,age=NULL,node=NULL,keep.lineage=TRUE){
          call. = FALSE)
   }
 
-  if(!identical(tree$tip.label,tips(tree,(Ntip(tree)+1)))){
-    data.frame(tree$tip.label,N=seq(1,Ntip(tree)))->dftips
-    tree$tip.label<-tips(tree,(Ntip(tree)+1))
-    data.frame(dftips,Nor=match(dftips[,1],tree$tip.label))->dftips
-    tree$edge[match(dftips[,2],tree$edge[,2]),2]<-dftips[,3]
+  if(!identical(tree$edge[tree$edge[,2]<=Ntip(tree),2],seq(1,Ntip(tree)))){
+    tree$tip.label<-tree$tip.label[tree$edge[tree$edge[,2]<=Ntip(tree),2]]
+    tree$edge[tree$edge[,2]<=Ntip(tree),2]<-seq(1,Ntip(tree))
   }
 
-  distNodes(tree,(Ntip(tree)+1))->dN
+  distNodes(tree,(Ntip(tree)+1),clus=0)->dN
   if(is.null(node)) max(nodeHeights(tree))-age->cutT else dN[match(node,rownames(dN)),2]->cutT
   dN[,2]->dd
   dd[which(dd>=cutT)]->ddcut
@@ -62,10 +60,9 @@ cutPhylo<-function(tree,age=NULL,node=NULL,keep.lineage=TRUE){
   if(all(cutter%in%tree$tip.label)){
     tt$edge.length[match(match(names(ddcut),tt$tip.label),tt$edge[,2])]<-
       tt$edge.length[match(match(names(ddcut),tt$tip.label),tt$edge[,2])]-(ddcut-cutT)
-  #}
   }else{
-  ### Tips and nodes ###
-  #if(any(suppressWarnings(as.numeric(cutter))>Ntip(tree))){
+    ### Tips and nodes ###
+    #if(any(suppressWarnings(as.numeric(cutter))>Ntip(tree))){
     as.numeric(cutter[which(suppressWarnings(as.numeric(cutter))>Ntip(tree))])->cutn
     i=1
     while(i<=length(cutn)){

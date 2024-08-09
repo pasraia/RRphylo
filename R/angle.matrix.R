@@ -91,8 +91,8 @@
 #'   DataApes$PCstage->PCstage
 #'   DataApes$Tstage->Tstage
 #'   DataApes$CentroidSize->CS
-#'
 #'   cc<- 2/parallel::detectCores()
+#'
 #'   RRphylo(tree=Tstage,y=PCstage,clus=cc)->RR
 #' # Case 1. without accounting for the effect of a covariate
 #'
@@ -124,7 +124,6 @@ angle.matrix<-function(RR,node,Y=NULL,select.axes=c("no","yes"),type=c("phenotyp
 {
   #require(smatr)
   #require(rlist)
-  #require(geiger)
 
   if (!requireNamespace("smatr", quietly = TRUE)) {
     stop("Package \"smatr\" needed for this function to work. Please install it.",
@@ -165,7 +164,7 @@ angle.matrix<-function(RR,node,Y=NULL,select.axes=c("no","yes"),type=c("phenotyp
 
     }else{
 
-      RRphylo(tree,cova)->RRcova
+      RRphylo(tree,cova,clus=clus)->RRcova
       c(RRcova$aces,cova)->covari
       names(covari)<-c(rownames(RRcova$aces),names(cova))
       RRphylo(tree,y.sel,cov=covari,clus=clus)->rr.sel
@@ -187,7 +186,7 @@ angle.matrix<-function(RR,node,Y=NULL,select.axes=c("no","yes"),type=c("phenotyp
 
     }else{
 
-      RRphylo(tree,cova)->RRcova
+      RRphylo(tree,cova,clus=clus)->RRcova
       c(RRcova$aces,cova)->covari
       names(covari)<-c(rownames(RRcova$aces),names(cova))
       RRphylo(tree,Y,cov=covari,clus=clus)->RR
@@ -496,7 +495,7 @@ angle.matrix<-function(RR,node,Y=NULL,select.axes=c("no","yes"),type=c("phenotyp
         data.frame(group=group,age=age,angle=mat2[,1])->mat3
         as.numeric(as.character(mat3$age))->mat3$age
 
-        if(class(try(smatr::sma(angle~age*group,data=mat3)->res.slope,silent=TRUE))=="try-error") {
+        if(inherits(try(smatr::sma(angle~age*group,data=mat3)->res.slope,silent=TRUE),"try-error")) {
 
           summary(lm(angle~group/age-1,data=mat3))->a
           t(a$coef[c(3,4),c(1,4)])->a1

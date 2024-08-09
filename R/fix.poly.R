@@ -17,7 +17,8 @@
 #'   randomly (the default) or in the order they appear in the tree (if
 #'   \code{random = FALSE}).
 #' @return A phylogenetic tree with randomly fixed (i.e. \code{type='resolve'})
-#'   polytomies or created polytomies (i.e. \code{type='collapse'}).
+#'   polytomies or created polytomies (i.e. \code{type='collapse'}).Note,
+#'   tip labels are ordered according to their position in the tree.
 #' @importFrom ape di2multi
 #' @author Silvia Castiglione, Pasquale Raia, Carmela Serio
 #' @details Under \code{type='resolve'} polytomous clades are resolved adding
@@ -30,7 +31,7 @@
 #'   Melchionna, M., Di Febbraro, M., Sansalone, G., Wroe, S., & Raia, P.
 #'   (2020). The influence of domestication, insularity and sociality on the
 #'   tempo and mode of brain size evolution in mammals. \emph{Biological Journal
-#'   of the Linnean Society},in press. doi:10.1093/biolinnean/blaa186
+#'   of the Linnean Society},132: 221-231. doi:10.1093/biolinnean/blaa186
 #' @examples
 #' \dontrun{
 #'  require(ape)
@@ -56,10 +57,21 @@
 #'  plot(treecet,no.margin=TRUE,show.tip.label=FALSE)
 #'  plot(treecet.collapsed,no.margin=TRUE,show.tip.label=FALSE)
 #' }
+
+
 fix.poly<-function(tree,type=c("collapse","resolve"),node=NULL,tol=1e-10,random=TRUE){
   # require(ape)
   # require(phytools)
   # require(geiger)
+
+  if(any(tree$edge.length[which(tree$edge[,2]<=Ntip(tree))]==0))
+    stop("Zero-length leaves are not allowed.
+         Suggested adding an infinitesimal quantity to all the branches in the tree.")
+
+  if(!identical(tree$edge[tree$edge[,2]<=Ntip(tree),2],seq(1,Ntip(tree)))){
+    tree$tip.label<-tree$tip.label[tree$edge[tree$edge[,2]<=Ntip(tree),2]]
+    tree$edge[tree$edge[,2]<=Ntip(tree),2]<-seq(1,Ntip(tree))
+  }
 
   tree->treeN
 
@@ -120,7 +132,7 @@ fix.poly<-function(tree,type=c("collapse","resolve"),node=NULL,tol=1e-10,random=
         Lx[,1]<-0
 
         for(e in 1:Ntip(trx))
-          (sum(Lx[e,])-length(getMommy(trx,e))*min(trx$edge.length[which(trx$edge.length!=0)]))/(length(getMommy(trx,e)))->Lx[e,][which(Lx[e,]!=0)]
+          (sum(Lx[e,])-length(getMommy(trx,rownames(Lx)[e]))*min(trx$edge.length[which(trx$edge.length!=0)]))/(length(getMommy(trx,rownames(Lx)[e])))->Lx[e,][which(Lx[e,]!=0)]
 
         suppressWarnings(apply(Lx,2,function(x) min(x[-x!=0]))->xtar)
         xtar[-1]->xtar
@@ -157,7 +169,7 @@ fix.poly<-function(tree,type=c("collapse","resolve"),node=NULL,tol=1e-10,random=
         nodages[which(names(nodages)==mom)]<-nodages[i]+fix.val
     }
 
-    suppressWarnings(scaleTree(xtree,tip.ages=f2,node.ages=nodages,min.branch=min(xtree$edge.length)/max(apply(makeL(xtree),1,function(x) length(which(x!=0)))))->xtree)
+    suppressWarnings(scaleTree(xtree,tip.ages=f2,node.ages=nodages)->xtree)
   }
   return(xtree)
 }

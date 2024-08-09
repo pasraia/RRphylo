@@ -7,7 +7,7 @@
 #'   to calculate: Mean Squared Correlation, ICV, Autonomy,
 #'   ConditionalEvolvability, Constraints, Evolvability, Flexibility,
 #'   Pc1Percent, and Respondability. To assess the importance of phylogenetic
-#'   structuring (signal) on Respondability Evolvability, and Flexibility, the
+#'   structuring (signal) on Respondability Evolvability, and Flexibility. The
 #'   function performs a randomization test by randomly shuffling the species on
 #'   tree and replicating the analyses \code{nsim} times. A p-value is computed
 #'   by contrasting the real metrics to the ones derived by randomization.
@@ -62,7 +62,6 @@ random.evolvability.test<-function(tree,data,node.estimation=c("RR","BM"),aces=N
   # require(ape)
   # require(phytools)
   # require(picante)
-  # require(geiger)
   # require(RRphylo)
   # require(ddpcr)
 
@@ -71,15 +70,7 @@ random.evolvability.test<-function(tree,data,node.estimation=c("RR","BM"),aces=N
          call. = FALSE)
   }
 
-
-  if(!identical(tree$tip.label,tips(tree,(Ntip(tree)+1)))){
-    data.frame(tree$tip.label,N=seq(1,Ntip(tree)))->dftips
-    tree$tip.label<-tips(tree,(Ntip(tree)+1))
-    data.frame(dftips,Nor=match(dftips[,1],tree$tip.label))->dftips
-    tree$edge[match(dftips[,2],tree$edge[,2]),2]<-dftips[,3]
-  }
-
-  if(!is.binary.phylo(tree)){
+  if(!is.binary(tree)){
     tree->mutree
     multi2di(tree,random=FALSE)->tree
     tree$edge[which(tree$edge.length==0),2]->len0
@@ -89,7 +80,8 @@ random.evolvability.test<-function(tree,data,node.estimation=c("RR","BM"),aces=N
     if(any(len0%in%des)) len0[which(len0%in%des)]->remn
   } else remn<-NULL
 
-  treedata(tree,data)[[2]]->data
+  # treedata(tree,data)[[2]]->data
+  treedataMatch(tree,data)[[1]]->data
 
   if(node.estimation=="RR") rec<-RRphylo(tree,data,aces=aces,clus=clus)$aces else{
     rec<-NULL
@@ -107,7 +99,7 @@ random.evolvability.test<-function(tree,data,node.estimation=c("RR","BM"),aces=N
 
   if(round((detectCores() * clus), 0)==0) cl<-makeCluster(1, setup_strategy = "sequential") else cl <- makeCluster(round((detectCores() * clus), 0), setup_strategy = "sequential")
   registerDoParallel(cl)
-  ddpcr::quiet(xx<-evolqg::MeanMatrixStatistics(cv,iterations=iterations,full.results = T,parallel = TRUE))
+  ddpcr::quiet(xx<-evolqg::MeanMatrixStatistics(cv,iterations=iterations,full.results = TRUE,parallel = TRUE))
   xx$mean->means
 
   pb = txtProgressBar(min = 0, max = nsim, initial = 0)
@@ -118,7 +110,8 @@ random.evolvability.test<-function(tree,data,node.estimation=c("RR","BM"),aces=N
     setTxtProgressBar(pb,j)
     data->dataR
     rownames(dataR)<-sample(rownames(data))
-    dataR<-treedata(tree,dataR)[[2]]
+    # dataR<-treedata(tree,dataR)[[2]]
+    dataR<-treedataMatch(tree,dataR)[[1]]
 
     if(node.estimation=="RR") rec<-RRphylo(tree,dataR,aces=aces,clus=clus)$aces else{
       rec<-NULL
@@ -131,14 +124,14 @@ random.evolvability.test<-function(tree,data,node.estimation=c("RR","BM"),aces=N
         rec<-cbind(rec,reci)
       }
 
-      }
+    }
     if(!is.null(remn)) rec<-rec[-which(rownames(rec)%in%remn),]
     cv<-cov(t(rec))
 
     if(round((detectCores() * clus), 0)==0) cl<-makeCluster(1, setup_strategy = "sequential") else cl <- makeCluster(round((detectCores() * clus), 0), setup_strategy = "sequential")
     registerDoParallel(cl)
     ddpcr::quiet(try(xx<-evolqg::MeanMatrixStatistics(cv,iterations=iterations,full.results = T,parallel = TRUE),silent = TRUE)->trytest)
-    if(class(trytest)=="try-error") j=j else{
+    if(inherits(trytest,"try-error")) j=j else{
       xx$mean->random.means[[j]]
       if(j==(nsim-1)) break else j=j+1
     }
@@ -147,7 +140,7 @@ random.evolvability.test<-function(tree,data,node.estimation=c("RR","BM"),aces=N
   do.call(cbind,random.means)->random.means
 
   cbind(means[c("respondability","evolvability","flexibility")],
-         random.means[c("respondability","evolvability","flexibility"),])->totmeans
+        random.means[c("respondability","evolvability","flexibility"),])->totmeans
   apply(totmeans,1,function(w) rank(w)[1]/nsim)->p
 
   return(list(means=means,p.value=p))

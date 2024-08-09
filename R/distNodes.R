@@ -33,15 +33,15 @@
 distNodes<-function(tree,node=NULL,clus=0.5){
   #require(ape)
   #require(phytools)
-  #require(geiger)
   #require(doParallel)
   #require(parallel)
+  if(!identical(tree$edge[tree$edge[,2]<=Ntip(tree),2],seq(1,Ntip(tree)))){
+    tree->treeO
+    tree$tip.label<-tree$tip.label[tree$edge[tree$edge[,2]<=Ntip(tree),2]]
+    tree$edge[tree$edge[,2]<=Ntip(tree),2]<-seq(1,Ntip(tree))
 
-  if(!identical(tree$tip.label,tips(tree,(Ntip(tree)+1)))){
-    data.frame(tree$tip.label,N=seq(1,Ntip(tree)))->dftips
-    tree$tip.label<-tips(tree,(Ntip(tree)+1))
-    data.frame(dftips,Nor=match(dftips[,1],tree$tip.label))->dftips
-    tree$edge[match(dftips[,2],tree$edge[,2]),2]<-dftips[,3]
+    if(suppressWarnings(any(as.numeric(node)<=Ntip(tree), na.rm = TRUE)))
+      match(treeO$tip.label[as.numeric(node)[which(as.numeric(node)<=Ntip(tree))]],tree$tip.label)->node[which(as.numeric(node)<=Ntip(tree))]
   }
 
   makeL(tree)->L
@@ -56,65 +56,65 @@ distNodes<-function(tree,node=NULL,clus=0.5){
     if(round((detectCores() * clus), 0)==0) cl<-makeCluster(1, setup_strategy = "sequential") else cl <- makeCluster(round((detectCores() * clus), 0), setup_strategy = "sequential")
     registerDoParallel(cl)
     res <- foreach(i = 1:length(nam),
-                   .packages = c("RRphylo","ape", "geiger", "phytools", "doParallel")) %dopar%
-                   {
-                     gc()
-                     nam[i]->n1
-                     mata<-array()
-                     for(j in i:length(nam)){
-                       nam[j]->n2
-                       if(n1==n2) ll<-0 else{
-                         if(n1>Ntip(tree)&n2>Ntip(tree)){
-                           if(n2%in%c(getMommy(tree,n1),getDescendants(tree,n1))){
-                             c(n1,n2)->nn
-                             nn[which.min(nn)]->mrca
-                             nn[which.max(nn)]->n
-                             getDescendants(tree,mrca)->des
-                             des[which(des>Ntip(tree))]->ndes
-                             length(which(names(which(L1[which(rownames(L1)==n),]>0))%in%ndes))->ll
-                           }else{
-                             getMRCA(tree,c(n1,n2))->mrca
-                             getDescendants(tree,mrca)->des
-                             des[which(des>Ntip(tree))]->ndes
-                             length(which(names(which(L1[which(rownames(L1)==n1),]>0))%in%ndes))->l1
-                             length(which(names(which(L1[which(rownames(L1)==n2),]>0))%in%ndes))->l2
-                             l1+l2->ll
-                           }
-                         }
+                   .packages = c("RRphylo","ape", "phytools", "doParallel")) %dopar%
+      {
+        gc()
+        nam[i]->n1
+        mata<-array()
+        for(j in i:length(nam)){
+          nam[j]->n2
+          if(n1==n2) ll<-0 else{
+            if(n1>Ntip(tree)&n2>Ntip(tree)){
+              if(n2%in%c(getMommy(tree,n1),getDescendants(tree,n1))){
+                c(n1,n2)->nn
+                nn[which.min(nn)]->mrca
+                nn[which.max(nn)]->n
+                getDescendants(tree,mrca)->des
+                des[which(des>Ntip(tree))]->ndes
+                length(which(names(which(L1[which(rownames(L1)==n),]>0))%in%ndes))->ll
+              }else{
+                getMRCA(tree,c(n1,n2))->mrca
+                getDescendants(tree,mrca)->des
+                des[which(des>Ntip(tree))]->ndes
+                length(which(names(which(L1[which(rownames(L1)==n1),]>0))%in%ndes))->l1
+                length(which(names(which(L1[which(rownames(L1)==n2),]>0))%in%ndes))->l2
+                l1+l2->ll
+              }
+            }
 
 
-                         if(n1<=Ntip(tree)&n2<=Ntip(tree)){
-                           getMRCA(tree,c(tree$tip.label[n1],tree$tip.label[n2]))->mrca
-                           getDescendants(tree,mrca)->des
-                           des[which(des<=Ntip(tree))]<-tree$tip.label[des[which(des<=Ntip(tree))]]
-                           length(which(names(which(L[which(rownames(L)==tree$tip.label[n1]),]>0))%in%des))->l1
-                           length(which(names(which(L[which(rownames(L)==tree$tip.label[n2]),]>0))%in%des))->l2
-                           l1+l2-1->ll
-                         }
+            if(n1<=Ntip(tree)&n2<=Ntip(tree)){
+              getMRCA(tree,c(tree$tip.label[n1],tree$tip.label[n2]))->mrca
+              getDescendants(tree,mrca)->des
+              des[which(des<=Ntip(tree))]<-tree$tip.label[des[which(des<=Ntip(tree))]]
+              length(which(names(which(L[which(rownames(L)==tree$tip.label[n1]),]>0))%in%des))->l1
+              length(which(names(which(L[which(rownames(L)==tree$tip.label[n2]),]>0))%in%des))->l2
+              l1+l2-1->ll
+            }
 
-                         if(n1>Ntip(tree)&n2<=Ntip(tree)|n1<=Ntip(tree)&n2>Ntip(tree)){
-                           if(n2%in%c(getMommy(tree,n1),getDescendants(tree,n1))){
-                             c(n1,n2)->nn
-                             nn[which.max(nn)]->mrca
-                             nn[which.min(nn)]->n
-                             getDescendants(tree,mrca)->des
-                             des[which(des<=Ntip(tree))]<-tree$tip.label[des[which(des<=Ntip(tree))]]
-                             length(which(names(which(L[which(rownames(L)==tree$tip.label[n]),]>0))%in%des))->ll
-                           }else{
-                             getMRCA(tree,c(n1,n2))->mrca
-                             getDescendants(tree,mrca)->des
-                             des[which(des<=Ntip(tree))]<-tree$tip.label[des[which(des<=Ntip(tree))]]
-                             length(which(names(which(L[which(rownames(L)==tree$tip.label[c(n1,n2)[which.min(c(n1,n2))]]),]>0))%in%des))->l1
-                             length(which(names(which(L1[which(rownames(L1)==c(n1,n2)[which.max(c(n1,n2))]),]>0))%in%des))->l2
-                             l1+l2->ll
-                           }
-                         }
-                       }
+            if(n1>Ntip(tree)&n2<=Ntip(tree)|n1<=Ntip(tree)&n2>Ntip(tree)){
+              if(n2%in%c(getMommy(tree,n1),getDescendants(tree,n1))){
+                c(n1,n2)->nn
+                nn[which.max(nn)]->mrca
+                nn[which.min(nn)]->n
+                getDescendants(tree,mrca)->des
+                des[which(des<=Ntip(tree))]<-tree$tip.label[des[which(des<=Ntip(tree))]]
+                length(which(names(which(L[which(rownames(L)==tree$tip.label[n]),]>0))%in%des))->ll
+              }else{
+                getMRCA(tree,c(n1,n2))->mrca
+                getDescendants(tree,mrca)->des
+                des[which(des<=Ntip(tree))]<-tree$tip.label[des[which(des<=Ntip(tree))]]
+                length(which(names(which(L[which(rownames(L)==tree$tip.label[c(n1,n2)[which.min(c(n1,n2))]]),]>0))%in%des))->l1
+                length(which(names(which(L1[which(rownames(L1)==c(n1,n2)[which.max(c(n1,n2))]),]>0))%in%des))->l2
+                l1+l2->ll
+              }
+            }
+          }
 
-                       ll->mata[j]
-                     }
-                     mata->res[[i]]
-                   }
+          ll->mata[j]
+        }
+        mata->res[[i]]
+      }
     stopCluster(cl)
 
     do.call(rbind,res)->mat

@@ -20,7 +20,8 @@
 #' @importFrom stats runif
 #' @importFrom ape cophenetic.phylo
 #' @return The function returns a list containing the 'swapped' version of the
-#'   original tree, and the Kuhner-Felsenstein distance between the trees.
+#'   original tree, and the Kuhner-Felsenstein distance between the trees. Note,
+#'   tip labels are ordered according to their position in the tree.
 #' @author Silvia Castiglione, Pasquale Raia, Carmela Serio, Alessandro
 #'   Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
 #'   Carotenuto
@@ -49,11 +50,9 @@ swapONE<-function(tree,
 
   #require(phangorn)
 
-  if(!identical(tree$tip.label,tips(tree,(Ntip(tree)+1)))){
-    data.frame(tree$tip.label,N=seq(1,Ntip(tree)))->dftips
-    tree$tip.label<-tips(tree,(Ntip(tree)+1))
-    data.frame(dftips,Nor=match(dftips[,1],tree$tip.label))->dftips
-    tree$edge[match(dftips[,2],tree$edge[,2]),2]<-dftips[,3]
+  if(!identical(tree$edge[tree$edge[,2]<=Ntip(tree),2],seq(1,Ntip(tree)))){
+    tree$tip.label<-tree$tip.label[tree$edge[tree$edge[,2]<=Ntip(tree),2]]
+    tree$edge[tree$edge[,2]<=Ntip(tree),2]<-seq(1,Ntip(tree))
   }
 
   tree1<-tree
@@ -134,7 +133,9 @@ swapONE<-function(tree,
     if(any(sapply(shifts,length)==0)) shifts[-which(sapply(shifts,length)==0)]->shifts
 
     if((Ntip(tree)*si)>length(shifts)) shifts->t.shifts else sample(shifts,Ntip(tree)*si)->t.shifts
-    sapply(t.shifts,function(x) if(length(x)==1) x<-x else sample(x,1))->t.change
+    lapply(t.shifts,function(x) if(length(x)==1) x<-x else sample(x,1))->t.change
+    sapply(1:length(t.change), function(k) paste(names(t.change)[k],"><",names(t.change[[k]]),sep=""))->names(t.change)
+    unlist(lapply(t.change,unname))->t.change
 
     diag(vcv(tree))->ages
     data.frame(tree$edge[,2],tree$edge.length)->DF
@@ -144,7 +145,8 @@ swapONE<-function(tree,
 
     check<-array()
     for(i in 1:length(t.change)){
-      if(DF[DF[,1]==strsplit(names(t.change),"\\.")[[i]][1],5]<DF[DF[,1]==strsplit(names(t.change),"\\.")[[i]][2],4] | DF[DF[,1]==strsplit(names(t.change),"\\.")[[i]][2],5]<DF[DF[,1]==strsplit(names(t.change),"\\.")[[i]][1],4]) check[i]<-"bar" else check[i]<-"good"
+      if(DF[DF[,1]==strsplit(names(t.change),"><")[[i]][1],5]<DF[DF[,1]==strsplit(names(t.change),"><")[[i]][2],4]|
+         DF[DF[,1]==strsplit(names(t.change),"><")[[i]][2],5]<DF[DF[,1]==strsplit(names(t.change),"><")[[i]][1],4]) check[i]<-"bar" else check[i]<-"good"
     }
     if(length(which(check=="bar"))>0) t.change[-which(check=="bar")]->t.change
 
@@ -156,13 +158,13 @@ swapONE<-function(tree,
         tree->tree1
         sw.tips<-c()
         for(i in 1:length(t.change)){
-          c(sw.tips,c(which(tree1$tip.label==strsplit(names(t.change),split="\\.")[[i]][1]),
-                      which(tree1$tip.label==strsplit(names(t.change),split="\\.")[[i]][2])))->sw.tips
+          c(sw.tips,c(which(tree1$tip.label==strsplit(names(t.change),split="><")[[i]][1]),
+                      which(tree1$tip.label==strsplit(names(t.change),split="><")[[i]][2])))->sw.tips
           tree1$tip.label[replace(seq(1:Ntip(tree1)),
-                                  c(which(tree1$tip.label==strsplit(names(t.change),split="\\.")[[i]][1]),
-                                    which(tree1$tip.label==strsplit(names(t.change),split="\\.")[[i]][2])),
-                                  c(which(tree1$tip.label==strsplit(names(t.change),split="\\.")[[i]][2]),
-                                    which(tree1$tip.label==strsplit(names(t.change),split="\\.")[[i]][1])))]->tree1$tip.label
+                                  c(which(tree1$tip.label==strsplit(names(t.change),split="><")[[i]][1]),
+                                    which(tree1$tip.label==strsplit(names(t.change),split="><")[[i]][2])),
+                                  c(which(tree1$tip.label==strsplit(names(t.change),split="><")[[i]][2]),
+                                    which(tree1$tip.label==strsplit(names(t.change),split="><")[[i]][1])))]->tree1$tip.label
         }
 
 

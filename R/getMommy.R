@@ -2,15 +2,11 @@
 #' @description This function is a wrapper around \pkg{phytools}
 #'   \code{getDescendants} (\cite{Revell 2012}). It returns the node path from a
 #'   given node or species to the root of the phylogeny.
-#' @usage getMommy(tree,N,curr=NULL)
+#' @usage getMommy(tree,N)
 #' @param tree a phylogenetic tree. The tree needs not to be ultrametric and
 #'   fully dichotomous.
-#' @param N the number of node or tip to perform the function on. Notice the
-#'   function only works with number, not tip labels.
-#' @param curr has not to be provided by the user.
+#' @param N the number of node or tip to perform the function on. The function also works with tip labels.
 #' @export
-#' @details The object \code{'curr'} is created inside the function in order to
-#'   produce an array of nodes on the path.
 #' @return The function produces a vector of node numbers as integers, collated
 #'   from a node or a tip towards the tree root.
 #' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro
@@ -25,23 +21,16 @@
 #'
 #' getMommy(tree=Tstage,N=12)
 
-getMommy<-function(tree,
-                   N,
-                   curr=NULL){
-
-  if(!identical(tree$tip.label,tips(tree,(Ntip(tree)+1)))){
-    data.frame(tree$tip.label,N=seq(1,Ntip(tree)))->dftips
-    tree$tip.label<-tips(tree,(Ntip(tree)+1))
-    data.frame(dftips,Nor=match(dftips[,1],tree$tip.label))->dftips
-    tree$edge[match(dftips[,2],tree$edge[,2]),2]<-dftips[,3]
-  }
+getMommy<-function(tree,N){
+  if (is.character(N)) if(N%in%tree$tip.label) N <- which(tree$tip.label == N) else N<-as.numeric(N)
 
   N->node
-  if(is.null(curr)) curr<-vector()
+  curr<-vector()
   daughters<-tree$edge[which(tree$edge[,2]==node),1]
   curr<-c(curr,daughters)
   w<-which(daughters>=length(tree$tip))
-  if(length(w)>0) for(i in 1:length(w))
-    curr<-getMommy(tree,daughters[w[i]],curr)
+  if(length(w)>0) for(i in 1:length(w)) curr<-c(curr,getMommy(tree,daughters[w[i]]))
   return(curr)
 }
+
+

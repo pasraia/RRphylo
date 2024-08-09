@@ -26,14 +26,14 @@
 #' @details \code{conv.map} automatically builds a 3D mesh on the mean shape
 #'   calculated from the Relative Warp Analysis (RWA) or Principal Component
 #'   Analysis (PCA) (\cite{Schlager 2017}) by applying the function
-#'   \code{\link[Rvcg]{vcgBallPivoting}} (\pkg{Rvcg}). \code{conv.map} further gives
-#'   the opportunity to exclude some RW (or PC) axes from the analysis because,
-#'   for example, in most cases the first axes are mainly related to high-order
-#'   morphological differences driven by phylogeny and size variations.
-#'   \code{conv.map} finds and plots the strength of convergence on 3D surfaces.
-#'   An output of \code{conv.map} (if the dataset contains a number equal or
-#'   lower then 5 items) is an interactive plot mapping the convergence on the
-#'   3D models. In the upper triangle of the 3D multiple layouts the rows
+#'   \code{\link[Rvcg]{vcgBallPivoting}} (\pkg{Rvcg}). \code{conv.map} further
+#'   gives the opportunity to exclude some RW (or PC) axes from the analysis
+#'   because, for example, in most cases the first axes are mainly related to
+#'   high-order morphological differences driven by phylogeny and size
+#'   variations. \code{conv.map} finds and plots the strength of convergence on
+#'   3D surfaces. An output of \code{conv.map} (if the dataset contains a number
+#'   equal or lower then 5 items) is an interactive plot mapping the convergence
+#'   on the 3D models. In the upper triangle of the 3D multiple layouts the rows
 #'   representing the reference models and the columns the target models. On the
 #'   contrary, on the lower triangle the rows correspond to the target models
 #'   and the columns the reference models. In the calculation of the differences
@@ -42,8 +42,8 @@
 #'   suggest considering this possibility if the mesh may contain degenerate
 #'   facets.
 #' @export
-#' @seealso \href{../doc/search.conv.html}{\code{search.conv} vignette} ; \code{\link[Morpho]{relWarps}} ;
-#'   \code{\link[Morpho]{procSym}}
+#' @seealso \href{../doc/search.conv.html}{\code{search.conv} vignette} ;
+#'   \code{\link[Morpho]{relWarps}} ; \code{\link[Morpho]{procSym}}
 #' @importFrom grDevices colorRampPalette rainbow
 #' @return The function returns a list including:
 #'   \itemize{\item\strong{$angle.compare} data frame including the real angles
@@ -64,6 +64,11 @@
 #'   R-Packages for geometric morphometrics, shape analysis and surface
 #'   manipulations.} In: Statistical shape and deformation analysis. Academic
 #'   Press.
+#'   Melchionna, M., Profico, A., Castiglione, S., Serio, C., Mondanaro,
+#'   A., Modafferi, M., Tamagnini, D., Maiorano, L. , Raia, P., Witmer, L.M.,
+#'   Wroe, S., & Sansalone, G. (2021). A method for mapping morphological
+#'   convergence on three-dimensional digital models: the case of the mammalian
+#'   sabre-tooth. Palaeontology, 64, 573–584. doi:10.1111/pala.12542
 #' @examples
 #'   \dontrun{
 #'   data(DataSimians)

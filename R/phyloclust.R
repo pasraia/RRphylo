@@ -29,16 +29,15 @@
 #' phyloclust(tree=treefel,state=statefel,focal="saber")
 
 phyloclust<-function(tree,state,focal,nsim=100){
+  # if(!identical(tree$tip.label,tips(tree,(Ntip(tree)+1)))){
+  #   data.frame(tree$tip.label,N=seq(1,Ntip(tree)))->dftips
+  #   tree$tip.label<-tips(tree,(Ntip(tree)+1))
+  #   data.frame(dftips,Nor=match(dftips[,1],tree$tip.label))->dftips
+  #   tree$edge[match(dftips[,2],tree$edge[,2]),2]<-dftips[,3]
+  # }
 
-
-  if(!identical(tree$tip.label,tips(tree,(Ntip(tree)+1)))){
-    data.frame(tree$tip.label,N=seq(1,Ntip(tree)))->dftips
-    tree$tip.label<-tips(tree,(Ntip(tree)+1))
-    data.frame(dftips,Nor=match(dftips[,1],tree$tip.label))->dftips
-    tree$edge[match(dftips[,2],tree$edge[,2]),2]<-dftips[,3]
-  }
-
-  state <- treedata(tree, state, sort = TRUE)[[2]][,1]
+  # state <- treedata(tree, state, sort = TRUE)[[2]][,1]
+  state <- treedataMatch(tree, state)[[1]][,1]
   focal->st
   cophenetic.phylo(tree)->cop
   cop[which(state==st),which(state==st)]->subcop
@@ -56,7 +55,6 @@ phyloclust<-function(tree,state,focal,nsim=100){
   remT<-c()
   length(which(state==st))->lenst
   while(pval<0.05){
-
     names(state)->nam
     as.numeric(as.factor(state))->rt
     data.frame(state,rt)->def
@@ -66,8 +64,7 @@ phyloclust<-function(tree,state,focal,nsim=100){
     VL[which(VL$V==stN),]->vel
     vel[which.max(vel$L),]->hit
     tree$tip.label[(hit[,3]-hit[,2]+1):hit[,3]]->hitips
-    sample(hitips,0.5*length(hitips))
-    sample(hitips,ceiling(.5*length(hitips)))->remtips
+    sample(hitips,ceiling(0.5*length(hitips)))->remtips
     drop.tip(tree,remtips)->tree
     state[-which(names(state)%in%remtips)]->state
     if(length(c(remtips,remT))>(lenst-3)) break else c(remtips,remT)->remT

@@ -22,21 +22,14 @@
 
 
 
-getSis<-function(tree,n,printZoom=TRUE)
-{
-
+getSis<-function(tree,n,printZoom=TRUE){
   #require(ape)
-  #require(geiger)
-
-  if(!identical(tree$tip.label,tips(tree,(Ntip(tree)+1)))){
-    data.frame(tree$tip.label,N=seq(1,Ntip(tree)))->dftips
-    tree$tip.label<-tips(tree,(Ntip(tree)+1))
-    data.frame(dftips,Nor=match(dftips[,1],tree$tip.label))->dftips
-    tree$edge[match(dftips[,2],tree$edge[,2]),2]<-dftips[,3]
+  if(isTRUE(printZoom)){
+    mars <- par("mar")
+    on.exit(par(mar = mars))
   }
 
-  if(class(n)=="character"){
-    which(tree$tip.label==n)->n}
+  if (is.character(n)) if(n%in%tree$tip.label) n <- which(tree$tip.label == n) else n<-as.numeric(n)
   tree$edge[which(tree$edge[,2]==n),1]->mom
   tree$edge[which(tree$edge[,1]==mom),2]->daug
   daug[which(daug!=n)]->sis

@@ -21,7 +21,6 @@
 
 node.paths<-function(tree,vec){
   # require(ape)
-  # require(geiger)
 
   if(!is.numeric(vec)) as.numeric(vec)->vec
   # vec[order(dist.nodes(tree)[vec,(Ntip(tree)+1)],decreasing=TRUE)]->vec

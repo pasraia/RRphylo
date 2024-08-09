@@ -26,13 +26,6 @@ makeFossil<-function(tree,
                      ex=0.5){
   #require(ape)
 
-  if(!identical(tree$tip.label,tips(tree,(Ntip(tree)+1)))){
-    data.frame(tree$tip.label,N=seq(1,Ntip(tree)))->dftips
-    tree$tip.label<-tips(tree,(Ntip(tree)+1))
-    data.frame(dftips,Nor=match(dftips[,1],tree$tip.label))->dftips
-    tree$edge[match(dftips[,2],tree$edge[,2]),2]<-dftips[,3]
-  }
-
   which(tree$edge[,2]<(Ntip(tree)+1))->leaves
   Ntip(tree)*p->prop
   sample(leaves,prop)->ext.leaves
