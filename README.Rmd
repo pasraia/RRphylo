@@ -13,6 +13,10 @@ knitr::opts_chunk$set(
 )
 ```
 
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/pasraia/RRphylo/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/pasraia/RRphylo/actions/workflows/R-CMD-check.yaml)
+<!-- badges: end -->
+
 # RRphylo
 
 The goal of RRphylo is to compute phenotypic evolutionary rates, estimate ancestral states, locate rate shifts on the tree, and compare vectors of phenotypes and evolutionary rates among species. RRphylo is not based on any evolutionary model, and is best suited to work with phylogenies of fossil species.
