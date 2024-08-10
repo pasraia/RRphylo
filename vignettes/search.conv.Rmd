@@ -15,6 +15,26 @@ if (!requireNamespace("rmarkdown", quietly = TRUE) ||
    knitr::knit_exit()
 }
 
+if (!requireNamespace("RColorBrewer", quietly = TRUE)) {
+   warning(call. = FALSE, "RColorBrewer not found, the vignettes is not built")
+   knitr::knit_exit()
+}
+
+if (!requireNamespace("rgl", quietly = TRUE)) {
+   warning(call. = FALSE, "rgl not found, the vignettes is not built")
+   knitr::knit_exit()
+}
+
+if (!requireNamespace("mvMORPH", quietly = TRUE)) {
+   warning(call. = FALSE, "mvMORPH not found, the vignettes is not built")
+   knitr::knit_exit()
+}
+
+if (!requireNamespace("kableExtra", quietly = TRUE)) {
+   warning(call. = FALSE, "kableExtra not found, the vignettes is not built")
+   knitr::knit_exit()
+}
+
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
