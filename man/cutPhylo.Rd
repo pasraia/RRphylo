@@ -15,20 +15,22 @@ tree must be cut}
 
 \item{node}{the node whose age must be used as cutting limit.}
 
-\item{keep.lineage}{logical specifying whether lineages with no descendant tip must be retained (see example below). Default is \code{TRUE}.}
+\item{keep.lineage}{logical specifying whether lineages with no descendant
+tip must be retained (see example below). Default is \code{TRUE}.}
 }
 \value{
 The function returns the cut phylogeny and plots it into the graphic
-  device. The time axis keeps the root age of the original tree. Note,
-  tip labels are ordered according to their position in the tree.
+  device. The time axis keeps the root age of the original tree. Note, tip
+  labels are ordered according to their position in the tree.
 }
 \description{
 The function cuts all the branches of the phylogeny which are
   younger than a specific age or node (i.e. the age of the node).
 }
 \details{
-When an entire lineage is cut (i.e. one or more nodes along a path) and \code{keep.lineages = TRUE},
-  the leaves left are labeled as "l" followed by a number.
+When an entire lineage is cut (i.e. one or more nodes along a path)
+  and \code{keep.lineages = TRUE}, the leaves left are labeled as "l"
+  followed by a number.
 }
 \examples{
 \dontrun{
@@ -39,13 +41,14 @@ rtree(100)->tree
 3->age
 
 cutPhylo(tree,age=age)->t1
-cutPhylo(tree,age=age,keep.lineage=FALSE)->t1
+cutPhylo(tree,age=age,keep.lineage=FALSE)->t1a
 cutPhylo(tree,node=151)->t2
-cutPhylo(tree,node=151,keep.lineage=FALSE)->t2
+cutPhylo(tree,node=151,keep.lineage=FALSE)->t2a
 }
 }
 \seealso{
-\href{../doc/Tree-Manipulation.html#cutPhylo}{\code{cutPhylo} vignette}
+\href{../doc/Tree-Manipulation.html#cutPhylo}{\code{cutPhylo}
+  vignette}
 }
 \author{
 Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro

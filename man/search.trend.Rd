@@ -5,7 +5,7 @@
 \title{Searching for evolutionary trends in phenotypes and rates}
 \usage{
 search.trend(RR,y,x1=NULL,x1.residuals = FALSE,
- node=NULL,cov=NULL,nsim=100,clus=0.5,ConfInt=NULL,filename=NULL)
+ node=NULL,cov=NULL,nsim=100,clus=0.5)
 }
 \arguments{
 \item{RR}{an object produced by \code{\link{RRphylo}}.}
@@ -14,9 +14,9 @@ search.trend(RR,y,x1=NULL,x1.residuals = FALSE,
 
 \item{x1}{the additional predictor to be specified if the RR object has been
 created using an additional predictor (i.e. multiple version of
-\code{RRphylo}). \code{'x1'} vector must be as long as the number of nodes
+\code{\link{RRphylo}}). \code{'x1'} vector must be as long as the number of nodes
 plus the number of tips of the tree, which can be obtained by running
-\code{RRphylo} on the predictor as well, and taking the vector of ancestral
+\code{\link{RRphylo}} on the predictor as well, and taking the vector of ancestral
 states and tip values to form the \code{x1}. Note: only one predictor at
 once can be specified.}
 
@@ -27,12 +27,12 @@ between \code{y} and \code{x1} should be inspected for a phenotypic trend
 \item{node}{the node number of individual clades to be specifically tested and
 contrasted to each other. It is \code{NULL} by default. Notice the node
 number must refer to the dichotomic version of the original tree, as
-produced by \code{RRphylo}.}
+produced by \code{\link{RRphylo}}.}
 
 \item{cov}{the covariate values to be specified if the RR object has been
-created using a  covariate for rates calculation.  As for \code{RRphylo},
+created using a  covariate for rates calculation.  As for \code{\link{RRphylo}},
 \code{'cov'} must be as long as the number of nodes plus the number of tips
-of the tree, which can be obtained by running \code{RRphylo} on the
+of the tree, which can be obtained by running \code{\link{RRphylo}} on the
 covariate as well, and taking the vector of ancestral states and tip values
 to form the covariate (see the example below).}
 
@@ -41,11 +41,6 @@ default.}
 
 \item{clus}{the proportion of clusters to be used in parallel computing. To
 run the single-threaded version of \code{search.trend} set \code{clus} = 0.}
-
-\item{ConfInt}{is deprecated.}
-
-\item{filename}{is deprecated. \code{search.trend} does not return plots
-anymore, check the function \code{\link{plotTrend}} instead.}
 }
 \value{
 The function returns a list object containing:
@@ -55,11 +50,11 @@ The function returns a list object containing:
  (or \code{y} versus \code{x1} regression residuals if
  \code{x1.residuals=TRUE}) and their distance from the tree root for each
  node (i.e. ancestral states) and tip of the tree.
- \item{\code{$absrateVStime}}: a data frame of \code{RRphylo} rates and the
+ \item{\code{$absrateVStime}}: a data frame of \code{\link{RRphylo}} rates and the
  distance from the tree root (age). If y is multivariate, it also includes
  the multiple rates for each y vector. If \code{node} is specified, each
  branch is classified as belonging to an indicated clade.
- \item{\code{$rescaledrateVStime}}: a data frame of rescaled \code{RRphylo}
+ \item{\code{$rescaledrateVStime}}: a data frame of rescaled \code{\link{RRphylo}}
  rates and the distance from the tree root (age). If y is multivariate, it
  also includes the multiple rates for each y vector. If \code{node} is
  specified, each branch is classified as belonging to an indicated clade. NAs
@@ -112,6 +107,8 @@ If more than one node is specified, the object
  \strong{$group.comparison} reports the same results as
  $node.phenotypic.regression and $node.rate.regression obtained by comparing
  individual clades to each other.
+
+The output always has an attribute "Call" which returns an unevaluated call to the function.
 }
 \description{
 This function searches for evolutionary trends in the phenotypic
@@ -136,7 +133,7 @@ The function simultaneously returns the regression of phenotypes and
  The \href{../doc/RRphylo.html#predictor}{multiple regression version of
  RRphylo} allows to incorporate the effect of an additional predictor in the
  computation of evolutionary rates without altering the ancestral character
- estimation. Thus, when a multiple \code{RRphylo} output is fed to
+ estimation. Thus, when a multiple \code{\link{RRphylo}} output is fed to
  \code{search.trend}, the predictor effect is accounted for on the absolute
  evolutionary rates, but not on the phenotype. However, in some situations
  the user might want to factor out the predictor effect on phenotypes as
@@ -161,24 +158,23 @@ massptero[match(treeptero$tip.label,names(massptero))]->massptero
 RRphylo(tree=treeptero,y=log(massptero),clus=cc)->RRptero
 
 # Case 1.1. "search.trend" whitout indicating nodes to be tested for trends
-search.trend(RR=RRptero, y=log(massptero), nsim=100, clus=cc,cov=NULL,node=NULL)
+search.trend(RR=RRptero, y=log(massptero), nsim=100, clus=cc,cov=NULL,node=NULL)->st1
 
 # Case 1.2. "search.trend" indicating nodes to be specifically tested for trends
-search.trend(RR=RRptero, y=log(massptero), nsim=100, node=143, clus=cc,cov=NULL)
+search.trend(RR=RRptero, y=log(massptero), nsim=100, node=143, clus=cc,cov=NULL)->st2
 
 
 # Case 2. "RRphylo" accounting for the effect of a covariate
 # "RRphylo" on the covariate in order to retrieve ancestral state values
-RRphylo(tree=treeptero,y=log(massptero),clus=cc)->RRptero
 c(RRptero$aces,log(massptero))->cov.values
 names(cov.values)<-c(rownames(RRptero$aces),names(massptero))
 RRphylo(tree=treeptero,y=log(massptero),cov=cov.values,clus=cc)->RRpteroCov
 
 # Case 2.1. "search.trend" whitout indicating nodes to be tested for trends
-search.trend(RR=RRpteroCov, y=log(massptero), nsim=100, clus=cc,cov=cov.values)
+search.trend(RR=RRpteroCov, y=log(massptero), nsim=100, clus=cc,cov=cov.values)->st3
 
 # Case 2.2. "search.trend" indicating nodes to be specifically tested for trends
-search.trend(RR=RRpteroCov, y=log(massptero), nsim=100, node=143, clus=cc,cov=cov.values)
+search.trend(RR=RRpteroCov, y=log(massptero), nsim=100, node=143, clus=cc,cov=cov.values)->st4
 
 
 # Case 3. "search.trend" on multiple "RRphylo"
@@ -198,11 +194,11 @@ c(acemass.multi,masscet.multi)->x1.mass
 RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass,clus=cc)->RRmulti
 
 # incorporating the effect of body size at inspecting trends in absolute evolutionary rates
-search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,clus=cc)
+search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,clus=cc)->STcet
 
 # incorporating the effect of body size at inspecting trends in both absolute evolutionary
 # rates and phenotypic values (by using brain versus body mass regression residuals)
-search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,x1.residuals=TRUE,clus=cc)
+search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,x1.residuals=TRUE,clus=cc)->st5
    }
 }
 \references{
@@ -215,9 +211,9 @@ Castiglione, S., Serio, C., Mondanaro, A., Di Febbraro, M.,
 \seealso{
 \href{../doc/search.trend.html}{\code{search.trend} vignette}
 
-\href{../doc/Plotting-tools.html}{\code{plotTrend} vignette}
+\code{\link{overfitST}}; \href{../doc/overfit.html#overfitST}{\code{overfitST} vignette}
 
-\code{\link{plotTrend}}
+\code{\link{plotTrend}}; \href{../doc/Plotting-tools.html#plotTrend}{\code{plotTrend} vignette}
 }
 \author{
 Silvia Castiglione, Carmela Serio, Pasquale Raia, Alessandro

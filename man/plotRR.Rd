@@ -7,12 +7,12 @@
 plotRR(RR,y,multivariate=NULL)
 }
 \arguments{
-\item{RR}{an object produced by \code{RRphylo}.}
+\item{RR}{an object produced by \code{\link{RRphylo}}.}
 
 \item{y}{the vector/matrix of phenotypic values used to perform
-\code{RRphylo}.}
+\code{\link{RRphylo}}.}
 
-\item{multivariate}{if \code{RRphylo} was performed on multivariate data, this
+\item{multivariate}{if \code{\link{RRphylo}} was performed on multivariate data, this
 argument indicates whether individual rates for each variables (\code{=
 "multiple.rates"}) or the norm2 vector of multivariate rates (\code{=
 "rates"}) should be plotted.}
@@ -27,10 +27,11 @@ The function returns a list of functions:
  \code{...$plotRRphen(variable=NULL,tree.args=NULL,color.pal=NULL,colorbar.args=list())},
  where \code{variable} is the index or name of the variable to be plotted in
  case of multivariate data, \code{tree.args} is a list of further arguments
- passed to the function \code{plot.phylo}, \code{color.pal} is a function to
- generate the color palette, and \code{colorbar.args} is a list of further
- arguments passed to the function \code{\link{colorbar}} (if \code{= NULL}
- the bar is not plotted).
+ passed to the function \code{plot.phylo} plus a logical indicating whether
+ the tree should be ladderized  before plotting (see examples below),
+ \code{color.pal} is a function to generate the color palette, and
+ \code{colorbar.args} is a list of further arguments passed to the function
+ \code{\link{colorbar}} (if \code{= NULL} the bar is not plotted).
 
 \strong{$plotRRrates} charts evolutionary rate values along the tree
  branches. The usage is identical to \code{$plotRRphen}. In case of
@@ -49,23 +50,25 @@ DataApes$PCstage->PCstage
 DataApes$Tstage->Tstage
 cc<- 2/parallel::detectCores()
 
-RRphylo(tree=Tstage,y=PCstage,clus=cc)->RR
+RRphylo(tree=Tstage,y=PCstage,clus=cc)->RRstage
 
-plotRR(RR,y=PCstage,multivariate="multiple.rates")->pRR
-pRR$plotRRphen(variable=1,tree.args=list(edge.width=2),color.pal=rainbow,
+plotRR(RRstage,y=PCstage,multivariate="multiple.rates")->pRR1
+pRR1$plotRRphen(variable=1,tree.args=list(edge.width=2),color.pal=rainbow,
                colorbar.args = list(x="bottomleft",labs.adj=0.7,xpd=TRUE))
-pRR$plotRRrates(variable=2,tree.args=list(edge.width=2,direction="leftwards"),
+pRR1$plotRRrates(variable=2,tree.args=list(edge.width=2,direction="leftwards",ladderize=TRUE),
                 color.pal=rainbow,colorbar.args = list(x="topright",labs.adj=0.7,xpd=TRUE))
 
 
-plotRR(RR,y=PCstage,multivariate="rates")->pRR
-pRR$plotRRrates(tree.args=list(edge.width=2),
+plotRR(RRstage,y=PCstage,multivariate="rates")->pRR2
+pRR2$plotRRrates(tree.args=list(edge.width=2),
                 color.pal=hcl.colors,
                 colorbar.args = list(x="topleft",labs.adj=0.7,xpd=TRUE,title.pos="bottom"))
 }
 }
 \seealso{
 \href{../doc/RRphylo.html}{\code{RRphylo} vignette}
+
+\href{../doc/Plotting-tools.html#plotRR}{\code{plotRR} vignette}
 
 \href{../doc/RRphylo.html}{\code{RRphylo} vignette}
 

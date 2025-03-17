@@ -4,7 +4,8 @@
 \alias{namesCompare}
 \title{Checking species names for misspelling and synonyms}
 \usage{
-namesCompare(vec1,vec2,proportion=0.15)
+namesCompare(vec1,vec2,proportion=0.15,
+  focus=c("genus","subspecies","epithet","misspelling"))
 }
 \arguments{
 \item{vec1, vec2}{a vector of species names. Genus names only are also
@@ -14,9 +15,12 @@ are better placed in \code{vec1} (see example below).}
 
 \item{proportion}{the maximum proportion of different characters between any
 \code{vec1-vec2} names pair to consider it a possible misspelling.}
+
+\item{focus}{one or more of \code{"genus"}, \code{"subspecies"},
+\code{"epithet"}, \code{"misspelling"}. See Values for details.}
 }
 \value{
-The function returns a \code{list} including:
+The function returns a \code{list} including (according to \code{focus}):
 
 \strong{$genus} if \code{vec1} includes genera names which miss
   specific epithet, this object lists all the species in \code{vec2}
@@ -40,13 +44,13 @@ The function cross-references two vectors of species names
 }
 \examples{
 \dontrun{
-names(DataFelids$statefel)->nams
-nams[c(19,12,37,80,43)]<-c("Puma_yagouaroundi","Felis_manul","Catopuma",
+names(DataFelids$statefel)->nams.fel
+nams.fel[c(19,12,37,80,43)]<-c("Puma_yagouaroundi","Felis_manul","Catopuma",
                            "Pseudaelurus","Panthera_zdansky")
-nams<-nams[-81]
+nams<-nams.fel[-81]
 
-namesCompare(nams,names(DataFelids$statefel))
-namesCompare(names(DataFelids$statefel),nams)
+namesCompare(nams,names(DataFelids$statefel))->nc1
+namesCompare(names(DataFelids$statefel),nams)->nc2
 }
 }
 \author{

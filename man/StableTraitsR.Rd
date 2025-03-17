@@ -56,7 +56,7 @@ The function returns a 'list' containing the output of StableTraits
 
 \strong{$ace.prior.values} if \code{aces} is specified, the function
   returns a dataframe containing the corresponding node number on the
-  \code{RRphylo} tree for each node, the original (preset) and the estimated
+  \code{\link{RRphylo}} tree for each node, the original (preset) and the estimated
   values, and the 95\% credible interval.
 }
 \description{
@@ -88,7 +88,7 @@ fastBM(tree)->y
 c(1,2,3)->acev
 sample(Ntip(tree)+seq(1:Nnode(tree)),3)->names(acev)
 StableTraitsR(tree,y,path="Analyses/",output="my_output",aces=acev,
-argST=list(iterations=500000,chains=4),argSTS=list(brownian=TRUE))->ST
+argST=list(iterations=500000,chains=4),argSTS=list(brownian=TRUE))->STr
 }
 }
 \references{

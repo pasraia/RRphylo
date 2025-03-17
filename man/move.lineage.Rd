@@ -4,7 +4,7 @@
 \alias{move.lineage}
 \title{Move tips or clades}
 \usage{
-move.lineage(tree,focal,sister,rescale=TRUE,rootage=NULL)
+move.lineage(tree,focal,sister,poly=FALSE,rescale=TRUE,rootage=NULL)
 }
 \arguments{
 \item{tree}{a phylogenetic tree. The tree needs not to be ultrametric and
@@ -22,17 +22,21 @@ can be tip name/number or node number. If \code{tree$node.label} is not
 NAMEOFTHECLADE" when appropriate. Similarly, an entire genus can be
 indicated as "Genus NAMEOFTHEGENUS" (see examples below).}
 
+\item{poly}{logical indicating whether the \code{focal} and the \code{sister}
+should form a polytomous clade.}
+
 \item{rescale}{logical. If the most recent common ancestor of the
 \code{focal} clade is older than its new ancestor (i.e. the node right
 above \code{sister}), the user can choose whether the height of the
 \code{focal} clade must be rescaled on the height of the new ancestor
 (\code{rescale=TRUE}), or the topology of the tree must be modified to
 accommodate the height of \code{focal} as it is (rescale=FALSE, in this
-case \code{\link{scaleTree}} is applied).}
+case \code{\link{scaleTree}} is applied). This is ignored under \code{poly
+= TRUE}.}
 
 \item{rootage}{the age of the tree root to be supplied if \code{focal} must
-be attached to it. If \code{rootage=NULL} the total height of the tree
-increases by 10\%.}
+be attached to it (and \code{poly=FALSE}). If \code{rootage=NULL} the total
+height of the tree increases by 10\%.}
 }
 \value{
 The phylogenetic tree with required topological changes.
@@ -43,45 +47,47 @@ Move a single tip or an entire clade to a different position
 }
 \examples{
 require(phytools)
-DataCetaceans$tree->tree
+DataCetaceans$tree->treecet
 
 ### Case 1. Moving a single tip
 # sister to a tip
-move.lineage(tree,focal="Orcinus_orca",sister="Balaenoptera_musculus")
+move.lineage(treecet,focal="Orcinus_orca",sister="Balaenoptera_musculus")->mol1
 # sister to a clade
-move.lineage(tree,focal="Orcinus_orca",sister=131)
-# sister to a clade by using tree$node.label
-move.lineage(tree,focal="Balaenoptera_musculus",sister="Clade Delphinida")
+move.lineage(treecet,focal="Orcinus_orca",sister=131)->mol2
+# sister to a clade by using treecet$node.label
+move.lineage(treecet,focal="Balaenoptera_musculus",sister="Clade Delphinida")->mol3
 # sister to a specific genus
-move.lineage(tree,focal="Orcinus_orca",sister="Genus Balaenoptera")
+move.lineage(treecet,focal="Orcinus_orca",sister="Genus Balaenoptera")->mol4
 # sister to the tree root with and without rootage
-move.lineage(tree,focal="Balaenoptera_musculus",sister=117)
-move.lineage(tree,focal="Balaenoptera_musculus",sister=117,rootage=max(diag(vcv(tree))))
+move.lineage(treecet,focal="Balaenoptera_musculus",sister=117)->mol5
+move.lineage(treecet,focal="Balaenoptera_musculus",sister=117,rootage=max(diag(vcv(treecet))))->mol6
 
 ### Case 2. Moving a clade
 # sister to a tip
-move.lineage(tree,focal="Genus Mesoplodon",sister="Balaenoptera_musculus")
-move.lineage(tree,focal="Clade Delphinida",sister="Balaenoptera_musculus")
-move.lineage(tree,focal=159,sister="Balaenoptera_musculus")
+move.lineage(treecet,focal="Genus Mesoplodon",sister="Balaenoptera_musculus")->mol7
+move.lineage(treecet,focal="Clade Delphinida",sister="Balaenoptera_musculus")->mol8
+move.lineage(treecet,focal=159,sister="Balaenoptera_musculus")->mol9
 # sister to a clade
-move.lineage(tree,focal="Genus Mesoplodon",sister=131)
-move.lineage(tree,focal="Clade Delphinida",sister=131)
-move.lineage(tree,focal=159,sister=131)
-# sister to a clade by using tree$node.label
-move.lineage(tree,focal="Genus Mesoplodon",sister="Clade Plicogulae")
-move.lineage(tree,focal="Clade Delphinida",sister="Clade Plicogulae")
-move.lineage(tree,focal=159,sister="Clade Plicogulae")
+move.lineage(treecet,focal="Genus Mesoplodon",sister=131)->mol10
+move.lineage(treecet,focal="Clade Delphinida",sister=131)->mol11
+move.lineage(treecet,focal=159,sister=131)->mol12
+# sister to a clade by using treecet$node.label
+move.lineage(treecet,focal="Genus Mesoplodon",sister="Clade Plicogulae")->mol13
+move.lineage(treecet,focal="Clade Delphinida",sister="Clade Plicogulae")->mol14
+move.lineage(treecet,focal=159,sister="Clade Plicogulae")->mol15
 # sister to a specific genus
-move.lineage(tree,focal="Genus Mesoplodon",sister="Genus Balaenoptera")
-move.lineage(tree,focal="Clade Delphinida",sister="Genus Balaenoptera")
-move.lineage(tree,focal=159,sister="Genus Balaenoptera")
+move.lineage(treecet,focal="Genus Mesoplodon",sister="Genus Balaenoptera")->mol16
+move.lineage(treecet,focal="Clade Delphinida",sister="Genus Balaenoptera")->mol17
+move.lineage(treecet,focal=159,sister="Genus Balaenoptera")->mol18
 # sister to the tree root with and without rootage
-move.lineage(tree,focal="Genus Mesoplodon",sister=117)
-move.lineage(tree,focal="Clade Delphinida",sister=117)
-move.lineage(tree,focal=159,sister=117)
-move.lineage(tree,focal="Genus Mesoplodon",sister=117,rootage=max(diag(vcv(tree))))
-move.lineage(tree,focal="Clade Delphinida",sister=117,rootage=max(diag(vcv(tree))))
-move.lineage(tree,focal=159,sister=117,rootage=max(diag(vcv(tree))))
+move.lineage(treecet,focal="Genus Mesoplodon",sister=117)->mol19
+move.lineage(treecet,focal="Clade Delphinida",sister=117)->mol20
+move.lineage(treecet,focal=159,sister=117)->mol21
+move.lineage(treecet,focal="Genus Mesoplodon",
+             sister=117,rootage=max(diag(vcv(treecet))))->mol22
+move.lineage(treecet,focal="Clade Delphinida",
+             sister=117,rootage=max(diag(vcv(treecet))))->mol23
+move.lineage(treecet,focal=159,sister=117,rootage=max(diag(vcv(treecet))))->mol24
 }
 \author{
 Silvia Castiglione, Pasquale Raia

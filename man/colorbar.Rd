@@ -4,26 +4,10 @@
 \alias{colorbar}
 \title{Draw colorbar on a plot}
 \usage{
-colorbar(
-  colors,
-  x,
-  y = NULL,
-  direction = "vertical",
-  height = 1,
-  width = 1,
-  border = "black",
-  lwd = 2,
-  lty = 1,
-  labs = NULL,
-  labs.pos = NULL,
-  title = NULL,
-  title.pos = NULL,
-  ticks = TRUE,
-  tck.pos = NULL,
-  tck.length = 1,
-  xpd = FALSE,
-  ...
-)
+colorbar(colors,x,y=NULL,direction="vertical",
+  height=1,width=1,border="black",lwd=2,lty=1,
+  labs=NULL,labs.pos=NULL,title=NULL,title.pos=NULL,
+  ticks=TRUE,tck.pos=NULL,tck.length=1,xpd=FALSE,...)
 }
 \arguments{
 \item{colors}{vector of colors.}
@@ -70,12 +54,12 @@ label.}
 
 \item{...}{further arguments passed to the functions \code{text} (for labels
 and title) and \code{segments}. All these arguments must be hooked to the
-element they refer to by indicating: \code{labs.*} for labels,
-\code{title.\*} for title, and \code{tck.\*} for ticks. See example for
+element they refer to by indicating: \code{labs.}\* for labels,
+\code{title.}\* for title, and \code{tck.}\* for ticks. See example for
 further details.}
 }
 \description{
-The function adds a color bar to  plot.
+The function adds a color bar to the current plot.
 }
 \examples{
 

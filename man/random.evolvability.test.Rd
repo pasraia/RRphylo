@@ -15,7 +15,7 @@ fully dichotomous.}
 
 \item{node.estimation}{specify the method to compute ancestral character at
 nodes. It can be one of \code{"RR"}, to compute ancestral states by mean of
-\code{RRphylo}, or \code{"BM"}, to use \pkg{phytools}' function \code{fastAnc}
+\code{RRphylo}, or \code{"BM"}, to use \pkg{phytools}' function \code{\link[phytools]{fastAnc}}
 (\cite{Paradis & Schliep 2019}) to estimate ancestral characters at nodes
 according to Brownian Motion.}
 
@@ -29,13 +29,14 @@ Names correspond to the nodes in the tree.}
 test, by default \code{nrep} is set at 100.}
 
 \item{clus}{the proportion of clusters to be used in parallel computing. To
-run the single-threaded version of \code{NOME} set \code{clus} = 0.}
+run the single-threaded version of \code{random.evolvability.test} set \code{clus} = 0.}
 }
 \value{
 The function returns a list object including (\code{$means}) the mean
   values for all statistics as produced by \code{MeanMatrixStatistics} and
   (\code{$means}) the significance levels for Respondability, Evolvability,
   and Flexibility.
+  The output always has an attribute "Call" which returns an unevaluated call to the function.
 }
 \description{
 The function is a wrapper around the function
@@ -56,10 +57,10 @@ The function is a wrapper around the function
  library(ape)
  library(phytools)
 
- rtree(30)->tree
- fastBM(tree,nsim=4)->y
+ rtree(30)->phy
+ fastBM(phy,nsim=4)->phen
 
- random.evolvability.test(tree=tree,data=y,node.estimation="RR")->rEvTest
+ random.evolvability.test(tree=phy,data=phen,node.estimation="RR")->rEvTest
 
     }
 }

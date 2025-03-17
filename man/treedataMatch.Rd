@@ -10,26 +10,26 @@ treedataMatch(tree,y)
 \item{tree}{a phylogenetic tree. The tree needs not to be ultrametric and
 fully dichotomous.}
 
-\item{y}{either a single vector variable or a multivariate dataset. In any
-case, \code{y} must be named.}
+\item{y}{named variable. It can be a vector or a multivariate dataset or a 3D
+array. Alternatively, \code{y} can also be a vector of species names.}
 }
 \value{
 The function returns a \code{list} object. If no mismatch between
   \code{tree} and \code{y} is detected, the list only includes the matrix of
-  \code{y} ordered according to the order of tips on the tree (\code{$y}).
-  If some tips on the \code{tree} are missing from \code{y}, they are
-  removed from the phylogeny. Thus, the list also includes the pruned tree
-  (\code{$tree}) and the vector of dropped tips
-  (\code{$removed.from.tree}). Similarly, if some entries in \code{y} are
-  missing from the \code{tree}, the list also includes the vector of
-  mismatching entry names (\code{$removed.from.y}). In this latter case, the
-  first element of the list (\code{$y}) does not include the entries
-  \code{$removed.from.y}, so that it perfectly matches the phylogeny.
+  \code{y} ordered according to the order of tips on the tree (\code{$y}). If
+  some tips on the \code{tree} are missing from \code{y}, they are removed
+  from the phylogeny. Thus, the list also includes the pruned tree
+  (\code{$tree}) and the vector of dropped tips (\code{$removed.from.tree}).
+  Similarly, if some entries in \code{y} are missing from the \code{tree},
+  the list also includes the vector of mismatching entry names
+  (\code{$removed.from.y}). In this latter case, the first element of the
+  list (\code{$y}) does not include the entries \code{$removed.from.y}, so
+  that it perfectly matches the phylogeny.
 }
 \description{
-The function matches data names with tree tips. If either there is no
-  data for a tip or it is not present on the tree, the function removes the entry
-  from both.
+The function matches data names with tree tips. If either there
+  is no data for a tip or it is not present on the tree, the function removes
+  the entry from both.
 }
 \examples{
 data(DataCetaceans)
@@ -39,6 +39,7 @@ DataCetaceans$brainmasscet->brainmasscet
 
 treedataMatch(tree=treecet,y=masscet)
 treedataMatch(tree=treecet,y=brainmasscet)
+treedataMatch(tree=treecet,y=names(brainmasscet))
 }
 \author{
 Silvia Castiglione, Pasquale Raia, Carmela Serio

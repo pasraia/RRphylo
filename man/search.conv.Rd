@@ -6,7 +6,7 @@
 \usage{
 search.conv(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
   min.dim=NULL,max.dim=NULL,min.dist=NULL,declust=FALSE,nsim=1000,rsim=1000,
-  clus=0.5,filename=NULL)
+  clus=0.5)
 }
 \arguments{
 \item{RR}{an object produced by \code{\link{RRphylo}}. This is not indicated
@@ -19,10 +19,11 @@ tested.}
 \item{y}{a multivariate phenotype. The object \code{y} should be either a
 matrix or dataframe with species names as rownames.}
 
-\item{nodes}{node pair to be tested. If unspecified, the function
-automatically searches for convergence among clades. Notice the node number
-must refer to the dichotomic version of the original tree, as produced by
-\code{RRphylo}.}
+\item{nodes}{node pair to be tested. It can be either a vector of two, or a
+two-columns matrix/data.frame of node pairs to be tested. Notice the node
+number must refer to the dichotomic version of the original tree, as
+produced by \code{\link{RRphylo}}. If unspecified, the function automatically
+searches for convergence among clades.}
 
 \item{state}{the named vector of tip states. The function tests for
 convergence within a single state or among different states (this latter
@@ -33,9 +34,9 @@ group) must be indicated as "nostate".}
 
 \item{aceV}{phenotypic values at internal nodes. The object \code{aceV}
 should be either a matrix or dataframe with nodes (referred to the
-dichotomic version of the original tree, as produced by \code{RRphylo}) as
+dichotomic version of the original tree, as produced by \code{\link{RRphylo}}) as
 rownames. If \code{aceV} are not indicated, ancestral phenotypes are
-estimated via \code{RRphylo}.}
+estimated via \code{\link{RRphylo}}.}
 
 \item{min.dim}{the minimum size of the clades to be compared. When
 \code{nodes} is indicated, it is the minimum size of the smallest clades in
@@ -56,10 +57,10 @@ argument containing the word "time" and then the actual time distance to be
 used. The same is true for node distance, but the word "node" must precede
 the node distance to be used. For example, if the user want to test only
 clades more distant than 10 time units, the argument should be "time10". If
-clades separated by more than 8 nodes has to be tested, the argument
+clades separated by more than 8 nodes have to be tested, the argument
 \code{min.dist} should be "node8". If left unspecified, it automatically
 searches for convergence between clades separated by a number of nodes
-bigger than one tenth of the tree size.}
+larger than one tenth of the tree size.}
 
 \item{declust}{if species under a given state (or a pair of states) to be
 tested for convergence are phylogenetically closer than expected by chance,
@@ -76,9 +77,6 @@ distribution of theta values. It is set at 1000 by default.}
 
 \item{clus}{the proportion of clusters to be used in parallel computing. To
 run the single-threaded version of \code{search.conv} set \code{clus} = 0.}
-
-\item{filename}{is deprecated. \code{search.conv} does not return plots
-anymore, check the function \code{\link{plotConv}} instead.}
 }
 \value{
 If convergence between clades is tested, the function returns a list
@@ -110,6 +108,8 @@ If convergence between (or within a single state) states is tested,
   computed for ang.state. \item p.ang.state.time: the p-value computed for
   ang.state.time.}} \itemize{\item\strong{plotData} a dataframe including
   data to plot the results via \code{\link{plotConv}}}.
+
+The output always has an attribute "Call" which returns an unevaluated call to the function.
 }
 \description{
 The function scans a phylogenetic tree looking for morphological
@@ -129,12 +129,15 @@ RRphylo(treefel,PCscoresfel,clus=cc)->RRfel
 
 ## Case 1. searching convergence between clades
 # by setting min.dist as node distance
-search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="node9",clus=cc)
+search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="node9",clus=cc)->sc.clade
 # by setting min.dist as time distance
-search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="time38",clus=cc)
+search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="time38",clus=cc)->sc.clade.time
+# by setting node pairs to be tested
+nodpairs<-rbind(c(85,145),c(85,155))
+search.conv(RR=RRfel, y=PCscoresfel, nodes=nodpairs ,clus=cc)->sc.node
 
 ## Case 2. searching convergence within a single state
-search.conv(tree=treefel, y=PCscoresfel, state=statefel,declust=TRUE,clus=cc)
+search.conv(tree=treefel, y=PCscoresfel, state=statefel,declust=TRUE,clus=cc)->sc.state
   }
 }
 \references{
@@ -147,7 +150,9 @@ Castiglione, S., Serio, C., Tamagnini, D., Melchionna, M.,
 \seealso{
 \href{../doc/search.conv.html}{\code{search.conv} vignette}
 
-\href{../doc/Plotting-tools.html}{\code{plotConv} vignette}
+\code{\link{overfitSC}}; \href{../doc/overfit.html#overfitSC}{\code{overfitSC} vignette}
+
+\code{\link{plotConv}}; \href{../doc/Plotting-tools.html#plotConv}{\code{plotConv} vignette}
 }
 \author{
 Silvia Castiglione, Carmela Serio, Pasquale Raia, Alessandro

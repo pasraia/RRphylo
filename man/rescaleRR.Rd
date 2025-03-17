@@ -51,12 +51,12 @@ The function rescales all branches and leaves of the
 \dontrun{
 ape::rtree(100)->tree
 phytools::fastBM(tree)->y
-max(diag(vcv(tree)))->H
+max(diag(vcv(tree)))->Hmax
 
-RRphylo(tree,y,clus=0)->RR
-rescaleRR(tree,RR=RR)->treeRR
+RRphylo(tree,y,clus=0)->RRy
+rescaleRR(tree,RR=RRy)->treeRR
 
-rescaleRR(tree,height=H/3)->tree_height
+rescaleRR(tree,height=Hmax/3)->tree_height
 
 rescaleRR(tree,trend=5)->tree_trend
 

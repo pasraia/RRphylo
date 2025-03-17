@@ -4,16 +4,12 @@
 \alias{plotRates}
 \title{Plot RRphylo rates at a specified node}
 \usage{
-plotRates(RR,node,export.tiff=NULL,filename=NULL)
+plotRates(RR,node)
 }
 \arguments{
 \item{RR}{an object produced by \code{\link{RRphylo}}.}
 
 \item{node}{the node subtending the clade of interest.}
-
-\item{export.tiff}{is deprecated.}
-
-\item{filename}{is deprecated.}
 }
 \value{
 The function returns a list of functions:
@@ -53,9 +49,9 @@ DataApes$PCstage->PCstage
 DataApes$Tstage->Tstage
 cc<- 2/parallel::detectCores()
 
-RRphylo(tree=Tstage,y=PCstage,clus=cc)->RR
+RRphylo(tree=Tstage,y=PCstage,clus=cc)->RRstage
 
-plotRates(RR,node=72)->pR
+plotRates(RRstage,node=72)->pR
 pR$plotHist(hist.args=list(col1="cyan1",col2="blue"),legend.args=list(x="topright"))
 pR$plotLollipop(lollipop.args=list(col="chartreuse",bg="chartreuse"),
                 line.args=list(col="deeppink",lwd=2))
@@ -68,7 +64,7 @@ pR$plotLollipop(lollipop.args=list(col="chartreuse",bg="chartreuse"),
 
 \href{../doc/RRphylo.html}{\code{RRphylo} vignette}
 
-\href{../doc/Plotting-tools.html}{\code{plotRates} vignette}
+\href{../doc/Plotting-tools.html#plotRates}{\code{plotRates} vignette}
 }
 \author{
 Silvia Castiglione, Pasquale Raia

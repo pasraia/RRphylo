@@ -5,9 +5,11 @@
 \alias{DataFelids}
 \title{Example dataset}
 \format{
-A list containing: \describe{ \item{\strong{$PCscoresfel}}{A data
-  frame containing 83 shape variables for felids' mandible}.
-  \item{\strong{$treefel}}{Phylogenetic tree of felids}. }
+A list containing: \describe{\item{\strong{$treefel}}{Phylogenetic tree of felids}.
+\item{\strong{$landfel}}{list of 2D landmark configuration for each species of the tree}.
+ \item{\strong{$PCscoresfel}}{A data.frame containing 83 shape variables for felids' mandible}.
+ \item{\strong{$statefel}}{sabertooth - not sabertooth ecomorph categorization for each species}.
+  }
 }
 \usage{
 data(DataFelids)

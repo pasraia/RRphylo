@@ -28,7 +28,7 @@ This function takes an object of class \code{'phylo'} and
 data("DataApes")
 DataApes$Tstage->Tstage
 
-makeFossil(tree=Tstage)
+makeFossil(tree=Tstage)->mf
 }
 \author{
 Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro

@@ -37,7 +37,10 @@ The function returns a list including:
   common ancestor.}
 }
 \description{
-Given vectors of RW (or PC) scores, the function selects the
+\strong{The function is deprecated, please check the new version of
+  \code{rate.map} in package \pkg{RRmorph}}.
+
+  Given vectors of RW (or PC) scores, the function selects the
   RW(PC) axes linked to highest (and lowest) evolutionary rate values and
   reconstructs the morphology weighted on them. In this way, \code{rate.map}
   shows where and how the phenotype changed the most between any pair of
@@ -66,15 +69,14 @@ After selecting the PC axes, \code{rate.map} automatically builds a
 \examples{
   \dontrun{
   data(DataSimians)
-  DataSimians$pca->pca
-  DataSimians$tree->tree
-  dato<-pca$PCscores
+  DataSimians$pca->pcasim
+  DataSimians$tree->treesim
   cc<- 2/parallel::detectCores()
 
-  RRphylo(tree,dato,clus=cc)->RR
+  RRphylo(treesim,pcasim$PCscores,clus=cc)->RRsim
 
-  Rmap<-rate.map(x=c("Pan_troglodytes","Gorilla_gorilla"),RR=RR, PCscores=dato,
-                 pcs=pca$PCs, mshape=pca$mshape, shape.diff = TRUE)
+  Rmap<-rate.map(x=c("Pan_troglodytes","Gorilla_gorilla"),RR=RRsim, PCscores=pcasim$PCscores,
+                 pcs=pcasim$PCs, mshape=pcasim$mshape, shape.diff = TRUE)
 
   }
 }

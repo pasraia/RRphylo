@@ -10,7 +10,7 @@ getMommy(tree,N)
 \item{tree}{a phylogenetic tree. The tree needs not to be ultrametric and
 fully dichotomous.}
 
-\item{N}{the number of node or tip to perform the function on. The function also works with tip labels.}
+\item{N}{the number of node or tip to perform the function on. The function also works with tip/node labels.}
 }
 \value{
 The function produces a vector of node numbers as integers, collated
@@ -25,7 +25,7 @@ This function is a wrapper around \pkg{phytools}
 data("DataApes")
 DataApes$Tstage->Tstage
 
-getMommy(tree=Tstage,N=12)
+getMommy(tree=Tstage,N=12)->gm
 }
 \references{
 Revell, L. J. (2012). phytools: An R package for phylogenetic

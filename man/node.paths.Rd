@@ -28,7 +28,7 @@ rtree(100)->tree
 sample(seq(Ntip(tree)+1,Ntip(tree)+Nnode(tree)),20)->nods
 plot(tree,show.tip.label=FALSE)
 nodelabels(node=nods,frame="n",col="red")
-node.paths(tree=tree, vec=nods)
+node.paths(tree=tree, vec=nods)->np
 }
 \author{
 Silvia Castiglione, Pasquale Raia

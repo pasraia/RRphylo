@@ -24,7 +24,7 @@ otherwise.}
 (\code{"phenotypes"}) or rate (\code{"rates"}) vectors.}
 
 \item{cova}{the covariate to be indicated if its effect on rate values must
-be accounted for. Contrary to \code{RRphylo}, \code{cova} needs to be as
+be accounted for. Contrary to \code{\link{RRphylo}}, \code{cova} needs to be as
 long as the number of tips in the tree. As the covariate only affects rates
 computation, there is no covariate to provide when \code{type =
 "phenotypes"}.}
@@ -66,11 +66,11 @@ The \code{angle.matrix} function takes as objects a phylogenetic
   tree (retrieved directly from an \code{\link{RRphylo}} object), including
   the different ontogenetic stages of each species as polytomies. Names at
   tips must be written as species ID and stage number separated by the
-  underscore. The \code{RRphylo} object \code{angle.matrix} is fed with is
+  underscore. The \code{RR} object \code{angle.matrix} is fed with is
   just used to extract the dichotomized version of the phylogeny. This is
   necessary because node numbers change randomly at dichotomizing non-binary
   trees. However, when performing \code{angle.matrix} with the covariate the
-  \code{RRphylo } object must be produced without accounting for the
+  \code{RR} object must be produced without accounting for the
   covariate. Furthermore, as the covariate only affects the rates
   computation, it makes no sense to use it when computing vectors for
   phenotypic variables. Once angles and vectors are computed,
@@ -108,30 +108,30 @@ The \code{angle.matrix} function takes as objects a phylogenetic
   DataApes$CentroidSize->CS
   cc<- 2/parallel::detectCores()
 
-  RRphylo(tree=Tstage,y=PCstage,clus=cc)->RR
+  RRphylo(tree=Tstage,y=PCstage,clus=cc)->RRstage
 # Case 1. without accounting for the effect of a covariate
 
  # Case 1.1 selecting shape variables that show significant relationship with age
   # on phenotypic vectors
-    angle.matrix(RR,node=72,Y=PCstage,select.axes="yes",type="phenotypes",clus=cc)
+    angle.matrix(RRstage,node=72,Y=PCstage,select.axes="yes",type="phenotypes",clus=cc)->am1
   # on rates vectors
-    angle.matrix(RR,node=72,Y=PCstage,select.axes="yes",type="rates",clus=cc)
+    angle.matrix(RRstage,node=72,Y=PCstage,select.axes="yes",type="rates",clus=cc)->am2
 
  # Case 1.2 using all shape variables
   # on phenotypic vectors
-    angle.matrix(RR,node=72,Y=PCstage,select.axes="no",type="phenotypes",clus=cc)
+    angle.matrix(RRstage,node=72,Y=PCstage,select.axes="no",type="phenotypes",clus=cc)->am3
   # on rates vectors
-    angle.matrix(RR,node=72,Y=PCstage,select.axes="no",type="rates",clus=cc)
+    angle.matrix(RRstage,node=72,Y=PCstage,select.axes="no",type="rates",clus=cc)->am4
 
 
 # Case 2. accounting for the effect of a covariate (on rates vectors only)
 
  # Case 2.1 selecting shape variables that show significant relationship with age
-   angle.matrix(RR,node=72,Y=PCstage,select.axes="yes",type="rates", cova=CS,clus=cc)
+   angle.matrix(RRstage,node=72,Y=PCstage,select.axes="yes",type="rates", cova=CS,clus=cc)->am5
 
 
  # Case 2.2 using all shape variables
-   angle.matrix(RR,node=72,Y=PCstage,select.axes="no",type="rates",cova=CS,clus=cc)
+   angle.matrix(RRstage,node=72,Y=PCstage,select.axes="no",type="rates",cova=CS,clus=cc)->am6
   }
 }
 \author{

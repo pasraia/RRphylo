@@ -30,10 +30,11 @@ The argument \code{time.limit} sets the searching time. The
   solution is in fact possible.
 }
 \examples{
-data("DataOrnithodirans")
-DataOrnithodirans$treedino->treedino
-
-sizedsubtree(tree=treedino,Size=40)
+ \dontrun{
+ data("DataOrnithodirans")
+ DataOrnithodirans$treedino->treedino
+ sizedsubtree(tree=treedino,Size=40)->sst
+}
 }
 \author{
 Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro

@@ -53,9 +53,12 @@ The function returns a list including:
   as the maximum of all differences between each surface and the mean shape.}
 }
 \description{
-Given vectors of RW (or PC) scores, the function selects the
-  RW(PC) axes which best account for convergence and maps convergent areas on
-  the corresponding 3D surfaces.
+\strong{The function is deprecated, please check the new version of
+  \code{conv.map} in package \pkg{RRmorph}}.
+
+  Given vectors of RW (or PC) scores, the function selects the RW(PC) axes
+  which best account for convergence and maps convergent areas on the
+  corresponding 3D surfaces.
 }
 \details{
 \code{conv.map} automatically builds a 3D mesh on the mean shape
@@ -80,24 +83,24 @@ Given vectors of RW (or PC) scores, the function selects the
 \examples{
   \dontrun{
   data(DataSimians)
-  DataSimians$pca->pca
+  DataSimians$pca->pcasim
 
   ## Case 1. Convergent species only
-     dato<-pca$PCscores[c(1,4),]
+     dato1<-pcasim$PCscores[c(1,4),]
 
-     CM<-conv.map(dataset = dato,
-                 pcs = pca$PCs,
-                 mshape = pca$mshape,
+     CM1<-conv.map(dataset = dato1,
+                 pcs = pcasim$PCs,
+                 mshape = pcasim$mshape,
                  show.consensus = TRUE)
 
   ## Case 2. Convergent and non-convergent species
-     dato<-pca$PCscores[c(1,4,7),]
+     dato2<-pcasim$PCscores[c(1,4,7),]
      conv<-c("conv","conv","noconv")
-     names(conv)<-rownames(dato)
+     names(conv)<-rownames(dato2)
 
-     CM<-conv.map(dataset = dato,
-                  pcs = pca$PCs,
-                  mshape = pca$mshape,
+     CM2<-conv.map(dataset = dato2,
+                  pcs = pcasim$PCs,
+                  mshape = pcasim$mshape,
                   conv = conv,
                   show.consensus = TRUE,
                   col = "orange")
@@ -108,7 +111,8 @@ Schlager, S. (2017). \emph{Morpho and Rvcg–Shape Analysis in R:
   R-Packages for geometric morphometrics, shape analysis and surface
   manipulations.} In: Statistical shape and deformation analysis. Academic
   Press.
-  Melchionna, M., Profico, A., Castiglione, S., Serio, C., Mondanaro,
+
+Melchionna, M., Profico, A., Castiglione, S., Serio, C., Mondanaro,
   A., Modafferi, M., Tamagnini, D., Maiorano, L. , Raia, P., Witmer, L.M.,
   Wroe, S., & Sansalone, G. (2021). A method for mapping morphological
   convergence on three-dimensional digital models: the case of the mammalian

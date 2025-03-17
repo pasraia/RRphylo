@@ -82,9 +82,10 @@ Note that \code{setBM} differs from \code{fastBM} in that the
 data("DataOrnithodirans")
 DataOrnithodirans$treedino->treedino
 
-setBM(tree=treedino, nY= 1, type="brown")
-setBM(tree=treedino, nY= 1, type="drift", ds=2)
-setBM(tree=treedino, nY= 1, type="trend", trend.type="linear", es=2)}
+setBM(tree=treedino, nY= 1, type="brown")->sb1
+setBM(tree=treedino, nY= 1, type="drift", ds=2)->sb2
+setBM(tree=treedino, nY= 1, type="trend", trend.type="linear", es=2)->sb3
+}
 }
 \author{
 Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro

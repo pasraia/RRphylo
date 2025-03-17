@@ -30,8 +30,8 @@ sig2BM(tree=treecet,y=masscet)
 ### Multivariate data ###
 data(DataUng)
 DataUng$treeung->treeung
-DataUng$PCscoresung->PCscores
-sig2BM(tree=treeung,y=PCscores)
+DataUng$PCscoresung->PCung
+sig2BM(tree=treeung,y=PCung)
 }
 \author{
 Pasquale Raia, Silvia Castiglione

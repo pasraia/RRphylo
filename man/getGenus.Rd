@@ -15,8 +15,10 @@ fully dichotomous. Generic name and specific epithet must be separated by
 Please notice the function is case sensitive.}
 }
 \value{
-The function returns a data-frame including the number of species and
-  the most recent common ancestor of each genera.
+The function returns a data-frame including the number of species,
+  the most recent common ancestor of each genera (if a genus includes one
+  species this is the species tip number), and
+  whether the genera form monophyletic or paraphyletic clades.
 }
 \description{
 The function returns the most recent common ancestor and the
@@ -24,10 +26,10 @@ The function returns the most recent common ancestor and the
   the phylogenetic tree.
 }
 \examples{
-DataCetaceans$treecet->tree
+DataCetaceans$treecet->treecet
 
-getGenus(tree)
-getGenus(tree,c("Mesoplodon","Balaenoptera"))
+getGenus(treecet)->gg1
+getGenus(treecet,c("Mesoplodon","Balaenoptera"))->gg2
 }
 \author{
 Silvia Castiglione, Pasquale Raia, Carmela Serio

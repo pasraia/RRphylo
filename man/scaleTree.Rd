@@ -4,7 +4,7 @@
 \alias{scaleTree}
 \title{Phylogenetic tree calibration}
 \usage{
-scaleTree(tree, tip.ages=NULL, node.ages=NULL,min.branch=NULL)
+scaleTree(tree, tip.ages=NULL, node.ages=NULL)
 }
 \arguments{
 \item{tree}{a phylogenetic tree. The tree needs not to be ultrametric and
@@ -12,17 +12,17 @@ fully dichotomous.}
 
 \item{tip.ages}{a named vector including the ages (i.e. distance from the
 youngest tip within the tree) of the tips to be changed. If unspecified, the
-function assumes all the tips are correctly placed with respect to the root.}
+function assumes all the tips are correctly placed with respect to the root.
+Names can be either tip labels or numbers.}
 
 \item{node.ages}{a named vector including the ages (i.e. distance from the
 youngest tip within the tree) of the nodes to be changed. If no calibration
 date for nodes is supplied, the tree root is fixed and the function shifts
 node position only where needed to fit tip ages.}
-
-\item{min.branch}{has been deprecated.}
 }
 \value{
-Rescaled phylogentic tree with tip labels ordered according to their position in the tree.
+Rescaled phylogentic tree with tip labels ordered according to their
+ position in the tree.
 }
 \description{
 The function is a wrapper around the functions "scalePhylo",
@@ -36,33 +36,33 @@ library(ape)
 library(phytools)
 
 data("DataFelids")
-DataFelids$treefel->tree
+DataFelids$treefel->treefel
 
-max(nodeHeights(tree))->H
+max(nodeHeights(treefel))->H
 
 #### Example 1 ####
 rep(0,4)->tipAges
-names(tipAges)<-tips(tree,146)
-scaleTree(tree,tipAges)->treeS1
+names(tipAges)<-tips(treefel,146)
+scaleTree(treefel,tipAges)->treeS1
 
-edge.col<-rep("black",nrow(tree$edge))
+edge.col<-rep("black",nrow(treefel$edge))
 edge.col[which(treeS1$edge[,2]\%in\%getDescendants(treeS1,146))]<-"red"
 
 layout(2:1)
-plot(tree,edge.color = edge.col,show.tip.label=FALSE)
+plot(treefel,edge.color = edge.col,show.tip.label=FALSE)
 plot(treeS1,edge.color = edge.col,show.tip.label=FALSE)
 
 #### Example 2 ####
 nodeAges<-c(23.5,15.6)
 names(nodeAges)<-c(85,139)
-scaleTree(tree,node.ages=nodeAges)->treeS2
+scaleTree(treefel,node.ages=nodeAges)->treeS2
 
-edge.col<-rep("black",nrow(tree$edge))
+edge.col<-rep("black",nrow(treefel$edge))
 edge.col[which(treeS1$edge[,2]\%in\%c(getDescendants(treeS1,85),
                                     getDescendants(treeS1,139)))]<-"red"
 
 layout(2:1)
-plot(tree,edge.color = edge.col,show.tip.label=FALSE)
+plot(treefel,edge.color = edge.col,show.tip.label=FALSE)
 nodelabels(bg="w",frame="n",node=c(85,139),col="green")
 plot(treeS2,edge.color = edge.col,show.tip.label=FALSE)
 nodelabels(bg="w",frame="n",node=c(85,139),col="green")
@@ -71,22 +71,23 @@ nodelabels(bg="w",frame="n",node=c(85,139),col="green")
 16->nodeAges
 names(nodeAges)<-"145"
 tipAges<-19
-names(tipAges)<-tree$tip.label[1]
-scaleTree(tree,tip.ages = tipAges,node.ages=nodeAges)->treeS3
+names(tipAges)<-treefel$tip.label[1]
+scaleTree(treefel,tip.ages = tipAges,node.ages=nodeAges)->treeS3
 
-edge.col<-rep("black",nrow(tree$edge))
-edge.col[which(treeS3$edge[,2]\%in\%c(1,getMommy(tree,1),
+edge.col<-rep("black",nrow(treefel$edge))
+edge.col[which(treeS3$edge[,2]\%in\%c(1,getMommy(treefel,1),
                                     getDescendants(treeS3,145)))]<-"red"
 
 layout(2:1)
-plot(tree,edge.color = edge.col,show.tip.label=FALSE)
+plot(treefel,edge.color = edge.col,show.tip.label=FALSE)
 nodelabels(bg="w",frame="n",node=145,col="green")
 plot(treeS3,edge.color = edge.col,show.tip.label=FALSE)
 nodelabels(bg="w",frame="n",node=145,col="green")
 }
 }
 \seealso{
-\href{../doc/Tree-Manipulation.html#scaleTree}{\code{scaleTree} vignette}
+\href{../doc/Tree-Manipulation.html#scaleTree}{\code{scaleTree}
+ vignette}
 }
 \author{
 Silvia Castiglione, Pasquale Raia, Carmela Serio, Alessandro

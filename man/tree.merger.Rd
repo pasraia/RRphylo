@@ -2,13 +2,14 @@
 % Please edit documentation in R/tree.merger.R
 \name{tree.merger}
 \alias{tree.merger}
-\title{Fast addition of tips and clades on an existing tree}
+\title{Fast construction of phylogenetic trees}
 \usage{
-tree.merger(backbone,data,source.tree=NULL,age.offset=NULL,tip.ages =
-  NULL, node.ages = NULL,min.branch=NULL,plot=TRUE,filename=NULL)
+tree.merger(backbone=NULL,data,source.tree=NULL,age.offset=NULL,tip.ages =
+NULL, node.ages = NULL,plot=TRUE,filename=NULL)
 }
 \arguments{
-\item{backbone}{the backbone tree to attach tips/clades on.}
+\item{backbone}{the backbone tree to attach tips/clades on. This is
+\code{NULL} when constructing the tree from scratch.}
 
 \item{data}{a dataset including as columns:\enumerate{\item bind = the
 tips/clades to be attached; \item reference = the reference tip or clade
@@ -27,19 +28,22 @@ than the source tree, and vice-versa.}
 
 \item{tip.ages}{as in \code{\link{scaleTree}}, a named vector including the
 ages (i.e. the time distance from the youngest tip within the tree) of the
-tips. If unspecified, the function assumes all the tips on the backbone
-tree are correctly placed and places all the new tips at the maximum
-distance from the tree root (i.e. the present if the tips are extant).}
+tips. If unspecified when merging, the function assumes all the tips on the
+backbone tree are correctly placed and places all the new tips at the
+maximum distance from the tree root (i.e. the present if the tips are
+extant). If unspecified when building a new tree, all the tips are placed
+at the maximum distance from the tree root.}
 
-\item{node.ages}{as in \code{scaleTree}, a named vector including the ages
-(i.e. the time distance from the youngest tip within the tree) of the
+\item{node.ages}{as in \code{\link{scaleTree}}, a named vector including the
+ages (i.e. the time distance from the youngest tip within the tree) of the
 nodes. The nodes must be defined by collating the names of the two
-phylogenetically furthest tips it subtends to, separated by the "-" symbol (see
-examples). If no calibration date for nodes is supplied, the function may
-shift the node position back in time as to place new tips/clades and to fit
-tip ages.}
-
-\item{min.branch}{has been deprecated.}
+phylogenetically furthest tips it subtends to, separated by the "-" symbol
+(see examples). If no calibration date for nodes is supplied when merging,
+the function may shift the node position back in time as to place new
+tips/clades and to fit tip ages. If no \code{node.ages} is supplied when
+building a new tree, all the nodes, including the tree root, are arbitrarly
+placed either to accommodate \code{tip.ages} or to have 1 unit time
+distance with one another along a lineage (when \code{tip.ages = NULL}).}
 
 \item{plot}{if \code{TRUE}, the function produces an interactive plotting
 device to check the placing of each \code{bind}.}
@@ -49,35 +53,48 @@ without the path), the function stores a pdf file showing the plot of the
 entire phylogeny.}
 }
 \value{
-Merged phylogenetic tree.
+New/merged phylogenetic tree.
 }
 \description{
-The function attaches new tips and/or clades derived from a
-  source phylogeny to a pre-existing backbone tree.
+The function can either attaches new tips and/or clades derived
+  from a source phylogeny to a pre-existing backbone tree, or build a new
+  phylogenetic tree from scratch.
 }
 \details{
-The function attaches tips and/or clades from the \code{source} tree
-  to the \code{backbone} tree according to the \code{data} object. Within the
-  latter, a clade, either to be bound or to be the reference, must be
-  indicated by collating the names of the two phylogenetically furthest tips
-  belonging to it, separated by the "-" symbol. Alternatively, if
+The following description of the \code{data} argument applies both
+  when merging the tree and when building it from zero. In the latter case,
+  the first row of \code{data} must include as 'bind' and 'reference' the
+  first pair of tips to set the tree up (meaning, the 'reference' tip is not
+  also listed as 'bind'). The function attaches tips and/or clades from the
+  \code{source} tree to the \code{backbone} tree according to the \code{data}
+  object. Within the latter, a clade, either to be bound or to be the
+  reference, must be indicated by collating the names of the two
+  phylogenetically furthest tips belonging to it, separated by the "-"
+  symbol. Alternatively, if
   \code{backbone$node.label}/\code{source.tree$node.label} is not
   \code{NULL}, a bind/reference clade can be indicated as "Clade
-  NAMEOFTHECLADE" when appropriate. Similarly, an entire genus on both the
-  \code{backbone} and the \code{source.tree} can be indicated as "Genus
-  NAMEOFTHEGENUS" (see examples below). Duplicated 'bind' produce error.
-  Tips/clades set to be attached to the same 'reference' with
-  'poly=FALSE' are considered to represent a polytomy. Tips set as 'bind'
-  which are already on the backbone tree are removed from the latter and
-  placed according to the 'reference'. See examples and
+  NAMEOFTHECLADE" when appropriate. Similarly, an entire genus on the
+  \code{backbone} or the \code{source.tree} can be indicated as "Genus
+  NAMEOFTHEGENUS" (see examples below). If the "Genus NAMEOFTHEGENUS" mode is
+  used for a species/clade belonging to one or more different genera, the
+  function automatically sets as reference the clade including all the species
+  belonging to the reference genus, regardless of they are already on the
+  \code{backbone} or binded.
+
+  Duplicated 'bind' produce error. Tips/clades set to be attached to the same
+  'reference' with 'poly=FALSE' are considered to represent a polytomy. Tips
+  set as 'bind' which are already on the backbone tree are removed from the
+  latter and placed according to the 'reference'. See examples and
   \href{../doc/Tree-Manipulation.html#tree.merger.html}{vignette} for
   clarifications.
 }
 \examples{
  \dontrun{
+
+ ### Merging phylogenetic information ###
  require(ape)
- DataCetaceans$treecet->tree
- tree$node.label[131-Ntip(tree)]<-"Crown_Mysticeti"
+ DataCetaceans$treecet->treecet
+ treecet$node.label[131-Ntip(treecet)]<-"Crown_Mysticeti"
 
  data.frame(bind=c("Clade Crown_Mysticeti",
                    "Aetiocetus_weltoni",
@@ -113,32 +130,96 @@ The function attaches tips and/or clades from the \code{source} tree
                    FALSE,
                    FALSE))->dato
 
- c(Aetiocetus_weltoni=28.0,
-   Saghacetus_osiris=33.9,
-   Zygorhiza_kochii=34.0,
-   Ambulocetus_natans=40.4,
-   Kentriodon_pernix=15.9,
-   Kentriodon_schneideri=11.61,
-   Kentriodon_obscurus=13.65,
-   Eurhinodelphis_bossi=13.65,
-   Eurhinodelphis_cristatus=5.33)->tip.ages
+ c("Aetiocetus_weltoni"=28.0,
+   "Saghacetus_osiris"=33.9,
+   "Zygorhiza_kochii"=34.0,
+   "Ambulocetus_natans"=40.4,
+   "Kentriodon_pernix"=15.9,
+   "Kentriodon_schneideri"=11.61,
+   "Kentriodon_obscurus"=13.65,
+   "Eurhinodelphis_bossi"=13.65,
+   "Eurhinodelphis_cristatus"=5.33)->tip.ages
  c("Ambulocetus_natans-Fucaia_buelli"=52.6,
    "Balaena_mysticetus-Caperea_marginata"=21.5)->node.ages
 
  # remove some tips from the original tree and create a source tree
- drop.tip(tree,c(names(tip.ages),
-                 tips(tree,131)[-which(tips(tree,131)\%in\%
+ drop.tip(treecet,c(names(tip.ages),
+                 tips(treecet,131)[-which(tips(treecet,131)\%in\%
                                c("Caperea_marginata","Eubalaena_australis"))],
-                 tips(tree,195)[-which(tips(tree,195)=="Tursiops_aduncus")]))->backtree
- drop.tip(tree,which(!tree$tip.label\%in\%c(names(tip.ages),
-                                          tips(tree,131),
-                                          tips(tree,195))))->sourcetree
+                 tips(treecet,195)[-which(tips(treecet,195)=="Tursiops_aduncus")]))->backtree
+ drop.tip(treecet,which(!treecet$tip.label\%in\%c(names(tip.ages),
+                                          tips(treecet,131),
+                                          tips(treecet,195))))->sourcetree
 
  plot(backtree,cex=.6)
  plot(sourcetree,cex=.6)
 
  tree.merger(backbone=backtree,data=dato,source.tree=sourcetree,
              tip.ages=tip.ages,node.ages = node.ages, plot=TRUE)->treeM
+
+
+ ### Building a new phylogenetic tree ###
+ # Build the phylogenetic tree shown in
+ # Pandolfi et al. 2020 - Figure 2 (see reference)
+ data.frame(bind=c("Hippopotamus_lemerlei",
+                   "Hippopotamus_pentlandi",
+                   "Hippopotamus_amphibius",
+                   "Hippopotamus_antiquus",
+                   "Hippopotamus_gorgops",
+                   "Hippopotamus_afarensis",
+                   "Hexaprotodon_sivalensis",
+                   "Hexaprotodon_palaeindicus",
+                   "Archaeopotamus_harvardi",
+                   "Saotherium_mingoz",
+                   "Choeropsis_liberiensis"),
+            reference=c("Hippopotamus_madagascariensis",
+                        "Hippopotamus_madagascariensis-Hippopotamus_lemerlei",
+                        "Hippopotamus_pentlandi-Hippopotamus_madagascariensis",
+                        "Hippopotamus_amphibius-Hippopotamus_madagascariensis",
+                        "Hippopotamus_antiquus-Hippopotamus_madagascariensis",
+                        "Hippopotamus_gorgops-Hippopotamus_madagascariensis",
+                        "Genus Hippopotamus",
+                        "Hexaprotodon_sivalensis",
+                        "Hexaprotodon_sivalensis-Hippopotamus_madagascariensis",
+                        "Archaeopotamus_harvardi-Hippopotamus_madagascariensis",
+                        "Saotherium_mingoz-Hippopotamus_madagascariensis"),
+            poly=c(FALSE,
+                   TRUE,
+                   FALSE,
+                   FALSE,
+                   TRUE,
+                   FALSE,
+                   FALSE,
+                   FALSE,
+                   FALSE,
+                   FALSE,
+                   FALSE))->dato.new
+
+ tree.merger(data=dato.new)->tree.new # uncalibrated tree
+
+
+ # Please note: the following ages are only used to show how to use the function
+ # they are not assumed to be correct.
+ c("Hippopotamus_lemerlei"=0.001,
+   "Hippopotamus_pentlandi"=0.45,
+   "Hippopotamus_amphibius"=0,
+   "Hippopotamus_antiquus"=0.5,
+   "Hippopotamus_gorgops"=0.4,
+   "Hippopotamus_afarensis"=0.75,
+   "Hexaprotodon_sivalensis"=1,
+   "Hexaprotodon_palaeindicus"=0.4,
+   "Archaeopotamus_harvardi"=5.2,
+   "Saotherium_mingoz"=4,
+   "Choeropsis_liberiensis"=0)->tip.ages1
+ c("Choeropsis_liberiensis-Hippopotamus_amphibius"=13,
+   "Archaeopotamus_harvardi-Hippopotamus_amphibius"=8.5,
+   "Hexaprotodon_sivalensis-Hexaprotodon_palaeindicus"=6)->node.ages1
+
+ tree.merger(data=dato.new,tip.ages=tip.ages1)->tree.new1 # calibrating tips only
+
+ # calibrating tips and nodes
+ tree.merger(data=dato.new,tip.ages=tip.ages1,node.ages=node.ages1)->tree.new2
+
    }
 }
 \references{
@@ -146,6 +227,11 @@ Castiglione, S., Serio, C., Mondanaro, A., Melchionna, M., &
   Raia, P. (2022). Fast production of large, time-calibrated, informal
   supertrees with tree.merger. \emph{Palaeontology}, 65:
   e12588.https://doi.org/10.1111/pala.12588
+
+Pandolfi, L., Martino, R., Rook, L., & Piras, P. (2020).
+  Investigating ecological and phylogenetic constraints in Hippopotaminae
+  skull shape. \emph{Rivista Italiana di Paleontologia e Stratigrafia}, 126:
+  37-49.
 }
 \seealso{
 \href{../doc/Tree-Manipulation.html#tree.merger.html}{\code{tree.merger}
@@ -153,5 +239,5 @@ vignette}; \href{../doc/Tree-Manipulation.html#scaleTree}{\code{scaleTree}
 vignette};
 }
 \author{
-Silvia Castiglione, Carmela Serio, Pasquale Raia
+Silvia Castiglione, Carmela Serio, Giorgia Girardi, Pasquale Raia
 }

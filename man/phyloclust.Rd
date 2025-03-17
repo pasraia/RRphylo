@@ -18,8 +18,8 @@ fully dichotomous.}
 test.}
 }
 \value{
-The function returns a list including the p-value ($p) for the test
-  of phylogenetic clustering and a $declusterized object containing the
+The function returns a list including the p-value (\code{$p}) for the test
+  of phylogenetic clustering and a \code{$declusterized} object containing the
   declusterized versions of the original tree and state vector (i.e. tips are
   removed as to make p>0.05) and the vector of removed species.
 }
@@ -41,7 +41,7 @@ data("DataFelids")
 DataFelids$treefel->treefel
 DataFelids$statefel->statefel
 
-phyloclust(tree=treefel,state=statefel,focal="saber")
+phyloclust(tree=treefel,state=statefel,focal="saber")->pcl
 }
 \author{
 Silvia Castiglione, Pasquale Raia

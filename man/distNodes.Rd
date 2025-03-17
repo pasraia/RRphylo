@@ -33,11 +33,11 @@ data("DataApes")
 DataApes$Tstage->Tstage
 
 cc<- 2/parallel::detectCores()
-distNodes(tree=Tstage,clus=cc)
-distNodes(tree=Tstage,node=64,clus=cc)
-distNodes(tree=Tstage,node="Tro_2",clus=cc)
-distNodes(tree=Tstage,node=c(64,48),clus=cc)
-distNodes(tree=Tstage,node=c(64,"Tro_2"),clus=cc)
+distNodes(tree=Tstage,clus=cc)->dn1
+distNodes(tree=Tstage,node=64,clus=cc)->dn2
+distNodes(tree=Tstage,node="Tro_2",clus=cc)->dn3
+distNodes(tree=Tstage,node=c(64,48),clus=cc)->dn4
+distNodes(tree=Tstage,node=c(64,"Tro_2"),clus=cc)->dn5
 }
 }
 \author{

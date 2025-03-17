@@ -39,7 +39,7 @@ The function returns a list of functions:
  \code{...$plotSTphenNode(variable,node,plot.args=NULL,lineTree.args=NULL,}
  \code{lineNode.args=NULL,node.palette=NULL)}, where \code{variable} is the
  same as \code{plotSTphen} and \code{node} is the vector of indices or numbers
- (as inputted to \code{search.trend}, to be indicated as character) of nodes
+ (as inputted to \code{\link{search.trend}}, to be indicated as character) of nodes
  to be plotted. The function allows up to nine nodes at the same time.
  \code{plot.args} is a list of further arguments passed to the function
  \code{plot}, including \code{pch.node}, a custom argument to set individual
@@ -63,7 +63,7 @@ This function generates customized functions to produce plots of
  phenotype versus time and absolute evolutionary rates versus time
  regressions for the entire phylogeny and individual clades. Each custom
  function takes as first argument the index or name of the variable (as in
- the \code{search.trend} output in \code{$trends.data$phenotypeVStime}) to be
+ the \code{\link{search.trend}} output in \code{$trends.data$phenotypeVStime}) to be
  plotted.
 }
 \examples{
@@ -81,9 +81,9 @@ massptero[match(treeptero$tip.label,names(massptero))]->massptero
 
 RRphylo(tree=treeptero,y=log(massptero),clus=cc)->RRptero
 
-search.trend(RR=RRptero, y=log(massptero), nsim=100, node=143, clus=cc,cov=NULL)->ST
+search.trend(RR=RRptero, y=log(massptero), nsim=100, node=143, clus=cc,cov=NULL)->st2
 
-plotTrend(ST)->plotST
+plotTrend(st2)->plotST
 
 plotST$plotSTphen(1) # to plot phenotypic trend through time for entire tree
 plotST$plotSTphen("log(massptero)",plot.args=list(cex=1.2,col="blue")) # equivalent to above
@@ -110,7 +110,7 @@ Castiglione, S., Serio, C., Mondanaro, A., Di Febbraro, M.,
 \seealso{
 \href{../doc/search.trend.html}{\code{search.trend} vignette}
 
-\href{../doc/Plotting-tools.html}{\code{plotTrend} vignette}
+\href{../doc/Plotting-tools.html#plotTrend}{\code{plotTrend} vignette}
 }
 \author{
 Silvia Castiglione, Carmela Serio

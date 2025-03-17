@@ -4,18 +4,20 @@
 \alias{treeCompare}
 \title{Visualize the difference between phylogenetic trees}
 \usage{
-treeCompare(tree, tree1, plot = TRUE)
+treeCompare(tree,tree1,focal=NULL,plot=TRUE)
 }
 \arguments{
 \item{tree, tree1}{a phylogenetic tree. The tree needs not to be ultrametric
 and fully dichotomous. Generic name and specific epithet must be separated
 by '_'.}
 
+\item{focal}{a vector of focal species to search on both \code{tree} and \code{tree1}.}
+
 \item{plot}{if \code{TRUE}, the function produces an interactive plotting
 device to check differences in species placement at the genus level.}
 }
 \value{
-The function returns a data-frame indicating for each un-matching
+The function returns a data-frame indicating for each un-matching/focal
   species its sister species/clades on both trees.
 }
 \description{
@@ -24,14 +26,19 @@ The function scans a pair of phylogenetic trees to find
 }
 \examples{
 \dontrun{
-DataSimians$tree->tree
-set.seed(22)
-swapONE(tree,si=0.5)[[1]]->tree1
+DataFelids$tree->treefel
 
-treeCompare(tree,tree1)
+set.seed(22)
+drop.tip(treefel,sample(treefel$tip.label,20))->tree.red
+swapONE(tree.red,si=0.5)[[1]]->tree.red
+
+sample(tree.red$tip.label,10)->focal.species
+
+treeCompare(treefel,tree.red)->comp
+treeCompare(treefel,tree.red,focal=focal.species)->comp1
 
 }
 }
 \author{
-Silvia Castiglione, Carmela Serio, Antonella Esposito
+Giorgia Girardi, Silvia Castiglione, Carmela Serio, Antonella Esposito
 }

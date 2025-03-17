@@ -16,12 +16,12 @@ as named in \code{modform}. If not found in \code{data}, the variables are
 taken from current environment.}
 
 \item{tree}{a phylogenetic tree to be indicated for any model except if
-\code{RRphylo} is used to rescale tree branches. The tree needs not to be
+\code{\link{RRphylo}} is used to rescale tree branches. The tree needs not to be
 ultrametric and fully dichotomous.}
 
-\item{RR}{the result of \code{RRphylo} performed on the response variable. If
+\item{RR}{the result of \code{\link{RRphylo}} performed on the response variable. If
 \code{RR} is specified, tree branches are rescaled to the absolute
-branch-wise rate values calculated by \code{RRphylo} to transform the
+branch-wise rate values calculated by \code{\link{RRphylo}} to transform the
 variance-covariance matrix.}
 
 \item{GItransform}{logical indicating whether the PGLS approach as in Garland
@@ -46,6 +46,7 @@ variable). See individual functions for further details.}
 \value{
 Fitted pgls parameters and significance. The class of the output
   object depends on input data (see details).
+  The output always has an attribute "Call" which returns an unevaluated call to the function.
 }
 \description{
 The function performs pgls for non-ultrametric trees using a
@@ -80,7 +81,7 @@ PGLS_fossil(modform=resp~pred1+pred2,tree=tree)->pgls_noRR
 PGLS_fossil(modform=resp~pred1+pred2,tree=tree,GItransform=TRUE)->GIpgls_noRR
 
 RRphylo(tree,resp,clus=cc)->RR
-PGLS_fossil(modform=resp~pred1+pred2,tree=tree,RR=RR)->pgls_RR
+PGLS_fossil(modform=resp~pred1+pred2,RR=RR)->pgls_RR
 PGLS_fossil(modform=resp~pred1+pred2,tree=tree,RR=RR,GItransform=TRUE)->GIpgls_RR
 
 # To derive log-likelihood and AIC for outputs of PGLS_fossil applied on univariate
@@ -99,9 +100,9 @@ PGLS_fossil(modform=resp.multi~pred1+pred2,tree=tree,GItransform=TRUE)->GIpgls2_
 pgls2_noRR$manova
 summary(GIpgls2_noRR$manova)
 
-RRphylo(tree,resp.multi,clus=cc)->RR
-PGLS_fossil(modform=resp.multi~pred1+pred2,tree=tree,RR=RR)->pgls2_RR
-PGLS_fossil(modform=resp.multi~pred1+pred2,tree=tree,RR=RR,GItransform=TRUE)->GIpgls2_RR
+RRphylo(tree,resp.multi,clus=cc)->RR2
+PGLS_fossil(modform=resp.multi~pred1+pred2,RR=RR2)->pgls2_RR
+PGLS_fossil(modform=resp.multi~pred1+pred2,tree=tree,RR=RR2,GItransform=TRUE)->GIpgls2_RR
 
 # To evaluate statistical significance of multivariate models, the '$manova'
 # object must be inspected
@@ -122,8 +123,12 @@ Garland, Jr, T., & Ives, A. R. (2000). Using the past to predict
 }
 \seealso{
 \href{../doc/RRphylo.html}{\code{RRphylo} vignette};
-  \code{\link[mvMORPH]{mvgls}} ; \code{\link[mvMORPH]{manova.gls}}
-  ;\code{\link[phylolm]{phylolm}}
+
+\code{\link{overfitPGLS}}; \href{../doc/overfit.html#overfitPGLS}{\code{overfitPGLS} vignette}
+
+\code{\link[mvMORPH]{mvgls}} ; \code{\link[mvMORPH]{manova.gls}}
+
+\code{\link[phylolm]{phylolm}}
 }
 \author{
 Silvia Castiglione, Pasquale Raia, Carmela Serio, Gabriele Sansalone,

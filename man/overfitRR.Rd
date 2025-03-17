@@ -2,51 +2,20 @@
 % Please edit documentation in R/overfitRR.R
 \name{overfitRR}
 \alias{overfitRR}
-\title{Testing RRphylo methods overfit}
+\title{Testing RRphylo overfit}
 \usage{
-overfitRR(RR,y,phylo.list=NULL,s=0.25,swap.args=NULL,trend.args=NULL,shift.args=NULL,
-conv.args=NULL, pgls.args=NULL,aces=NULL,x1=NULL,aces.x1=NULL,cov=NULL,
-rootV=NULL,nsim=100,clus=0.5)
+overfitRR(RR,y, phylo.list, aces=NULL,x1=NULL, aces.x1=NULL, cov=NULL,
+  rootV=NULL, clus=0.5, s = NULL, swap.args = NULL, nsim=NULL , trend.args =
+  NULL, shift.args = NULL, conv.args = NULL, pgls.args = NULL)
 }
 \arguments{
 \item{RR}{an object produced by \code{\link{RRphylo}}.}
 
 \item{y}{a named vector of phenotypes.}
 
-\item{phylo.list}{a list (or multiPhylo) of alternative phylogenies to be
-tested.}
-
-\item{s}{the percentage of tips to be cut off. It is set at 25\% by default.
-If \code{phylo.list} is provided, this argument is ignored.}
-
-\item{swap.args}{a list of arguments to be passed to the function
-\code{\link{swapONE}}, including \code{list(si=NULL,si2=NULL,}
-\code{node=NULL)}. If \code{swap.arg} is unspecified, the function
-automatically sets both \code{si} and \code{si2} to 0.1. If
-\code{phylo.list} is provided, swapping is not performed.}
-
-\item{trend.args}{a list of arguments specific to the function
-\code{search.trend}, including \code{list(node=NULL,x1.residuals=FALSE)}.
-If a trend for the whole tree is to be tested, type \code{trend.args =
-list()}. No trend is tested if left unspecified.}
-
-\item{shift.args}{a list of arguments specific to the function
-\code{search.shift}, including \code{list(node=NULL,} \code{state=NULL)}.
-Arguments \code{node} and \code{state} can be specified at the same time.}
-
-\item{conv.args}{a list of arguments specific to the function
-\code{search.conv}, including \code{list(node=NULL,} \code{state=NULL,
-declust=FALSE)}. Arguments \code{node} and \code{state} can be specified at
-the same time.}
-
-\item{pgls.args}{a list of arguments specific to the function
-\code{PGLS_fossil}, including \code{list(modform,} \code{data,
-tree=FALSE,RR=TRUE,...)}. If \code{tree=TRUE}, \code{PGLS_fossil} is
-performed by using the RRphylo output tree as \code{tree} argument. If
-\code{RR=TRUE}, \code{PGLS_fossil} is performed by using the RRphylo output
-as \code{RR} argument. Arguments \code{tree} and \code{RR} can be
-\code{TRUE} at the same time. \code{...} are further argument passed to
-\code{PGLS_fossil}.}
+\item{phylo.list}{a list (or \code{multiPhylo}) of alternative topologies
+(i.e. having the same species as the original tree arranged differently) to
+be tested.}
 
 \item{aces}{if used to produce the \code{RR} object, the vector of those
 ancestral character values at nodes known in advance must be specified.
@@ -54,9 +23,9 @@ Names correspond to the nodes in the tree.}
 
 \item{x1}{the additional predictor to be specified if the RR object has been
 created using an additional predictor (i.e. multiple version of
-\code{RRphylo}). \code{'x1'} vector must be as long as the number of nodes
+\code{\link{RRphylo}}). \code{'x1'} vector must be as long as the number of nodes
 plus the number of tips of the tree, which can be obtained by running
-\code{RRphylo} on the predictor as well, and taking the vector of ancestral
+\code{\link{RRphylo}} on the predictor as well, and taking the vector of ancestral
 states and tip values to form the \code{x1}.}
 
 \item{aces.x1}{a named vector of ancestral character values at nodes for
@@ -64,31 +33,39 @@ states and tip values to form the \code{x1}.}
 both \code{aces} and \code{x1}. Names correspond to the nodes in the tree.}
 
 \item{cov}{if used to produce the \code{RR} object, the covariate must be
-specified. As in \code{RRphylo}, the covariate vector must be as long as
+specified. As in \code{\link{RRphylo}}, the covariate vector must be as long as
 the number of nodes plus the number of tips of the tree, which can be
-obtained by running \code{RRphylo} on the covariate as well, and taking the
+obtained by running \code{\link{RRphylo}} on the covariate as well, and taking the
 vector of ancestral states and tip values to form the covariate.}
 
 \item{rootV}{if used to produce the \code{RR} object, the phenotypic value at
 the tree root must be specified.}
 
-\item{nsim}{number of simulations to be performed. It is set at 100 by
-default.}
-
 \item{clus}{the proportion of clusters to be used in parallel computing. To
 run the single-threaded version of \code{overfitRR} set \code{clus} = 0.}
+
+\item{s, swap.args, nsim}{are deprecated. Check the function
+\code{\link{resampleTree}} to generate alterative phylogenies.}
+
+\item{trend.args}{is deprecated. Check the function \code{\link{overfitST}}
+to test \code{\link{search.trend}} robustness.}
+
+\item{shift.args}{is deprecated. Check the function \code{\link{overfitSS}}
+to test \code{\link{search.shift}}  robustness.}
+
+\item{conv.args}{is deprecated. Check the function \code{\link{overfitSC}} to
+test \code{\link{search.conv}}  robustness.}
+
+\item{pgls.args}{is deprecated. Check the function \code{\link{overfitPGLS}}
+to test \code{\link{PGLS_fossil}}  robustness.}
 }
 \value{
 The function returns a 'RRphyloList' object containing:
 
-\strong{$mean.sampling} the mean proportion of species actually
-  removed from the tree over the iterations.
-
-\strong{$tree.list} a 'multiPhylo' list including the trees generated
-  within \code{overfitRR}
-
 \strong{$RR.list} a 'RRphyloList' including the results of each
-  \code{RRphylo} performed within \code{overfitRR}
+  \code{\link{RRphylo}} performed within \code{overfitRR}.
+
+\strong{$root.est} the estimated root value per simulation.
 
 \strong{$rootCI} the 95\% confidence interval around the root value.
 
@@ -96,181 +73,87 @@ The function returns a 'RRphyloList' object containing:
   linear regression between ancestral state estimates before and after the
   subsampling.
 
-\strong{$conv.results} a list including results for
-  \code{search.conv} performed under \code{clade} and \code{state}
-  conditions. If a node pair is specified within \code{conv.args}, the
-  \code{$clade} object contains the percentage of simulations producing
-  significant p-values for convergence between the clades, and the proportion
-  of tested trees (i.e. where the clades identity was preserved; always 1 if
-  no \code{phylo.list} is supplied). If a state vector is supplied within
-  \code{conv.args}, the object \code{$state} contains the percentage of
-  simulations producing significant p-values for convergence within (single
-  state) or between states (multiple states).
-
-\strong{$shift.results} a list including results for
-  \code{search.shift} performed under \code{clade} and \code{sparse}
-  conditions. If one or more nodes are specified within \code{shift.args},
-  the \code{$clade} object contains for each node the percentage of
-  simulations producing significant p-value separated by shift sign, and the
-  same figures by considering all the specified nodes as evolving under a
-  single rate (all.clades). For each node the proportion of tested trees
-  (i.e. where the clade identity was preserved; always 1 if no
-  \code{phylo.list} is supplied) is also indicated. If a state vector is
-  supplied within \code{shift.args}, the object \code{$sparse} contains the
-  percentage of simulations producing significant p-value separated by shift
-  sign ($p.states).
-
-\strong{$trend.results} a list including the percentage of
-  simulations showing significant p-values for phenotypes versus age and
-  absolute rates versus age regressions for the entire tree separated by
-  slope sign ($tree). If one or more nodes are specified within
-  \code{trend.args}, the list also includes the same results at nodes ($node)
-  and the results for comparison between nodes ($comparison). For each node the proportion
-  of tested trees (i.e. where the clade identity was preserved; always 1 if
-  no \code{phylo.list} is supplied) is also indicated.
-
-\strong{$pgls.results} two 'RRphyloList' objects including results of
-  \code{PGLS_fossil} performed by using the phylogeny as it is (\code{$tree})
-  or rescaled according to the \code{RRphylo} rates (\code{$RR}).
+The output always has an attribute "Call" which returns an unevaluated call to the function.
 }
 \description{
-Testing the robustness of \code{\link{search.trend}}
-  (\cite{Castiglione et al. 2019a}), \code{\link{search.shift}}
-  (\cite{Castiglione et al. 2018}),  \code{\link{search.conv}}
-  (\cite{Castiglione et al. 2019b}), and \code{\link{PGLS_fossil}} results to
+Testing the robustness of \code{\link{RRphylo}} results to
   sampling effects and phylogenetic uncertainty.
 }
 \details{
 Methods using a large number of parameters risk being overfit. This
   usually translates in poor fitting with data and trees other than the those
-  originally used. With \code{RRphylo} methods this risk is usually very low.
-  However, the user can assess how robust the results got by applying
-  \code{search.shift}, \code{search.trend}, \code{search.conv} or
-  \code{PGLS_fossil} are by running \code{overfitRR}. With the latter, the
-  original tree and data are subsampled by specifying a \code{s} parameter,
-  that is the proportion of tips to be removed from the tree. In some cases,
-  though, removing as many tips as imposed by \code{s} would delete too many
-  tips right in clades and/or states under testing. In these cases, the
-  function maintains no less than 5 species at least in each clade/state
-  under testing (or all species if there is less), reducing the sampling
-  parameter \code{s} if necessary. Internally, \code{overfitRR} further
-  shuffles the tree by using the function \code{\link{swapONE}}. Thereby,
-  both the potential for overfit and phylogenetic uncertainty are accounted
-  for straight away.
+  originally used. With \code{\link{RRphylo}} methods this risk is usually very low.
+  However, the user can assess how robust the results of \code{\link{RRphylo}} are
+  by running \code{\link{resampleTree}} and \code{overfitRR}. The former is used to
+  subsample the tree according to a \code{s} parameter (that is the
+  proportion of tips to be removed from the tree) and to alter tree topology
+  by means of \code{\link{swapONE}}. The list of altered topologies is fed to
+  \code{overfitRR}, which cross-references each tree with the phenotypic data
+  and performs \code{\link{RRphylo}} on them. Thereby, both the potential for
+  overfit and phylogenetic uncertainty are accounted for straight away.
 
   Otherwise, a list of alternative phylogenies can be supplied to
   \code{overfitRR}. In this case subsampling and swapping arguments are
   ignored, and robustness testing is performed on the alternative topologies
-  as they are. If a clade has to be tested either in \code{search.shift},
-  \code{search.trend}, or \code{search.conv}, the function scans each
-  alternative topology searching for the corresponding clade. If the species
-  within such clade on the alternative topology differ more than 10% from the
-  species within the clade in the original tree, the identity of the clade is
-  considered disrupted and the test is not performed.
+  as they are.
 }
 \examples{
 \dontrun{
+cc<- 2/parallel::detectCores()
+library(ape)
+
+## overfitRR routine
+# load the RRphylo example dataset including Ornithodirans tree and data
 data("DataOrnithodirans")
 DataOrnithodirans$treedino->treedino
 DataOrnithodirans$massdino->massdino
 DataOrnithodirans$statedino->statedino
-cc<- 2/parallel::detectCores()
 
-# Extract Pterosaurs tree and data
-library(ape)
+# extract Pterosaurs tree and data
 extract.clade(treedino,746)->treeptero
 massdino[match(treeptero$tip.label,names(massdino))]->massptero
 massptero[match(treeptero$tip.label,names(massptero))]->massptero
 
-
-RRphylo(tree=treedino,y=massdino,clus=cc)->dinoRates
+# peform RRphylo on body mass
 RRphylo(tree=treeptero,y=log(massptero),clus=cc)->RRptero
 
-# Case 1 search.shift under both "clade" and "sparse" condition
-search.shift(RR=dinoRates, status.type= "clade")->SSnode
-search.shift(RR=dinoRates, status.type= "sparse", state=statedino)->SSstate
+# generate a list of subsampled and swapped phylogenies to test
+treeptero.list<-resampleTree(RRptero$tree,s = 0.25,swap.si = 0.1,swap.si2 = 0.1,nsim=10)
 
-overfitRR(RR=dinoRates,y=massdino,swap.args =list(si=0.2,si2=0.2),
-          shift.args = list(node=rownames(SSnode$single.clades),state=statedino),
-          nsim=10,clus=cc)->orr.ss
+# test the robustness of RRphylo
+ofRRptero<-overfitRR(RR = RRptero,y=log(massptero),phylo.list=treeptero.list,clus=cc)
 
-# Case 2 search.trend on the entire tree
-search.trend(RR=RRptero, y=log(massptero),nsim=100,clus=cc,cov=NULL,node=NULL)->STtree
 
-overfitRR(RR=RRptero,y=log(massptero),swap.args =list(si=0.2,si2=0.2),
-          trend.args = list(),nsim=10,clus=cc)->orr.st1
-
-# Case 3 search.trend at specified nodescov=NULL,
-search.trend(RR=RRptero, y=log(massptero),node=143,clus=cc)->STnode
-
-overfitRR(RR=RRptero,y=log(massptero),
-          trend.args = list(node=143),nsim=10,clus=cc)->orr.st2
-
-# Case 4 overfitRR on multiple RRphylo
+## overfitRR routine on multiple RRphylo
+# load the RRphylo example dataset including Cetaceans tree and data
 data("DataCetaceans")
 DataCetaceans$treecet->treecet
 DataCetaceans$masscet->masscet
 DataCetaceans$brainmasscet->brainmasscet
 DataCetaceans$aceMyst->aceMyst
 
-ape::drop.tip(treecet,treecet$tip.label[-match(names(brainmasscet),
-                                               treecet$tip.label)])->treecet.multi
+# cross-reference the phylogenetic tree and body and brain mass data. Remove from
+# both the tree and vector of body sizes the species whose brain size is missing
+drop.tip(treecet,treecet$tip.label[-match(names(brainmasscet),treecet$tip.label)])->treecet.multi
 masscet[match(treecet.multi$tip.label,names(masscet))]->masscet.multi
 
+# peform RRphylo on the variable (body mass) to be used as additional predictor
 RRphylo(tree=treecet.multi,y=masscet.multi,clus=cc)->RRmass.multi
 RRmass.multi$aces[,1]->acemass.multi
+
+# create the predictor vector: retrieve the ancestral character estimates
+# of body size at internal nodes from the RR object ($aces) and collate them
+# to the vector of species' body sizes to create
 c(acemass.multi,masscet.multi)->x1.mass
 
+# peform RRphylo on brain mass by using body mass as additional predictor
 RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass,clus=cc)->RRmulti
-search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,clus=cc)->STcet
-overfitRR(RR=RRmulti,y=brainmasscet,trend.args = list(),
-          x1=x1.mass,nsim=10,clus=cc)->orr.st3
 
-search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,x1.residuals=TRUE,
-             clus=cc)->STcet.resi
-overfitRR(RR=RRmulti,y=brainmasscet,trend.args = list(x1.residuals=TRUE),
-          x1=x1.mass,nsim=10,clus=cc)->orr.st4
+# generate a list of subsampled and swapped phylogenies to test
+treecet.list<-resampleTree(RRmulti$tree,s = 0.25,swap.si=0.1,swap.si2=0.1,nsim=10)
 
-# Case 5 searching convergence between clades and within a single state
-data("DataFelids")
-DataFelids$PCscoresfel->PCscoresfel
-DataFelids$treefel->treefel
-DataFelids$statefel->statefel
-
-RRphylo(tree=treefel,y=PCscoresfel,clus=cc)->RRfel
-search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="node9",clus=cc)->SC.clade
-as.numeric(c(rownames(SC.clade[[1]])[1],as.numeric(as.character(SC.clade[[1]][1,1]))))->conv.nodes
-
-overfitRR(RR=RRfel, y=PCscoresfel,conv.args =
-list(node=conv.nodes,state=statefel,declust=TRUE),nsim=10,clus=cc)->orr.sc
-
-# Case 6 overfitRR on PGLS_fossil
-library(phytools)
-rtree(100)->tree
-fastBM(tree)->resp
-fastBM(tree,nsim=3)->resp.multi
-fastBM(tree)->pred1
-fastBM(tree)->pred2
-
-PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp,x2=pred1,x1=pred2),tree=tree)->pgls_noRR
-
-RRphylo(tree,resp,clus=cc)->RR
-PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp,x2=pred1,x1=pred2),tree=tree,RR=RR)->pgls_RR
-
-overfitRR(RR=RR,y=resp,
-          pgls.args=list(modform=y1~x1+x2,data=list(y1=resp,x2=pred1,x1=pred2),
-                         tree=TRUE,RR=TRUE),nsim=10,clus=cc)->orr.pgls1
-
-PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp.multi,x2=pred1,x1=pred2),tree=tree)->pgls2_noRR
-
-RRphylo(tree,resp.multi,clus=cc)->RR
-PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp.multi,x2=pred1,x1=pred2),tree=tree,RR=RR)->pgls2_RR
-
-overfitRR(RR=RR,y=resp.multi,
-          pgls.args=list(modform=y1~x1+x2,data=list(y1=resp.multi,x2=pred1,x1=pred2),
-                         tree=TRUE,RR=TRUE),nsim=10,clus=cc)->orr.pgls2
-
-
+# test the robustness of multiple RRphylo
+ofRRcet<-overfitRR(RR = RRmulti,y=brainmasscet,phylo.list=treecet.list,clus=cc,x1 =x1.mass)
 }
 }
 \references{
@@ -285,19 +168,10 @@ Castiglione, S., Serio, C., Mondanaro, A., Di Febbraro, M.,
   macroevolutionary patterns in phenotypic means and rate of change with and
   within phylogenetic trees including extinct species. \emph{PLoS ONE}, 14:
   e0210101. https://doi.org/10.1371/journal.pone.0210101
-
-Castiglione, S., Serio, C., Tamagnini, D., Melchionna, M.,
-  Mondanaro, A., Di Febbraro, M., Profico, A., Piras, P.,Barattolo, F., &
-  Raia, P. (2019b). A new, fast method to search for morphological
-  convergence with shape data. \emph{PLoS ONE}, 14, e0226949.
-  https://doi.org/10.1371/journal.pone.0226949
 }
 \seealso{
 \href{../doc/overfitRR.html}{\code{overfitRR} vignette} ;
-  \href{../doc/search.trend.html}{\code{search.trend} vignette} ;
-  \href{../doc/search.shift.html}{\code{search.shift} vignette} ;
-  \href{../doc/search.conv.html}{\code{search.conv} vignette} ;
 }
 \author{
-Silvia Castiglione, Carmela Serio, Pasquale Raia
+Silvia Castiglione, Carmela Serio, Giorgia Girardi, Pasquale Raia
 }

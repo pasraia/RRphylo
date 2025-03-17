@@ -23,7 +23,7 @@ This function produces a \eqn{n * n} matrix, where n=number of
 data("DataApes")
 DataApes$Tstage->Tstage
 
-makeL1(tree=Tstage)
+makeL1(tree=Tstage)->ml1
 }
 \author{
 Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro
