@@ -5,6 +5,13 @@ if (!requireNamespace("rmarkdown", quietly = TRUE) ||
    knitr::knit_exit()
 }
 
+
+misspacks<-sapply(c("manipulate","scales","kableExtra"),requireNamespace,quietly=TRUE)
+if(any(!misspacks)){
+  warning(call. = FALSE,paste(names(misspacks)[which(!misspacks)],collapse=", "), "not found, the vignettes is not built")
+   knitr::knit_exit()
+}
+
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
@@ -12,319 +19,9 @@ knitr::opts_chunk$set(
 
 require(RRphylo)
 options(rmarkdown.html_vignette.check_title = FALSE)
+source("functions4vignettes.R")
 
-tm<-function(backbone,data,source.tree=NULL,
-                      tip.ages = NULL, node.ages = NULL,age.offset=NULL,title){
-  # require(ape)
-  # require(phytools)
-  # require(manipulate)
-  
-   backbone->tree
-  data->dat
-  source.tree->tree2
-  max(diag(vcv(tree)))->H
-  H-diag(vcv(tree))->ages
-
-  if(!is.null(age.offset)&&age.offset<0){
-    ages+abs(age.offset)->ages
-    H+abs(age.offset)->Hset
-  }else H->Hset
-
-  # if(is.null(min.branch)) min(tree$edge.length)->min.branch
-
-  #### DATA CHECK ####
-  if(!all(colnames(dat)%in%c("bind","reference","poly"))) {
-    if(any(is.na(as.logical(dat[,3])))) stop("Check columns order: it should be 'bind', 'reference', 'poly'")
-    warning("Colnames not matching: columns assumed to be ordered as 'bind','reference','poly'",immediate. = TRUE)
-    colnames(dat)<-c("bind","reference","poly")
-  }
-  if(!is.logical(dat$poly)) as.logical(dat$poly)->dat$poly
-
-  ### Check for wrong poly assignment ###
-  if(any(apply(dat,1,function(k) (!grepl("-",k[2]))&!grepl("Genus",k[2])&!grepl("Clade",k[2])&as.logical(k[3])))){
-    warning("Found poly=TRUE at binding two tips, automatically changed to FALSE",immediate.=TRUE)
-    lapply(1:nrow(dat),function(k){
-      if((!grepl("-",dat[k,2]))&!grepl("Genus",k[k,2])&!grepl("Clade",k[k,2])&dat[k,3]){
-        dat[k,3]<<-FALSE
-        message(paste("  Please check",dat[k,1],"&",dat[k,2],"in your dataset",sep=" "))
-      }
-    })
-  }
-
-  ### Check for genera and clades as bind ###
-  if(any(grepl("Genus",dat$bind))){
-    if(is.null(tree2)) stop("Please provide the source.tree")
-    sapply(1:nrow(dat),function(k){
-      if(grepl("Genus",dat[k,]$bind)){
-        trimws(gsub("Genus ","",dat[k,]$bind))->genref
-        getGenus(tree2,genref)->getgenref
-        if(getgenref[2]==1) dat[k,]$bind<<-grep(genref,tree2$tip.label,value=TRUE) else
-          dat[k,]$bind<<-paste(tips(tree2,getgenref[,3])[c(1,length(tips(tree2,getgenref[,3])))],collapse="-")
-      }
-    })
-  }
-
-  if(any(grepl("Clade",dat$bind))){
-    sapply(1:nrow(dat),function(k){
-      if(grepl("Clade",dat[k,]$bind)){
-        if(!gsub("Clade ","",dat[k,]$bind)%in%tree2$node.label) stop("Required node.label not indicated on the source.tree")
-        tips(tree2,Ntip(tree2)+which(tree2$node.label==gsub("Clade ","",dat[k,]$bind)))->claref
-        dat[k,]$bind<<-paste(claref[c(1,length(claref))],collapse="-")
-      }
-    })
-  }
-
-  data.frame(dat,bind.type=sapply(strsplit(dat[,1],"-"),length))->dat
-  if(any(dat$bind.type==2)&is.null(tree2)) stop("Please provide the source.tree")
-
-  ### Check for genera and clades as references ###
-  if(any(grepl("Genus",dat$reference))){
-    sapply(1:nrow(dat),function(k){
-      if(grepl("Genus",dat[k,]$reference)){
-        trimws(gsub("Genus ","",dat[k,]$reference))->genref
-        try(getGenus(tree,genref),silent = TRUE)->getgenref
-        if(class(getgenref)!="try-error"){
-          if(getgenref[2]==1) dat[k,]$reference<<-grep(genref,tree$tip.label,value=TRUE) else
-            dat[k,]$reference<<-paste(tips(tree,getgenref[,3])[c(1,length(tips(tree,getgenref[,3])))],collapse="-")
-        }else stop(paste("Genus",genref,"missing from the backbone tree"))
-        #  {
-        #   try(getGenus(tree2,genref),silent = TRUE)->getgenref2
-        #   if(class(getgenref2)!="try-error"){
-        #     if(getgenref2[2]==1) dat[k,]$reference<<-grep(genref,tree2$tip.label,value=TRUE) else
-        #       dat[k,]$reference<<-paste(tips(tree2,getgenref2[,3])[c(1,length(tips(tree2,getgenref2[,3])))],collapse="-")
-        #   }else stop(paste("Genus",genref,"missing from the backbone and the source tree"))
-        #   #   {
-        #   #   if(any(grepl(genref,dat$bind[-k]))) dat[k,]$reference<<-paste(grep(paste(genref,"_",sep=""),dat$bind[-k],value=TRUE),collapse="-") else
-        #   #     stop(paste("Genus",genref,"missing from the backbone, the source and the tips to be attached"))
-        #   # }
-        # }
-      }
-    })
-  }
-
-  if(any(grepl("Clade",dat$reference))){
-    sapply(1:nrow(dat),function(k){
-      if(grepl("Clade",dat[k,]$reference)){
-        if(!gsub("Clade ","",dat[k,]$reference)%in%tree$node.label) stop("Required node.label not indicated on the tree")
-        tips(tree,Ntip(tree)+which(tree$node.label==gsub("Clade ","",dat[k,]$reference)))->claref
-        dat[k,]$reference<<-paste(claref[c(1,length(claref))],collapse="-")
-
-      }
-    })
-  }
-
-
-  bind.all<-unlist(sapply(1:nrow(dat),function(x) {
-    ifelse(dat[x,4]==2,des<-tips(tree2,getMRCA(tree2,strsplit(dat[x,1],"-")[[1]])),des<-dat[x,1])
-    des
-  }))
-  if(any(duplicated(bind.all))) stop(paste(paste(bind.all[duplicated(bind.all)],collapse = ", "),"names duplicated in supplied tips"))
-
-
-  if(all(dat$bind.type==1)&(!is.null(tree2))) tree2<-NULL
-  # if(any(dat$bind%in%tree2$tip.label)) drop.tip(tree2,dat[which(dat$bind%in%tree2$tip.label),1])->tree2
-
-  dat$bind.tips<-NA
-  if(all(dat$bind.type==1)) dat$bind.tips<-dat$bind else{
-    dat[which(dat$bind.type==2),]$bind.tips<-lapply(dat$bind[which(dat$bind.type==2)],function(x) tips(tree2,getMRCA(tree2,strsplit(x,"-")[[1]])))
-    if(any(is.na(dat$bind.tips))) dat[which(is.na(dat$bind.tips)),]$bind.tips<-dat[which(is.na(dat$bind.tips)),]$bind
-  }
-
-  ### bind missing from tree2 ###
-  if(!all(unlist(dat[which(dat$bind.type==2),]$bind.tips)%in%tree2$tip.label)){
-    stop(paste(paste(unlist(dat[which(dat$bind.type==2),]$bind.tips)[which(
-      unlist(dat[which(dat$bind.type==2),]$bind.tips)%in%tree2$tip.label)],
-      collapse=", "),"not in source.tree"))
-  }
-
-  ### reference missing ###
-  if(!all(unlist(strsplit(dat$reference,"-"))%in%c(tree$tip.label,unlist(dat$bind.tips),tree2$tip.label))){
-    stop(paste(paste(unlist(strsplit(dat$reference,"-"))[which(!unlist(strsplit(dat$reference,"-"))%in%c(tree$tip.label,unlist(dat$bind.tips),tree2$tip.label))],
-                     collapse=","),"missing from the backbone, the source and the tips to be attached"))
-  }
-
-  ### bind already on the backbone ###
-  if(any(dat$bind%in%tree$tip.label)){
-    warning(paste(paste(dat[which(dat$bind%in%tree$tip.label),1],collapse=", "),"removed from the backbone tree"),immediate. = TRUE)
-    drop.tip(tree,dat[which(dat$bind%in%tree$tip.label),1])->tree
-  }
-
-  ### duplicated reference ###
-  table(dat$reference)->tab.ref
-  if(any(tab.ref>1)){
-    for(j in 1:length(which(tab.ref>1))){
-      dat[which(dat$reference==names(which(tab.ref>1)[j])),]->ref.mult
-      # if(any(isTRUE(ref.mult$poly))) ref.mult[-which(isTRUE(ref.mult$poly)),]->ref.mult
-      if(any(ref.mult$poly)) ref.mult[which(!ref.mult$poly),]->ref.mult
-      paste(strsplit(ref.mult$reference[1],"-")[[1]][1],strsplit(ref.mult$bind[1],"-")[[1]][1],sep="-")->ref.mult$reference[-1]
-      # ref.mult[-1,]$poly<-TRUE
-      ref.mult$poly[-1]<-TRUE
-      dat[match(ref.mult$bind,dat$bind),]<-ref.mult
-    }
-  }
-
-  if(!is.null(tree2)){
-    dat$MRCAbind<-NA
-    sapply(dat[which(dat$bind.type==2),]$bind.tips,function(x) getMRCA(tree2,x))->dat$MRCAbind[which(dat$bind.type==2)]
-
-    if(any(dat$bind.type==2)){
-      unlist(sapply(dat[which(dat$bind.type==2),]$MRCAbind,function(x) tree$tip.label[which(tree$tip.label%in%tips(tree2,x))]))->remt
-      if(length(remt)>0){
-        drop.tip(tree,remt)->tree
-        ages[-match(remt,names(ages))]->ages
-        warning(paste(paste(remt,collapse=", "),"already on the source tree: removed from the backbone tree"),immediate. = TRUE)
-      }
-    }
-  }
-
-  ### ordering ###
-  strsplit(dat$reference,"-")->refs
-  dat$ref.tree1<-NA
-  dat$ref.tree2<-NA
-
-  lapply(refs,function(x){
-    if(length(x[which(!x%in%tree$tip.label)])<1) NA else x[which(!x%in%tree$tip.label)]
-  })->ref.tree
-
-  dat[which(is.na(ref.tree)),][order(dat[which(is.na(ref.tree)),]$bind.type),]$ref.tree1<-seq(1,length(which(is.na(ref.tree))))
-
-  if(any(which(!is.na(ref.tree)))){
-    dat[which(!is.na(ref.tree)),]->dat.new
-    dat.new[,6:7]<-do.call(rbind,ref.tree[-which(is.na(ref.tree))])
-
-    if(any(dat.new[,6]%in%unlist(dat.new$bind.tips)|dat.new[,7]%in%unlist(dat.new$bind.tips))){
-      while(nrow(dat.new)>0){
-        which(!(dat.new[,6]%in%unlist(dat.new$bind.tips)|dat.new[,7]%in%unlist(dat.new$bind.tips)))->outs
-        if(length(outs)<1) stop("Recursive species attachment: check rows ",paste(rownames(dat.new),collapse = ", ")," in data")
-        dat[match(dat.new[outs,1],dat[,1]),]$ref.tree1<-max(dat$ref.tree1,na.rm=TRUE)+1:length(outs)
-        dat.new[-outs,]->dat.new
-      }
-    }else{
-      which(!(dat.new[,6]%in%unlist(dat.new$bind.tips)|dat.new[,7]%in%unlist(dat.new$bind.tips)))->outs
-      dat[match(dat.new[outs,1],dat[,1]),]$ref.tree1<-
-        max(dat$ref.tree1,na.rm=TRUE)+1:length(which(!dat.new$ref.tree1%in%dat.new[,1]))
-    }
-  }
-
-  dat[order(dat$ref.tree1),]->dat
-
-  ### binding ###
-  for(k in 1:nrow(dat)){
-    if(length(strsplit(dat$reference,"-")[[k]])>1)
-      getMRCA(tree,strsplit(dat$reference,"-")[[k]])->where.ref else
-        which(tree$tip.label==strsplit(dat$reference,"-")[[k]])->where.ref
-
-    if(where.ref!=(Ntip(tree)+1)) tree$edge.length[which(tree$edge[,2]==where.ref)]->br.len else{
-      if(is.null(tree$root.edge)) tree$root.edge<-mean(tree$edge.length)
-      tree$root.edge->br.len
-    }
-
-    if(dat$bind.type[k]==1){
-      if(dat$poly[k]) 0->pos.ref else br.len/2->pos.ref
-      bind.tip(tree,dat$bind[k],where.ref,position = pos.ref,edge.length =br.len/2)->tree
-    }else{
-      extract.clade(tree2,dat$MRCAbind[k])->cla
-
-      if(dat$poly[k]){
-        0->pos.ref
-        if(where.ref==(Ntip(tree)+1)&&(max(diag(vcv(cla)))+max(diag(vcv(cla)))/10)>H)
-          # rescale(cla,"depth",(H+max(diag(vcv(cla)))/10))->cla else
-          rescaleRR(cla,height=(H+max(diag(vcv(cla)))/10))->cla else
-            if(where.ref!=(Ntip(tree)+1)&(max(diag(vcv(cla)))+max(diag(vcv(cla)))/10)>(H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),2]))
-              # rescale(cla,"depth",(H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),2]+max(diag(vcv(cla)))/10))->cla
-              rescaleRR(cla,height=(H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),2]+max(diag(vcv(cla)))/10))->cla
-        cla$root.edge<-max(diag(vcv(cla)))/10
-      }else {
-        if(where.ref==(Ntip(tree)+1)) br.len/2->pos.ref else {
-          max(diag(vcv(cla)))+br.len/2->Hcla
-          if((H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),2])<H/1000){
-            # rescale(cla,"depth",br.len/4)->cla
-            rescaleRR(cla,height=br.len/4)->cla
-            pos.ref<-br.len-br.len/4
-          }else{
-            if(Hcla>(H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),1])){
-              # rescale(cla,"depth",(H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),2]))->cla
-              rescaleRR(cla,height=(H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),2]))->cla
-              pos.ref<-br.len/2
-            }else if(Hcla>(H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),2]))
-              (max(diag(vcv(cla)))+br.len/2)-(H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),2])->pos.ref else br.len/2->pos.ref
-          }
-        }
-        cla$root.edge<-br.len/2
-      }
-      bind.tree(tree,cla,where=where.ref,position = pos.ref)->tree
-    }
-  }
-
-  ### tips calibration ages ###
-  if(is.null(tip.ages)){
-    rep(0,length(tree$tip.label))->tip.ages
-    names(tip.ages)<-tree$tip.label
-    tip.ages[match(names(ages),names(tip.ages))]<-ages
-  }else{
-    if(!all(names(ages)%in%names(tip.ages))) c(ages[which(!names(ages)%in%names(tip.ages))],tip.ages)->tip.ages
-    if(!all(tree$tip.label%in%names(tip.ages))){
-      rep(0,length(which(!tree$tip.label%in%names(tip.ages))))->tip.add
-      names(tip.add)<-tree$tip.label[which(!tree$tip.label%in%names(tip.ages))]
-      c(tip.ages,tip.add)->tip.ages
-    }
-  }
-
-  ### nodes calibration ages ###
-  if(!is.null(node.ages)){
-    sapply(names(node.ages),function(x){
-      getMRCA(tree,unlist(strsplit(x,"-")))
-    })->names(node.ages)
-  }else node.ages<-c()
-
-  ### age original root ###
-  if(!getMRCA(tree,names(ages))%in%names(node.ages)){
-    node.ages<-c(node.ages,Hset)
-    names(node.ages)[length(node.ages)]<-getMRCA(tree,names(ages))
-  }
-
-  ### time distances inside attached clades ###
-  if(any(dat$bind.type==2)){
-    unlist(lapply(dat$MRCAbind[which(dat$bind.type==2)],function(x){
-      c(x,getDescendants(tree2,x)[which(getDescendants(tree2,x)>Ntip(tree2))])->des
-      dist.nodes(tree2)->dn
-      max(diag(vcv(tree2)))-dn[which(rownames(dn)==(Ntip(tree2)+1)),match(des,rownames(dn))]->dndes
-      names(dndes)<-des
-      dndes
-    }))->ages.fix
-
-    if(!is.null(age.offset)&&age.offset>0) ages.fix+age.offset->ages.fix
-    sapply(names(ages.fix),function(x) getMRCA(tree,tips(tree2,as.numeric(x))))->names(ages.fix)
-
-    if(any(!names(ages.fix)%in%names(node.ages)))
-      c(ages.fix[which(!names(ages.fix)%in%names(node.ages))],node.ages)->node.ages
-  }
-
-  if(max(diag(vcv(tree)))>H&&(!(Ntip(tree)+1)%in%names(node.ages)))
-    warning(paste("Root age not indicated: the tree root arbitrarily set at",round(max(diag(vcv(tree))),2)),immediate.=TRUE)
-
-  scaleTree(tree,node.ages=node.ages,tip.ages =tip.ages)->tree.final->tree.plot
-  
-  if(any(dat$bind.type==2)) lapply(dat$MRCAbind[which(dat$bind.type==2)],function(x)
-    c(getMRCA(tree.plot,tips(tree2,x)),getDescendants(tree.plot,getMRCA(tree.plot,tips(tree2,x)))))->cla.plot else cla.plot<-c()
-  
-  c(which(tree.plot$tip.label%in%dat$bind[which(dat$bind.type==1)]),unlist(cla.plot))->all.plot
-  # colo<-rep(scales::hue_pal()(2)[2],nrow(tree.plot$edge))
-  # colo[which(tree.plot$edge[,2]%in%all.plot)]<-scales::hue_pal()(2)[1]
-  colo<-rep("gray60",nrow(tree.plot$edge))
-  colo[which(tree.plot$edge[,2]%in%all.plot)]<-"red"
-    names(colo)<-tree.plot$edge[,2]
-    
-    par(mar=c(2,0,1,0))
-    plot(tree.plot,edge.color=colo,edge.width=1.5,tip.color=colo[which(tree.plot$edge[,2]<=Ntip(tree.plot))])
-    title(title)
-    axisPhylo()
- 
-  
-  return(tree.final)
-}
-
-## ----echo=FALSE,message=FALSE,warning=FALSE,fig.dim=c(6,6),out.width="55%",dpi=220----
+## ----echo=FALSE,message=FALSE,warning=FALSE,fig.dim=c(8,6),out.width="98%",dpi=220----
 require(ape)
 require(phytools)
 
@@ -333,25 +30,29 @@ rtree(10,tip.label=c("genusB_1","genusD_1","genusB_2","genusA_1","genusC_1",
                      "genusE_1","genusC_2","genusD_2","genusB_3","genusC_3"))->tree.back
 tree.back$node.label[6]<-"DC"
 
-par(mar=c(2,3.5,1,3.5))
+par(mfrow=c(1,2))
+par(mar=c(2,2,1,2))
 plot(tree.back,edge.width=1.2)
 nodelabels(text=tree.back$node.label[6],node=Ntip(tree.back)+6,col="forestgreen",frame="n",adj=0)
 title("backbone tree")
 axisPhylo()
 
-
 data.frame(bind=c("genusE_1a","genusC_3a","genusB_1a","genusC_4","genusF_1",
-                  "genusG_1","genusH_1","genusC_5","genusC_6","genusB_3","genusE_1b"),
+                  "genusG_1","genusH_1","genusC_5","genusC_6","genusB_3","genusE_1b","genusI_1"),
            reference=c("genusE_1","genusC_3","genusB_1","Genus genusC","Clade DC",
                        "genusF_1-genusB_2","genusE_1a-genusC_3","Genus genusC",
                        "genusC_5-genusC_1",
-                       "genusB_2-genusB_1","genusE_1"),
-           poly=c(FALSE,FALSE,FALSE,TRUE,FALSE,TRUE,FALSE,FALSE,FALSE,FALSE,FALSE))->dato
+                       "genusB_2-genusB_1","genusE_1","Genus genusC"),
+           poly=c(FALSE,FALSE,FALSE,TRUE,FALSE,TRUE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE))->dato
+par(mar=c(2,0,1,0.5))
+plotTab(tab=dato,
+        text.cex=0.9,text.box=c(box="n"),
+        text.grid=data.frame(rown=1:nrow(dato),coln=rep(0,nrow(dato)),col="gray80"),
+        colN.highlight=c(col="gray97"),colN.box=list(box="c",col=c("black","gray97","gray80"),lwd=1),
+        colN.grid = "n",colN.font=2,colN.cex=0.9,
+        main="dato",main.font=2,main.cex=0.9,main.highlight =c(col="gray97"),main.box = list(box="7",col=c("black","gray97")))
 
 require(kableExtra)
-knitr::kable(dato,align="c") %>%
-  kable_styling(full_width = FALSE, position = "float_left") %>%
-  add_header_above(c("dato" = 3)) 
 
 ## ----echo=1,results = "hide",message=FALSE,fig.dim=c(6,6),out.width="70%",dpi=220,fig.align='center'----
 tree.merger(backbone=tree.back,data=dato,plot=FALSE)
@@ -374,10 +75,10 @@ tree.merger(backbone=tree.back,data=dato,tip.ages=ages.tip,node.ages = ages.node
 suppressWarnings(tm(backbone=tree.back,data=dato,tip.ages=ages.tip,node.ages = ages.node,title="merged and calibrated tree"))
 
 ## ----echo=FALSE,warnings=FALSE,message=FALSE,fig.dim=c(8,4),out.width="98%",dpi=220----
-set.seed(1)
-rtree(10,tip.label=c("genusH_1","genusA_3","genusA_4","genusJ_1","genusI_1",
-                    "genusG_1","genusA_2","genusK_1","genusF_1","genusF_2"))->tree.source
-tree.source$node.labels[7]<-"HI"
+ set.seed(1)
+ rtree(13,tip.label=c("genusK_1","genusA_2","genusA_4","genusM_1","genusH_1","genusF_2","genusF_1",
+ "genusJ_1","genusI_1","genusB_5","genusA_3","genusN_1","genusG_1") )->tree.source
+ tree.source$node.labels[7]<-"HI"
 
 par(mfrow=c(1,2),mar=c(2,0,1,0))
 plot(tree.back,edge.width=1.8)
@@ -389,9 +90,9 @@ nodelabels(text=tree.source$node.label[7],node=Ntip(tree.source)+7,col="forestgr
 title("source tree")
 axisPhylo()
 
-data.frame(bind=c("Genus genusA","genusG_1-genusF_2","Clade HI","genusL_1"),
-           reference=c("genusA_1","Clade DC","Genus genusB","genusA_1-genusA_4"),
-           poly=c(FALSE,FALSE,FALSE,FALSE))->dato.clade
+data.frame(bind=c("Genus genusA","genusG_1-genusF_2","Clade HI","genusL_1","genusB_4","genusM_1-genusN_1"),
+           reference=c("genusA_1","Clade DC","Genus genusB","Genus genusA","genusB_3","Genus genusB"),
+           poly=c(FALSE,FALSE,FALSE,FALSE,FALSE,FALSE))->dato.clade
 
 knitr::kable(dato.clade,align="c") %>%
   kable_styling(full_width = TRUE, position = "center") %>%
@@ -404,7 +105,27 @@ tree.merger(backbone=tree.back,data=dato.clade,source.tree=tree.source,plot=FALS
 tm(backbone=tree.back,data=dato.clade,source.tree=tree.source,title="merged tree")
 
 
+## ----echo=FALSE,message=FALSE,warning=FALSE-----------------------------------
+dato.new<-data.frame(bind=c("sp_1","sp_3","sp_4","sp_5","sp_6","sp_7","sp_8"),
+           reference=c("sp_2","sp_1-sp_2","sp_3","sp_3-sp_4","sp_1-sp_4","sp_6","sp_1-sp_6"),
+           poly=rep(FALSE,7))
+
+## ----echo=1,results = "hide",message=FALSE------------------------------------
+tree.merger(data=dato.new,plot=FALSE)
+
+## ----echo=FALSE,results = "hide",message=FALSE,fig.dim=c(6,4),out.width="99%",dpi=220,fig.align='center'----
+layout(matrix(c(1,0,2,2),ncol=2,nrow=2),width=c(3,7),height=c(6,4))
+par(mar=c(0,1,0,0))
+plotTab(tab=dato.new,
+        text.cex=0.9,text.box=c(box="n"),
+        text.grid=data.frame(rown=1:nrow(dato),coln=rep(0,nrow(dato)),col="gray80"),
+        colN.highlight=c(col="gray97"),colN.box=list(box="c",col=c("black","gray97","gray80"),lwd=1),
+        colN.grid = "n",colN.font=2,colN.cex=0.9,
+        main="dato.new",main.font=2,main.cex=0.9,main.highlight =c(col="gray97"),main.box = list(box="7",col=c("black","gray97")))
+suppressWarnings(tm(data=dato.new,title="new tree"))
+
 ## ----echo=c(1:19),message=FALSE,fig.dim=c(6,6),out.width="98%",dpi=220,fig.align='center'----
+#### Merging phylogenetic information 
 ### load the RRphylo example dataset including Cetaceans tree 
 data("DataCetaceans")
 DataCetaceans$treecet->treecet # phylogenetic tree
@@ -491,7 +212,76 @@ tree.merger(backbone = backtree,data=dato,source.tree = sourcetree,
             tip.ages=tipages,node.ages=nodeages,plot=FALSE)
 
 
-## ----echo=c(14:15,32:33), fig.dim=c(6,6), message=FALSE, warning=FALSE, dpi=200, out.width='98%'----
+## ----message=FALSE,results="hide"---------------------------------------------
+#### Building a new phylogenetic tree: build the phylogenetic tree shown in 
+#### Pandolfi et al. 2020 - Figure 2 (see reference)
+
+### Create the data object
+data.frame(bind=c("Hippopotamus_lemerlei",
+                  "Hippopotamus_pentlandi",
+                  "Hippopotamus_amphibius",
+                  "Hippopotamus_antiquus",
+                  "Hippopotamus_gorgops",
+                  "Hippopotamus_afarensis",
+                  "Hexaprotodon_sivalensis",
+                  "Hexaprotodon_palaeindicus",
+                  "Archaeopotamus_harvardi",
+                  "Saotherium_mingoz",
+                  "Choeropsis_liberiensis"),
+           reference=c("Hippopotamus_madagascariensis",
+                       "Hippopotamus_madagascariensis-Hippopotamus_lemerlei",
+                       "Hippopotamus_pentlandi-Hippopotamus_madagascariensis",
+                       "Hippopotamus_amphibius-Hippopotamus_madagascariensis",
+                       "Hippopotamus_antiquus-Hippopotamus_madagascariensis",
+                       "Hippopotamus_gorgops-Hippopotamus_madagascariensis",
+                       "Genus Hippopotamus",
+                       "Hexaprotodon_sivalensis",
+                       "Hexaprotodon_sivalensis-Hippopotamus_madagascariensis",
+                       "Archaeopotamus_harvardi-Hippopotamus_madagascariensis",
+                       "Saotherium_mingoz-Hippopotamus_madagascariensis"),
+           poly=c(FALSE,
+                  TRUE,
+                  FALSE,
+                  FALSE,
+                  TRUE,
+                  FALSE,
+                  FALSE,
+                  FALSE,
+                  FALSE,
+                  FALSE,
+                  FALSE))->dato
+
+## ----echo=FALSE,message=FALSE-------------------------------------------------
+knitr::kable(dato,align="c") %>%
+  kable_styling(full_width = TRUE, position = "center")
+
+## ----message=FALSE,results="hide"---------------------------------------------
+### Build an uncalibrated version of the tree
+tree.merger(data=dato,plot=FALSE)->tree.uncal
+
+### Set tips and nodes calibration ages
+## Please note: the following ages are only used to show how to use the function
+## they are not assumed to be correct.
+c("Hippopotamus_lemerlei"=0.001,
+  "Hippopotamus_pentlandi"=0.45,
+  "Hippopotamus_amphibius"=0,
+  "Hippopotamus_antiquus"=0.5,
+  "Hippopotamus_gorgops"=0.4,
+  "Hippopotamus_afarensis"=0.75,
+  "Hexaprotodon_sivalensis"=1,
+  "Hexaprotodon_palaeindicus"=0.4,
+  "Archaeopotamus_harvardi"=5.2,
+  "Saotherium_mingoz"=4,
+  "Choeropsis_liberiensis"=0)->tip.ages
+c("Choeropsis_liberiensis-Hippopotamus_amphibius"=13,
+  "Archaeopotamus_harvardi-Hippopotamus_amphibius"=8.5,
+  "Hexaprotodon_sivalensis-Hexaprotodon_palaeindicus"=6)->node.ages
+
+
+### Build a calibrated version of the tree
+tree.merger(data=dato,tip.ages=tip.ages,node.ages=node.ages,plot=FALSE)->tree.cal
+
+## ----echo=13, message=FALSE, warning=FALSE------------------------------------
 library(ape)
 library(phytools)
 
@@ -505,17 +295,21 @@ sp.ages+tree$edge.length[match(match(names(sp.ages),tree$tip.label),tree$edge[,2
 sp.ages[c(3,7)]<-0
 
 sp.ages
+
+## ----echo=c(1),results="hide"-------------------------------------------------
 scaleTree(tree,tip.ages=sp.ages)->treeS1
 
+## ----echo=c(19), fig.dim=c(6,3), message=FALSE, warning=FALSE, dpi=200, out.width='98%'----
 edge.col<-rep("gray60",nrow(tree$edge))
 edge.col[which(treeS1$edge[,2]%in%match(names(sp.ages),tree$tip.label))]<-"blue"
 
-par(mfcol=c(2,2),mar=c(0.1,0.1,1,0.1))
+par(mfcol=c(1,2),mar=c(0.1,0.1,1,0.1))
 plot(tree,edge.color = edge.col,edge.width=1.5,show.tip.label=F)
 title("original",cex.main=1.2)
 plot(treeS1,edge.color = edge.col,edge.width=1.5,show.tip.label=F)
 title("species ages rescaled",cex.main=1.2)
 
+## ----echo=10------------------------------------------------------------------
 set.seed(0)
 sample(seq((Ntip(tree)+2),(Nnode(tree)+Ntip(tree))),8)->nods
 H-dist.nodes(tree)[(Ntip(tree)+1),nods]->nod.ages
@@ -526,6 +320,8 @@ nod.ages[x]+((min(abs(nod.ages[x]-par.ages))-0.2)*sample(c(-1,1),1))
 })->nod.ages
 
 nod.ages
+
+## ----echo=c(1),results="hide", fig.dim=c(6,3), message=FALSE, warning=FALSE, dpi=200, out.width='98%'----
 scaleTree(tree,node.ages=nod.ages)->treeS2
 treeS2->treeS1
 unlist(lapply(1:length(nods), function(x) c(nods[x],getDescendants(tree,nods[x])[1:2])))->brcol
@@ -533,12 +329,13 @@ edge.col<-rep("gray60",nrow(tree$edge))
 edge.col[which(treeS1$edge[,2]%in%brcol)]<-"red"
 
 #par(mfrow=c(2,1),mar=c(0.1,0.1,1,0.1))
+par(mfcol=c(1,2),mar=c(0.1,0.1,1,0.1))
 plot(tree,edge.color = edge.col,edge.width=1.5,show.tip.label=F)
 title("original",cex.main=1.2)
 plot(treeS1,edge.color = edge.col,edge.width=1.5,show.tip.label=F)
 title("node ages rescaled",cex.main=1.2)
 
-## ----echo=7:8, fig.dim=c(6,3), message=FALSE, warning=FALSE, dpi=200, out.width='98%',fig.align="center"----
+## ----echo=7, fig.dim=c(6,3), message=FALSE, warning=FALSE, dpi=200, out.width='98%',fig.align="center"----
 H-dist.nodes(tree)[(Nnode(tree)+1),91]->sp.ages
 names(sp.ages)<-tree$tip.label[1]
 
@@ -546,7 +343,8 @@ H-dist.nodes(tree)[(Nnode(tree)+1),164]->nod.ages
 names(nod.ages)<-96
 
 c(sp.ages,nod.ages)
-# scaleTree(tree,tip.ages = sp.ages,node.ages = nod.ages,min.branch = 1)->treeS
+
+## ----echo=1,results="hide", fig.dim=c(6,3), message=FALSE, warning=FALSE, dpi=200, out.width='98%',fig.align="center"----
 scaleTree(tree,tip.ages = sp.ages,node.ages = nod.ages)->treeS
 
 par(mfrow=c(1,2))
@@ -569,7 +367,7 @@ points(plotinfo$xx[1],plotinfo$yy[1],pch=16,col="blue",cex=1.2)
 points(plotinfo$xx[96],plotinfo$yy[96],pch=16,col="red",cex=1.2)
 
 
-## ----echo=c(1:16,26:37,50:56), fig.dim=c(6,3), message=FALSE, warning=FALSE, dpi=200, out.width='98%',fig.align="center"----
+## ----echo=c(1:16,26:37,50:56), fig.dim=c(6,3), message=FALSE, warning=FALSE, dpi=200, out.width='98%',fig.align="center",results="hide"----
 # load the RRphylo example dataset including Felids tree
 data("DataFelids")
 DataFelids$treefel->tree
@@ -634,6 +432,28 @@ title("kappa rescaled",cex.main=1.2)
 plot(treeS3,edge.color = "black",show.tip.label=F)
 axis(side=1,at=c(0,4,8,12,16,20,24,28,32),labels=rev(c(0,4,8,12,16,20,24,28,32)),tck=-0.02,cex.axis=0.8)
 title("scaleTree rescaled",cex.main=1.2)
+
+## ----results="hide"-----------------------------------------------------------
+require(phytools)
+DataCetaceans$tree->treecet
+###  Moving a single tip
+## sister to a tip
+move.lineage(treecet,focal="Orcinus_orca",sister="Balaenoptera_musculus")->mol1
+## sister to a clade
+move.lineage(treecet,focal="Orcinus_orca",sister=131)->mol2
+
+### Moving a clade
+## sister to a tip
+move.lineage(treecet,focal="Genus Mesoplodon",sister="Balaenoptera_musculus")->mol7
+## sister to a clade
+move.lineage(treecet,focal="Clade Delphinida",sister=131)->mol11
+## sister to a clade by using treecet$node.label
+move.lineage(treecet,focal="Clade Delphinida",sister="Clade Plicogulae")->mol14
+## sister to the tree root with and without rootage
+move.lineage(treecet,focal="Genus Mesoplodon",sister=117)->mol19
+move.lineage(treecet,focal="Clade Delphinida",
+            sister=117,rootage=max(diag(vcv(treecet))))->mol23
+
 
 ## ----echo=FALSE,fig.dim=c(6,3), message=FALSE, warning=FALSE, dpi=200, out.width='98%'----
 DataFelids$treefel->tree
@@ -777,7 +597,7 @@ node<-129
 }
 
 
-## ----warnings=FALSE,message=FALSE,fig.dim=c(6,3),out.width="98%",dpi=220------
+## ----warnings=FALSE,message=FALSE,fig.dim=c(6,3),out.width="98%",dpi=220,results="hide"----
  ### load the RRphylo example dataset including Cetaceans tree 
  data("DataCetaceans")
  DataCetaceans$treecet->treecet

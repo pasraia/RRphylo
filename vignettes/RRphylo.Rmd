@@ -126,7 +126,7 @@ plot(acey,ace,pch=21,bg="gray80",cex=1.5,mgp=c(1.8,0.5,0),
 
 ```
 
-In Kratsch and McHardy (2014), `λ` is estimated through L2 (quadratic) penalization. Within RRphylo (Castiglione et al. 2018), `λ` is fitted by an inner function `optL`, which is written as to minimize the rate variation within clades, thereby acting conservatively in terms of the chance to find rate shifts and introducing phylogenetic autocorrelation in evolutionary rates (Sakamoto & Venditti, Eastmann et al. 2011) . 
+In Kratsch and McHardy (2014), `λ` is estimated through L2 (quadratic) penalization. Within RRphylo (Castiglione et al. 2018), `λ` is fitted by an inner function `optL`, which is written as to minimize the rate variation within clades, thereby acting conservatively in terms of the chance to find rate shifts and introducing phylogenetic autocorrelation in evolutionary rates (Sakamoto & Venditti 2018, Eastmann et al. 2011). 
 
 ```{r, fig.show="hold",fig.width=8, fig.height=4,fig.align='center',out.width='100%',dpi=220}
 cc<-2/parallel::detectCores()

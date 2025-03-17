@@ -15,13 +15,9 @@ if (!requireNamespace("rmarkdown", quietly = TRUE) ||
    knitr::knit_exit()
 }
 
-if (!requireNamespace("plotrix", quietly = TRUE)) {
-   warning(call. = FALSE, "plotrix not found, the vignettes is not built")
-   knitr::knit_exit()
-}
-
-if (!requireNamespace("kableExtra", quietly = TRUE)) {
-   warning(call. = FALSE, "kableExtra not found, the vignettes is not built")
+misspacks<-sapply(c("plotrix","kableExtra"),requireNamespace,quietly=TRUE)
+if(any(!misspacks)){
+  warning(call. = FALSE,paste(names(misspacks)[which(!misspacks)],collapse=", "), "not found, the vignettes is not built")
    knitr::knit_exit()
 }
 

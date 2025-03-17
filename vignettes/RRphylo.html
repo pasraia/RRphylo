@@ -969,7 +969,7 @@ character values (aces) at internal nodes.</p>
 is written as to minimize the rate variation within clades, thereby
 acting conservatively in terms of the chance to find rate shifts and
 introducing phylogenetic autocorrelation in evolutionary rates (Sakamoto
-&amp; Venditti, Eastmann et al. 2011) .</p>
+&amp; Venditti 2018, Eastmann et al. 2011).</p>
 <div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>cc<span class="ot">&lt;-</span><span class="dv">2</span><span class="sc">/</span>parallel<span class="sc">::</span><span class="fu">detectCores</span>()</span>
 <span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="fu">RRphylo</span>(tree,y,<span class="at">clus=</span>cc)<span class="ot">-&gt;</span>RR</span>
 <span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>RR<span class="sc">$</span>rates[,<span class="dv">1</span>]<span class="ot">-&gt;</span>betas</span>
