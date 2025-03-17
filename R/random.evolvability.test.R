@@ -18,7 +18,7 @@
 #' @param data a matrix or data.frame of phenotypic data having species as rownames
 #' @param node.estimation specify the method to compute ancestral character at
 #'   nodes. It can be one of \code{"RR"}, to compute ancestral states by mean of
-#'   \code{RRphylo}, or \code{"BM"}, to use \pkg{phytools}' function \code{fastAnc}
+#'   \code{RRphylo}, or \code{"BM"}, to use \pkg{phytools}' function \code{\link[phytools]{fastAnc}}
 #'   (\cite{Paradis & Schliep 2019}) to estimate ancestral characters at nodes
 #'   according to Brownian Motion.
 #' @param aces a named matrix of known ancestral character values at nodes.
@@ -28,7 +28,7 @@
 #' @param nsim the number of simulations to be performed for the randomization
 #'   test, by default \code{nrep} is set at 100.
 #' @param clus the proportion of clusters to be used in parallel computing. To
-#'   run the single-threaded version of \code{NOME} set \code{clus} = 0.
+#'   run the single-threaded version of \code{random.evolvability.test} set \code{clus} = 0.
 #' @export
 #' @seealso \href{../doc/RRphylo.html}{\code{RRphylo} vignette}
 #' @importFrom stats cov
@@ -37,6 +37,7 @@
 #'   values for all statistics as produced by \code{MeanMatrixStatistics} and
 #'   (\code{$means}) the significance levels for Respondability, Evolvability,
 #'   and Flexibility.
+#'   The output always has an attribute "Call" which returns an unevaluated call to the function.
 #' @references Melo, D., Garcia, G., Hubbe, A., Assis, A. P., & Marroig, G.
 #'   (2015). EvolQG-An R package for evolutionary quantitative genetics.
 #'   \emph{F1000Research}, 4.
@@ -49,10 +50,10 @@
 #'  library(ape)
 #'  library(phytools)
 #'
-#'  rtree(30)->tree
-#'  fastBM(tree,nsim=4)->y
+#'  rtree(30)->phy
+#'  fastBM(phy,nsim=4)->phen
 #'
-#'  random.evolvability.test(tree=tree,data=y,node.estimation="RR")->rEvTest
+#'  random.evolvability.test(tree=phy,data=phen,node.estimation="RR")->rEvTest
 #'
 #'     }
 
@@ -61,15 +62,17 @@ random.evolvability.test<-function(tree,data,node.estimation=c("RR","BM"),aces=N
   # require(evolqg)
   # require(ape)
   # require(phytools)
-  # require(picante)
   # require(RRphylo)
   # require(ddpcr)
 
-  if (!requireNamespace("evolqg", quietly = TRUE)) {
-    stop("Package \"evolqg\" needed for this function to work. Please install it.",
+  misspacks<-sapply(c("evolqg","ddpcr"),requireNamespace,quietly=TRUE)
+  if(any(!misspacks)){
+    stop("The following package/s are needed for this function to work, please install it/them:\n ",
+         paste(names(misspacks)[which(!misspacks)],collapse=", "),
          call. = FALSE)
   }
 
+  funcall <- match.call()
   if(!is.binary(tree)){
     tree->mutree
     multi2di(tree,random=FALSE)->tree
@@ -142,7 +145,9 @@ random.evolvability.test<-function(tree,data,node.estimation=c("RR","BM"),aces=N
   cbind(means[c("respondability","evolvability","flexibility")],
         random.means[c("respondability","evolvability","flexibility"),])->totmeans
   apply(totmeans,1,function(w) rank(w)[1]/nsim)->p
+  res<-list(means=means,p.value=p)
+  attr(res,"Call")<-funcall
 
-  return(list(means=means,p.value=p))
+  return(res)
 }
 

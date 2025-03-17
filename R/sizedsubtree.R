@@ -20,10 +20,11 @@
 #'   Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
 #'   Carotenuto
 #' @examples
-#' data("DataOrnithodirans")
-#' DataOrnithodirans$treedino->treedino
-#'
-#' sizedsubtree(tree=treedino,Size=40)
+#'  \dontrun{
+#'  data("DataOrnithodirans")
+#'  DataOrnithodirans$treedino->treedino
+#'  sizedsubtree(tree=treedino,Size=40)->sst
+#' }
 
 sizedsubtree <-function(tree,Size=NULL,time.limit=10)
 {

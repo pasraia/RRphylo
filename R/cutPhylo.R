@@ -7,16 +7,19 @@
 #' @param age the age (in terms of time distance from the recent) at which the
 #'   tree must be cut
 #' @param node the node whose age must be used as cutting limit.
-#' @param keep.lineage logical specifying whether lineages with no descendant tip must be retained (see example below). Default is \code{TRUE}.
+#' @param keep.lineage logical specifying whether lineages with no descendant
+#'   tip must be retained (see example below). Default is \code{TRUE}.
 #' @export
-#' @seealso \href{../doc/Tree-Manipulation.html#cutPhylo}{\code{cutPhylo} vignette}
+#' @seealso \href{../doc/Tree-Manipulation.html#cutPhylo}{\code{cutPhylo}
+#'   vignette}
 #' @importFrom phytools drop.clade
 #' @importFrom ape axisPhylo
-#' @details When an entire lineage is cut (i.e. one or more nodes along a path) and \code{keep.lineages = TRUE},
-#'   the leaves left are labeled as "l" followed by a number.
+#' @details When an entire lineage is cut (i.e. one or more nodes along a path)
+#'   and \code{keep.lineages = TRUE}, the leaves left are labeled as "l"
+#'   followed by a number.
 #' @return The function returns the cut phylogeny and plots it into the graphic
-#'   device. The time axis keeps the root age of the original tree. Note,
-#'   tip labels are ordered according to their position in the tree.
+#'   device. The time axis keeps the root age of the original tree. Note, tip
+#'   labels are ordered according to their position in the tree.
 #' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro
 #'   Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
 #'   Carotenuto
@@ -29,29 +32,25 @@
 #' 3->age
 #'
 #' cutPhylo(tree,age=age)->t1
-#' cutPhylo(tree,age=age,keep.lineage=FALSE)->t1
+#' cutPhylo(tree,age=age,keep.lineage=FALSE)->t1a
 #' cutPhylo(tree,node=151)->t2
-#' cutPhylo(tree,node=151,keep.lineage=FALSE)->t2
+#' cutPhylo(tree,node=151,keep.lineage=FALSE)->t2a
 #' }
 
 cutPhylo<-function(tree,age=NULL,node=NULL,keep.lineage=TRUE){
   # require(ape)
   # require(phytools)
-  # require(picante)
-
-  if (!requireNamespace("picante", quietly = TRUE)) {
-    stop("Package \"picante\" needed for this function to work. Please install it.",
-         call. = FALSE)
-  }
 
   if(!identical(tree$edge[tree$edge[,2]<=Ntip(tree),2],seq(1,Ntip(tree)))){
     tree$tip.label<-tree$tip.label[tree$edge[tree$edge[,2]<=Ntip(tree),2]]
     tree$edge[tree$edge[,2]<=Ntip(tree),2]<-seq(1,Ntip(tree))
   }
 
-  distNodes(tree,(Ntip(tree)+1),clus=0)->dN
-  if(is.null(node)) max(nodeHeights(tree))-age->cutT else dN[match(node,rownames(dN)),2]->cutT
-  dN[,2]->dd
+
+  dist.nodes(tree)[(Ntip(tree)+1),]->dd
+  names(dd)[which(as.numeric(names(dd))<=Ntip(tree))]<-tree$tip.label[as.numeric(names(dd)[which(as.numeric(names(dd))<=Ntip(tree))])]
+  if(is.null(node)) max(nodeHeights(tree))-age->cutT else dd[match(node,names(dd))]->cutT
+
   dd[which(dd>=cutT)]->ddcut
   names(ddcut)->cutter
 

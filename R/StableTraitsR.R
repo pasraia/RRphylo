@@ -39,7 +39,7 @@
 #'   approximately the same as the stable ancestral reconstruction.
 #' @return \strong{$ace.prior.values} if \code{aces} is specified, the function
 #'   returns a dataframe containing the corresponding node number on the
-#'   \code{RRphylo} tree for each node, the original (preset) and the estimated
+#'   \code{\link{RRphylo}} tree for each node, the original (preset) and the estimated
 #'   values, and the 95\% credible interval.
 #' @author Silvia Castiglione, Carmela Serio, Pasquale Raia
 #' @details The StableTraits software is available at https://mickelliot.com/,
@@ -71,7 +71,7 @@
 #' c(1,2,3)->acev
 #' sample(Ntip(tree)+seq(1:Nnode(tree)),3)->names(acev)
 #' StableTraitsR(tree,y,path="Analyses/",output="my_output",aces=acev,
-#' argST=list(iterations=500000,chains=4),argSTS=list(brownian=TRUE))->ST
+#' argST=list(iterations=500000,chains=4),argSTS=list(brownian=TRUE))->STr
 #' }
 
 

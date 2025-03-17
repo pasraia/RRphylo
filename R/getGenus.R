@@ -9,18 +9,26 @@
 #' @param genera a character vector including one or more genera to focus on.
 #'   Please notice the function is case sensitive.
 #' @export
-#' @return The function returns a data-frame including the number of species and
-#'   the most recent common ancestor of each genera.
+#' @return The function returns a data-frame including the number of species,
+#'   the most recent common ancestor of each genera (if a genus includes one
+#'   species this is the species tip number), and
+#'   whether the genera form monophyletic or paraphyletic clades.
 #' @author Silvia Castiglione, Pasquale Raia, Carmela Serio
 #' @examples
-#' DataCetaceans$treecet->tree
+#' DataCetaceans$treecet->treecet
 #'
-#' getGenus(tree)
-#' getGenus(tree,c("Mesoplodon","Balaenoptera"))
+#' getGenus(treecet)->gg1
+#' getGenus(treecet,c("Mesoplodon","Balaenoptera"))->gg2
 
 getGenus<-function(tree,genera=NULL){
   # require(ape)
   # require(RRphylo)
+
+  if(!identical(tree$edge[tree$edge[,2]<=Ntip(tree),2],seq(1,Ntip(tree)))){
+    tree$tip.label<-tree$tip.label[tree$edge[tree$edge[,2]<=Ntip(tree),2]]
+    tree$edge[tree$edge[,2]<=Ntip(tree),2]<-seq(1,Ntip(tree))
+  }
+
   if(any(!grepl("_",tree$tip.label))) stop("Generic name and specific epithet must be separated by _ .")
 
   table(sapply(strsplit(tree$tip.label,"_"),"[[",1))->gens
@@ -38,10 +46,11 @@ getGenus<-function(tree,genera=NULL){
   }
   sapply(1:length(gens),function(x){
     if(gens[x]>1) getMRCA(tree,tree$tip.label[grep(names(gens)[x],tree$tip.label)]) else
-      getMommy(tree,grep(names(gens)[x],tree$tip.label))[1]
+      grep(names(gens)[x],tree$tip.label)
   })->nns
+  cond<-mapply(a=nns,b=gens,function(a,b) ifelse(a<=Ntip(tree),"mono",ifelse(length(tips(tree,a))>b,"para","mono")))
   gsub("_","",names(gens))->names(gens)
-  data.frame(as.table(gens),nns)->df
-  colnames(df)<-c("genus","nspecies","mrca")
+  data.frame(as.table(gens),nns,cond)->df
+  colnames(df)<-c("genus","nspecies","mrca","condition")
   return(df)
 }

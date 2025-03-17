@@ -3,20 +3,22 @@
 #'  "assign.ages", and "assign.brlen" written by Gene Hunt
 #'  (http://paleobiology.si.edu/staff/individuals/hunt.cfm). It rescales tree
 #'  branch lengths according to given calibration dates.
-#'@usage scaleTree(tree, tip.ages=NULL, node.ages=NULL,min.branch=NULL)
+#'@usage scaleTree(tree, tip.ages=NULL, node.ages=NULL)
 #'@param tree a phylogenetic tree. The tree needs not to be ultrametric and
 #'  fully dichotomous.
 #'@param tip.ages a named vector including the ages (i.e. distance from the
 #'  youngest tip within the tree) of the tips to be changed. If unspecified, the
 #'  function assumes all the tips are correctly placed with respect to the root.
+#'  Names can be either tip labels or numbers.
 #'@param node.ages a named vector including the ages (i.e. distance from the
 #'  youngest tip within the tree) of the nodes to be changed. If no calibration
 #'  date for nodes is supplied, the tree root is fixed and the function shifts
 #'  node position only where needed to fit tip ages.
-#'@param min.branch has been deprecated.
 #'@export
-#'@seealso \href{../doc/Tree-Manipulation.html#scaleTree}{\code{scaleTree} vignette}
-#'@return Rescaled phylogentic tree with tip labels ordered according to their position in the tree.
+#'@seealso \href{../doc/Tree-Manipulation.html#scaleTree}{\code{scaleTree}
+#'  vignette}
+#'@return Rescaled phylogentic tree with tip labels ordered according to their
+#'  position in the tree.
 #'@author Silvia Castiglione, Pasquale Raia, Carmela Serio, Alessandro
 #'  Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
 #'  Carotenuto
@@ -26,33 +28,33 @@
 #' library(phytools)
 #'
 #' data("DataFelids")
-#' DataFelids$treefel->tree
+#' DataFelids$treefel->treefel
 #'
-#' max(nodeHeights(tree))->H
+#' max(nodeHeights(treefel))->H
 #'
 #' #### Example 1 ####
 #' rep(0,4)->tipAges
-#' names(tipAges)<-tips(tree,146)
-#' scaleTree(tree,tipAges)->treeS1
+#' names(tipAges)<-tips(treefel,146)
+#' scaleTree(treefel,tipAges)->treeS1
 #'
-#' edge.col<-rep("black",nrow(tree$edge))
+#' edge.col<-rep("black",nrow(treefel$edge))
 #' edge.col[which(treeS1$edge[,2]%in%getDescendants(treeS1,146))]<-"red"
 #'
 #' layout(2:1)
-#' plot(tree,edge.color = edge.col,show.tip.label=FALSE)
+#' plot(treefel,edge.color = edge.col,show.tip.label=FALSE)
 #' plot(treeS1,edge.color = edge.col,show.tip.label=FALSE)
 #'
 #' #### Example 2 ####
 #' nodeAges<-c(23.5,15.6)
 #' names(nodeAges)<-c(85,139)
-#' scaleTree(tree,node.ages=nodeAges)->treeS2
+#' scaleTree(treefel,node.ages=nodeAges)->treeS2
 #'
-#' edge.col<-rep("black",nrow(tree$edge))
+#' edge.col<-rep("black",nrow(treefel$edge))
 #' edge.col[which(treeS1$edge[,2]%in%c(getDescendants(treeS1,85),
 #'                                     getDescendants(treeS1,139)))]<-"red"
 #'
 #' layout(2:1)
-#' plot(tree,edge.color = edge.col,show.tip.label=FALSE)
+#' plot(treefel,edge.color = edge.col,show.tip.label=FALSE)
 #' nodelabels(bg="w",frame="n",node=c(85,139),col="green")
 #' plot(treeS2,edge.color = edge.col,show.tip.label=FALSE)
 #' nodelabels(bg="w",frame="n",node=c(85,139),col="green")
@@ -61,28 +63,25 @@
 #' 16->nodeAges
 #' names(nodeAges)<-"145"
 #' tipAges<-19
-#' names(tipAges)<-tree$tip.label[1]
-#' scaleTree(tree,tip.ages = tipAges,node.ages=nodeAges)->treeS3
+#' names(tipAges)<-treefel$tip.label[1]
+#' scaleTree(treefel,tip.ages = tipAges,node.ages=nodeAges)->treeS3
 #'
-#' edge.col<-rep("black",nrow(tree$edge))
-#' edge.col[which(treeS3$edge[,2]%in%c(1,getMommy(tree,1),
+#' edge.col<-rep("black",nrow(treefel$edge))
+#' edge.col[which(treeS3$edge[,2]%in%c(1,getMommy(treefel,1),
 #'                                     getDescendants(treeS3,145)))]<-"red"
 #'
 #' layout(2:1)
-#' plot(tree,edge.color = edge.col,show.tip.label=FALSE)
+#' plot(treefel,edge.color = edge.col,show.tip.label=FALSE)
 #' nodelabels(bg="w",frame="n",node=145,col="green")
 #' plot(treeS3,edge.color = edge.col,show.tip.label=FALSE)
 #' nodelabels(bg="w",frame="n",node=145,col="green")
 #'}
 
 
-scaleTree<- function(tree, tip.ages=NULL, node.ages=NULL,min.branch=NULL)
+scaleTree<- function(tree, tip.ages=NULL, node.ages=NULL)
 {
   # require(ape)
   # require(phytools)
-  if(!missing(min.branch)){
-    warning("The argument min.branch is deprecated.",immediate. = TRUE)
-  }
 
   if(!identical(tree$edge[tree$edge[,2]<=Ntip(tree),2],seq(1,Ntip(tree)))){
     tree$tip.label<-tree$tip.label[tree$edge[tree$edge[,2]<=Ntip(tree),2]]
@@ -101,6 +100,9 @@ scaleTree<- function(tree, tip.ages=NULL, node.ages=NULL,min.branch=NULL)
   } #stop("node.ages must be a vector")
 
   if(is.null(tip.ages)) max(diag(vcv(tree)))-diag(vcv(tree))->tip.ages else{
+
+    if(all(!is.na(suppressWarnings(as.numeric(names(tip.ages))))))
+      names(tip.ages)<-tree$tip.label[as.numeric(names(tip.ages))]
 
     if(anyDuplicated(names(tip.ages))){
       sapply(names(which(table(names(tip.ages))>1)),function(k)
@@ -144,8 +146,8 @@ scaleTree<- function(tree, tip.ages=NULL, node.ages=NULL,min.branch=NULL)
       c(max(max.ages)+min(tree$edge.length),node.ages)->node.ages
       names(node.ages)[1]<-(Ntip(tree)+1)
     }
-    # rescale(tree,"depth",node.ages[as.character(Ntip(tree)+1)])->tree
-    rescaleRR(tree,height=node.ages[as.character(Ntip(tree)+1)])->tree
+    # rescaleRR(tree,height=node.ages[as.character(Ntip(tree)+1)])->tree
+    tree$edge.length[which(tree$edge==(Ntip(tree)+1))]<-tree$edge.length[which(tree$edge==(Ntip(tree)+1))]+(node.ages[as.character(Ntip(tree)+1)]-max(diag(vcv(tree))))
   }
 
   c(max(nodeHeights(tree)),max(nodeHeights(tree))-nodeHeights(tree)[which(tree$edge[,2]>Ntip(tree)),2])->node.mins
@@ -179,7 +181,6 @@ scaleTree<- function(tree, tip.ages=NULL, node.ages=NULL,min.branch=NULL)
       node.ages[which(names(node.ages)==names(moms[mompos]))]->momage
 
       if(nnfoc%in%names(node.ages)|as.numeric(nnfoc)<=Ntip(tree)){
-
         if(agefoc>=momage) stop(paste("The age for",nnfoc,"cannot be older than the age indicated for",names(momage)))
         if(mompos==1){
           nam.vec[-which(nam.vec==nnfoc)]->nam.vec
@@ -207,14 +208,7 @@ scaleTree<- function(tree, tip.ages=NULL, node.ages=NULL,min.branch=NULL)
         names(new.ages)<-names(bl2)[2:length(bl2)]
         eds.dat$bl[match(names(bl2),eds.dat$ed.2)]<-bl2
         age.vec[match(names(bl2)[2:length(bl2)],names(age.vec))]<-new.ages
-        unlist(lapply(1:length(new.ages),function(k) {
-          age.vec[as.character(getDescendants(tree,names(new.ages)[k])[1:2])]->agedes
-          if(any(agedes>new.ages[k])) names(agedes)[which(agedes>new.ages[k])]
-        }))->namadd
-        if(any(!namadd%in%nam.vec)) c(namadd[which(!namadd%in%nam.vec)],nam.vec)->nam.vec
-
-        nam.vec[-which(nam.vec==nnfoc)]->nam.vec
-      }else{
+      }else {
         getDescendants(tree,nnfoc)[1:sum(tree$edge[,1]==as.numeric(nnfoc))]->des
 
         max(age.vec[as.character(des)])->maxdes
@@ -241,13 +235,14 @@ scaleTree<- function(tree, tip.ages=NULL, node.ages=NULL,min.branch=NULL)
         names(new.ages)<-names(bl2)[-c(1,2)]
         eds.dat$bl[match(names(bl2),eds.dat$ed.2)]<-bl2
         age.vec[match(names(bl2)[-c(1,2)],names(age.vec))]<-new.ages
-        unlist(lapply(1:length(new.ages),function(k) {
-          age.vec[as.character(getDescendants(tree,names(new.ages)[k])[1:2])]->agedes
-          if(any(agedes>new.ages[k])) names(agedes)[which(agedes>new.ages[k])]
-        }))->namadd
-        if(any(!namadd%in%nam.vec)) c(namadd[which(!namadd%in%nam.vec)],nam.vec)->nam.vec
-        nam.vec[-which(nam.vec==nnfoc)]->nam.vec
       }
+
+      unlist(lapply(1:length(new.ages),function(k) {
+        age.vec[as.character(getDescendants(tree,names(new.ages)[k])[1:2])]->agedes
+        if(any(agedes>new.ages[k])) names(agedes)[which(agedes>new.ages[k])]
+      }))->namadd
+      if(any(!namadd%in%nam.vec)) c(namadd[which(!namadd%in%nam.vec)],nam.vec)->nam.vec
+      nam.vec[-which(nam.vec==nnfoc)]->nam.vec
 
     }else{
       eds.dat$bl[match(nnfoc,eds.dat$ed.2)]<-moms[1]-agefoc

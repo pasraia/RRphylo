@@ -18,7 +18,7 @@
 #' data("DataApes")
 #' DataApes$Tstage->Tstage
 #'
-#' makeFossil(tree=Tstage)
+#' makeFossil(tree=Tstage)->mf
 
 
 makeFossil<-function(tree,

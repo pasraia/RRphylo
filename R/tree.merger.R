@@ -1,9 +1,12 @@
-#' @title Fast addition of tips and clades on an existing tree
-#' @description The function attaches new tips and/or clades derived from a
-#'   source phylogeny to a pre-existing backbone tree.
-#' @usage tree.merger(backbone,data,source.tree=NULL,age.offset=NULL,tip.ages =
-#'   NULL, node.ages = NULL,min.branch=NULL,plot=TRUE,filename=NULL)
-#' @param backbone the backbone tree to attach tips/clades on.
+#' @title Fast construction of phylogenetic trees
+#' @description The function can either attaches new tips and/or clades derived
+#'   from a source phylogeny to a pre-existing backbone tree, or build a new
+#'   phylogenetic tree from scratch.
+#' @usage
+#' tree.merger(backbone=NULL,data,source.tree=NULL,age.offset=NULL,tip.ages =
+#' NULL, node.ages = NULL,plot=TRUE,filename=NULL)
+#' @param backbone the backbone tree to attach tips/clades on. This is
+#'   \code{NULL} when constructing the tree from scratch.
 #' @param data a dataset including as columns:\enumerate{\item bind = the
 #'   tips/clades to be attached; \item reference = the reference tip or clade
 #'   where 'bind' must be attached; \item poly = logical specifying if 'bind'
@@ -18,39 +21,54 @@
 #'   than the source tree, and vice-versa.
 #' @param tip.ages as in \code{\link{scaleTree}}, a named vector including the
 #'   ages (i.e. the time distance from the youngest tip within the tree) of the
-#'   tips. If unspecified, the function assumes all the tips on the backbone
-#'   tree are correctly placed and places all the new tips at the maximum
-#'   distance from the tree root (i.e. the present if the tips are extant).
-#' @param node.ages as in \code{scaleTree}, a named vector including the ages
-#'   (i.e. the time distance from the youngest tip within the tree) of the
+#'   tips. If unspecified when merging, the function assumes all the tips on the
+#'   backbone tree are correctly placed and places all the new tips at the
+#'   maximum distance from the tree root (i.e. the present if the tips are
+#'   extant). If unspecified when building a new tree, all the tips are placed
+#'   at the maximum distance from the tree root.
+#' @param node.ages as in \code{\link{scaleTree}}, a named vector including the
+#'   ages (i.e. the time distance from the youngest tip within the tree) of the
 #'   nodes. The nodes must be defined by collating the names of the two
-#'   phylogenetically furthest tips it subtends to, separated by the "-" symbol (see
-#'   examples). If no calibration date for nodes is supplied, the function may
-#'   shift the node position back in time as to place new tips/clades and to fit
-#'   tip ages.
-#' @param min.branch has been deprecated.
+#'   phylogenetically furthest tips it subtends to, separated by the "-" symbol
+#'   (see examples). If no calibration date for nodes is supplied when merging,
+#'   the function may shift the node position back in time as to place new
+#'   tips/clades and to fit tip ages. If no \code{node.ages} is supplied when
+#'   building a new tree, all the nodes, including the tree root, are arbitrarly
+#'   placed either to accommodate \code{tip.ages} or to have 1 unit time
+#'   distance with one another along a lineage (when \code{tip.ages = NULL}).
 #' @param plot if \code{TRUE}, the function produces an interactive plotting
 #'   device to check the placing of each \code{bind}.
 #' @param filename if \code{plot=TRUE} and provided a \code{filename} (with or
 #'   without the path), the function stores a pdf file showing the plot of the
 #'   entire phylogeny.
 #' @importFrom ape bind.tree
-#' @return Merged phylogenetic tree.
-#' @author Silvia Castiglione, Carmela Serio, Pasquale Raia
-#' @details The function attaches tips and/or clades from the \code{source} tree
-#'   to the \code{backbone} tree according to the \code{data} object. Within the
-#'   latter, a clade, either to be bound or to be the reference, must be
-#'   indicated by collating the names of the two phylogenetically furthest tips
-#'   belonging to it, separated by the "-" symbol. Alternatively, if
+#' @importFrom stats setNames
+#' @return New/merged phylogenetic tree.
+#' @author Silvia Castiglione, Carmela Serio, Giorgia Girardi, Pasquale Raia
+#' @details The following description of the \code{data} argument applies both
+#'   when merging the tree and when building it from zero. In the latter case,
+#'   the first row of \code{data} must include as 'bind' and 'reference' the
+#'   first pair of tips to set the tree up (meaning, the 'reference' tip is not
+#'   also listed as 'bind'). The function attaches tips and/or clades from the
+#'   \code{source} tree to the \code{backbone} tree according to the \code{data}
+#'   object. Within the latter, a clade, either to be bound or to be the
+#'   reference, must be indicated by collating the names of the two
+#'   phylogenetically furthest tips belonging to it, separated by the "-"
+#'   symbol. Alternatively, if
 #'   \code{backbone$node.label}/\code{source.tree$node.label} is not
 #'   \code{NULL}, a bind/reference clade can be indicated as "Clade
-#'   NAMEOFTHECLADE" when appropriate. Similarly, an entire genus on both the
-#'   \code{backbone} and the \code{source.tree} can be indicated as "Genus
-#'   NAMEOFTHEGENUS" (see examples below). Duplicated 'bind' produce error.
-#'   Tips/clades set to be attached to the same 'reference' with
-#'   'poly=FALSE' are considered to represent a polytomy. Tips set as 'bind'
-#'   which are already on the backbone tree are removed from the latter and
-#'   placed according to the 'reference'. See examples and
+#'   NAMEOFTHECLADE" when appropriate. Similarly, an entire genus on the
+#'   \code{backbone} or the \code{source.tree} can be indicated as "Genus
+#'   NAMEOFTHEGENUS" (see examples below). If the "Genus NAMEOFTHEGENUS" mode is
+#'   used for a species/clade belonging to one or more different genera, the
+#'   function automatically sets as reference the clade including all the species
+#'   belonging to the reference genus, regardless of they are already on the
+#'   \code{backbone} or binded.
+#'
+#'   Duplicated 'bind' produce error. Tips/clades set to be attached to the same
+#'   'reference' with 'poly=FALSE' are considered to represent a polytomy. Tips
+#'   set as 'bind' which are already on the backbone tree are removed from the
+#'   latter and placed according to the 'reference'. See examples and
 #'   \href{../doc/Tree-Manipulation.html#tree.merger.html}{vignette} for
 #'   clarifications.
 #' @export
@@ -62,11 +80,17 @@
 #'   Raia, P. (2022). Fast production of large, time-calibrated, informal
 #'   supertrees with tree.merger. \emph{Palaeontology}, 65:
 #'   e12588.https://doi.org/10.1111/pala.12588
+#' @references Pandolfi, L., Martino, R., Rook, L., & Piras, P. (2020).
+#'   Investigating ecological and phylogenetic constraints in Hippopotaminae
+#'   skull shape. \emph{Rivista Italiana di Paleontologia e Stratigrafia}, 126:
+#'   37-49.
 #' @examples
 #'  \dontrun{
+#'
+#'  ### Merging phylogenetic information ###
 #'  require(ape)
-#'  DataCetaceans$treecet->tree
-#'  tree$node.label[131-Ntip(tree)]<-"Crown_Mysticeti"
+#'  DataCetaceans$treecet->treecet
+#'  treecet$node.label[131-Ntip(treecet)]<-"Crown_Mysticeti"
 #'
 #'  data.frame(bind=c("Clade Crown_Mysticeti",
 #'                    "Aetiocetus_weltoni",
@@ -102,56 +126,130 @@
 #'                    FALSE,
 #'                    FALSE))->dato
 #'
-#'  c(Aetiocetus_weltoni=28.0,
-#'    Saghacetus_osiris=33.9,
-#'    Zygorhiza_kochii=34.0,
-#'    Ambulocetus_natans=40.4,
-#'    Kentriodon_pernix=15.9,
-#'    Kentriodon_schneideri=11.61,
-#'    Kentriodon_obscurus=13.65,
-#'    Eurhinodelphis_bossi=13.65,
-#'    Eurhinodelphis_cristatus=5.33)->tip.ages
+#'  c("Aetiocetus_weltoni"=28.0,
+#'    "Saghacetus_osiris"=33.9,
+#'    "Zygorhiza_kochii"=34.0,
+#'    "Ambulocetus_natans"=40.4,
+#'    "Kentriodon_pernix"=15.9,
+#'    "Kentriodon_schneideri"=11.61,
+#'    "Kentriodon_obscurus"=13.65,
+#'    "Eurhinodelphis_bossi"=13.65,
+#'    "Eurhinodelphis_cristatus"=5.33)->tip.ages
 #'  c("Ambulocetus_natans-Fucaia_buelli"=52.6,
 #'    "Balaena_mysticetus-Caperea_marginata"=21.5)->node.ages
 #'
 #'  # remove some tips from the original tree and create a source tree
-#'  drop.tip(tree,c(names(tip.ages),
-#'                  tips(tree,131)[-which(tips(tree,131)%in%
+#'  drop.tip(treecet,c(names(tip.ages),
+#'                  tips(treecet,131)[-which(tips(treecet,131)%in%
 #'                                c("Caperea_marginata","Eubalaena_australis"))],
-#'                  tips(tree,195)[-which(tips(tree,195)=="Tursiops_aduncus")]))->backtree
-#'  drop.tip(tree,which(!tree$tip.label%in%c(names(tip.ages),
-#'                                           tips(tree,131),
-#'                                           tips(tree,195))))->sourcetree
+#'                  tips(treecet,195)[-which(tips(treecet,195)=="Tursiops_aduncus")]))->backtree
+#'  drop.tip(treecet,which(!treecet$tip.label%in%c(names(tip.ages),
+#'                                           tips(treecet,131),
+#'                                           tips(treecet,195))))->sourcetree
 #'
 #'  plot(backtree,cex=.6)
 #'  plot(sourcetree,cex=.6)
 #'
 #'  tree.merger(backbone=backtree,data=dato,source.tree=sourcetree,
 #'              tip.ages=tip.ages,node.ages = node.ages, plot=TRUE)->treeM
+#'
+#'
+#'  ### Building a new phylogenetic tree ###
+#'  # Build the phylogenetic tree shown in
+#'  # Pandolfi et al. 2020 - Figure 2 (see reference)
+#'  data.frame(bind=c("Hippopotamus_lemerlei",
+#'                    "Hippopotamus_pentlandi",
+#'                    "Hippopotamus_amphibius",
+#'                    "Hippopotamus_antiquus",
+#'                    "Hippopotamus_gorgops",
+#'                    "Hippopotamus_afarensis",
+#'                    "Hexaprotodon_sivalensis",
+#'                    "Hexaprotodon_palaeindicus",
+#'                    "Archaeopotamus_harvardi",
+#'                    "Saotherium_mingoz",
+#'                    "Choeropsis_liberiensis"),
+#'             reference=c("Hippopotamus_madagascariensis",
+#'                         "Hippopotamus_madagascariensis-Hippopotamus_lemerlei",
+#'                         "Hippopotamus_pentlandi-Hippopotamus_madagascariensis",
+#'                         "Hippopotamus_amphibius-Hippopotamus_madagascariensis",
+#'                         "Hippopotamus_antiquus-Hippopotamus_madagascariensis",
+#'                         "Hippopotamus_gorgops-Hippopotamus_madagascariensis",
+#'                         "Genus Hippopotamus",
+#'                         "Hexaprotodon_sivalensis",
+#'                         "Hexaprotodon_sivalensis-Hippopotamus_madagascariensis",
+#'                         "Archaeopotamus_harvardi-Hippopotamus_madagascariensis",
+#'                         "Saotherium_mingoz-Hippopotamus_madagascariensis"),
+#'             poly=c(FALSE,
+#'                    TRUE,
+#'                    FALSE,
+#'                    FALSE,
+#'                    TRUE,
+#'                    FALSE,
+#'                    FALSE,
+#'                    FALSE,
+#'                    FALSE,
+#'                    FALSE,
+#'                    FALSE))->dato.new
+#'
+#'  tree.merger(data=dato.new)->tree.new # uncalibrated tree
+#'
+#'
+#'  # Please note: the following ages are only used to show how to use the function
+#'  # they are not assumed to be correct.
+#'  c("Hippopotamus_lemerlei"=0.001,
+#'    "Hippopotamus_pentlandi"=0.45,
+#'    "Hippopotamus_amphibius"=0,
+#'    "Hippopotamus_antiquus"=0.5,
+#'    "Hippopotamus_gorgops"=0.4,
+#'    "Hippopotamus_afarensis"=0.75,
+#'    "Hexaprotodon_sivalensis"=1,
+#'    "Hexaprotodon_palaeindicus"=0.4,
+#'    "Archaeopotamus_harvardi"=5.2,
+#'    "Saotherium_mingoz"=4,
+#'    "Choeropsis_liberiensis"=0)->tip.ages1
+#'  c("Choeropsis_liberiensis-Hippopotamus_amphibius"=13,
+#'    "Archaeopotamus_harvardi-Hippopotamus_amphibius"=8.5,
+#'    "Hexaprotodon_sivalensis-Hexaprotodon_palaeindicus"=6)->node.ages1
+#'
+#'  tree.merger(data=dato.new,tip.ages=tip.ages1)->tree.new1 # calibrating tips only
+#'
+#'  # calibrating tips and nodes
+#'  tree.merger(data=dato.new,tip.ages=tip.ages1,node.ages=node.ages1)->tree.new2
+#'
 #'    }
 
-tree.merger<-function(backbone,data,source.tree=NULL,age.offset=NULL,
-                      tip.ages = NULL, node.ages = NULL,min.branch=NULL,plot=TRUE,filename=NULL){
+tree.merger<-function(backbone=NULL,data,source.tree=NULL,age.offset=NULL,
+                      tip.ages = NULL, node.ages = NULL,plot=TRUE,filename=NULL){
   # require(ape)
   # require(phytools)
   # require(manipulate)
 
-  if (!requireNamespace("manipulate", quietly = TRUE)) {
-    stop("Package \"manipulate\" needed for this function to work. Please install it.",
+  misspacks<-sapply(c("manipulate","scales"),requireNamespace,quietly=TRUE)
+  if(any(!misspacks)){
+    stop("The following package/s are needed for this function to work, please install it/them:\n ",
+         paste(names(misspacks)[which(!misspacks)],collapse=", "),
          call. = FALSE)
   }
 
-  if (!requireNamespace("scales", quietly = TRUE)) {
-    stop("Package \"scales\" needed for this function to work. Please install it.",
-         call. = FALSE)
-  }
-
-  if(!missing(min.branch)){
-    warning("The argument min.branch is deprecated\n",immediate. = TRUE)
-  }
-
-  backbone->tree
   data->dat
+  if(is.null(backbone)){
+    if(dat[1,]$reference%in%dat$bind)
+      stop("Please indicate as first row of data the first pair of tips to build the tree on.")
+    startsp<-unlist(dat[1,1:2])
+    dat<-dat[-1,]
+    if(any(dat$reference==startsp[2])){
+      dat$poly[which(dat$reference==startsp[2])]<-TRUE
+      dat$reference[which(dat$reference==startsp[2])]<-paste(startsp,collapse="-")
+    }
+
+    tree<-list()
+    tree$edge<-matrix(c(3,1,3,2),ncol=2,byrow=TRUE)
+    tree$tip.label<-startsp
+    tree$Nnode<-1
+    tree$edge.length<-rep(1,2)
+    class(tree)<-"phylo"
+  } else backbone->tree
+
   source.tree->tree2
   max(diag(vcv(tree)))->H
   H-diag(vcv(tree))->ages
@@ -208,29 +306,70 @@ tree.merger<-function(backbone,data,source.tree=NULL,age.offset=NULL,
   data.frame(dat,bind.type=sapply(strsplit(dat[,1],"-"),length))->dat
   if(any(dat$bind.type==2)&is.null(tree2)) stop("Please provide the source.tree")
 
+  bind.all<-unlist(sapply(1:nrow(dat),function(x) {
+    ifelse(dat[x,4]==2,des<-tips(tree2,getMRCA(tree2,strsplit(dat[x,1],"-")[[1]])),des<-dat[x,1])
+    des
+  }))
+  if(any(duplicated(bind.all))) stop(paste(paste(bind.all[duplicated(bind.all)],collapse = ", "),"names duplicated in supplied tips"))
+
+  if(all(dat$bind.type==1)&(!is.null(tree2))) tree2<-NULL
+  # if(any(dat$bind%in%tree2$tip.label)) drop.tip(tree2,dat[which(dat$bind%in%tree2$tip.label),1])->tree2
+
+  # dat$bind.tips<-NA
+  # if(all(dat$bind.type==1)) dat$bind.tips<-dat$bind else{
+  #   dat[which(dat$bind.type==2),]$bind.tips<-lapply(dat$bind[which(dat$bind.type==2)],function(x) tips(tree2,getMRCA(tree2,strsplit(x,"-")[[1]])))
+  #   if(any(is.na(dat$bind.tips))) dat[which(is.na(dat$bind.tips)),]$bind.tips<-dat[which(is.na(dat$bind.tips)),]$bind
+  # }
+
+  dat$bind.tips<-dat$bind
+  if(any(dat$bind.type==2))
+    dat[which(dat$bind.type==2),]$bind.tips<-lapply(dat$bind[which(dat$bind.type==2)],function(x) tips(tree2,getMRCA(tree2,strsplit(x,"-")[[1]])))
+
+
+  ### bind missing from tree2 ###
+  if(!all(unlist(dat[which(dat$bind.type==2),]$bind.tips)%in%tree2$tip.label)){
+    stop(paste(paste(unlist(dat[which(dat$bind.type==2),]$bind.tips)[which(
+      unlist(dat[which(dat$bind.type==2),]$bind.tips)%in%tree2$tip.label)],
+      collapse=", "),"not in source.tree"))
+  }
+
+  ### reference missing ###
+  # if(!all(unlist(strsplit(dat$reference,"-"))%in%c(tree$tip.label,unlist(dat$bind.tips),tree2$tip.label))){
+  #   stop(paste(paste(unlist(strsplit(dat$reference,"-"))[which(!unlist(strsplit(dat$reference,"-"))%in%c(tree$tip.label,unlist(dat$bind.tips),tree2$tip.label))],
+  #                    collapse=","),"missing from the backbone, the source and the tips to be attached"))
+  # }
+
+  ### bind already on the backbone ###
+  if(any(dat$bind%in%tree$tip.label)){
+    warning(paste(paste(dat[which(dat$bind%in%tree$tip.label),1],collapse=", "),"removed from the backbone tree\n"),immediate. = TRUE)
+    drop.tip(tree,dat[which(dat$bind%in%tree$tip.label),1])->tree
+  }
+
   ### Check for genera and clades as references ###
   if(any(grepl("Genus",dat$reference))){
+    dat$bindgen<-sapply(dat$bind.tips,function(j) unique(sapply(j,function(x) strsplit(x,"_")[[1]][1])))
     sapply(1:nrow(dat),function(k){
       if(grepl("Genus",dat[k,]$reference)){
         trimws(gsub("Genus ","",dat[k,]$reference))->genref
         try(getGenus(tree,genref),silent = TRUE)->getgenref
         if(!inherits(getgenref,"try-error")){
-          if(getgenref[2]==1) dat[k,]$reference<<-grep(genref,tree$tip.label,value=TRUE) else
-            dat[k,]$reference<<-paste(tips(tree,getgenref[,3])[c(1,length(tips(tree,getgenref[,3])))],collapse="-")
+          if(getgenref[2]==1) gentree<-grep(genref,tree$tip.label,value=TRUE) else
+            gentree<-paste(tips(tree,getgenref[,3])[c(1,length(tips(tree,getgenref[,3])))],collapse="-")
+          genbind<-dat$bindgen[[k]]
+          dat[k,]$reference<<-gentree
+
+          if(genref%in%genbind){
+            if(length(genbind)>1&any(sapply(dat$bindgen,function(w) all(w%in%genref))))
+              dat[k,]$reference<<-paste(c(gentree,sapply(dat[which(sapply(dat$bindgen,function(w) all(w%in%genref))),]$bind.tips,"[[",1)),collapse="-")
+          }else{
+            if(any(sapply(dat$bindgen,function(w) any(w%in%genref))))
+              dat[k,]$reference<<-paste(c(gentree,
+                                          sapply(dat[which(sapply(dat$bindgen,function(w) any(w%in%genref))),]$bind.tips,"[[",1)),collapse="-")
+          }
         }else stop(paste("Genus",genref,"missing from the backbone tree"))
-        #  {
-        #   try(getGenus(tree2,genref),silent = TRUE)->getgenref2
-        #   if(class(getgenref2)!="try-error"){
-        #     if(getgenref2[2]==1) dat[k,]$reference<<-grep(genref,tree2$tip.label,value=TRUE) else
-        #       dat[k,]$reference<<-paste(tips(tree2,getgenref2[,3])[c(1,length(tips(tree2,getgenref2[,3])))],collapse="-")
-        #   }else stop(paste("Genus",genref,"missing from the backbone and the source tree"))
-        #   #   {
-        #   #   if(any(grepl(genref,dat$bind[-k]))) dat[k,]$reference<<-paste(grep(paste(genref,"_",sep=""),dat$bind[-k],value=TRUE),collapse="-") else
-        #   #     stop(paste("Genus",genref,"missing from the backbone, the source and the tips to be attached"))
-        #   # }
-        # }
       }
     })
+    dat$bindgen<-NULL
   }
 
   if(any(grepl("Clade",dat$reference))){
@@ -244,41 +383,6 @@ tree.merger<-function(backbone,data,source.tree=NULL,age.offset=NULL,
     })
   }
 
-
-  bind.all<-unlist(sapply(1:nrow(dat),function(x) {
-    ifelse(dat[x,4]==2,des<-tips(tree2,getMRCA(tree2,strsplit(dat[x,1],"-")[[1]])),des<-dat[x,1])
-    des
-  }))
-  if(any(duplicated(bind.all))) stop(paste(paste(bind.all[duplicated(bind.all)],collapse = ", "),"names duplicated in supplied tips"))
-
-
-  if(all(dat$bind.type==1)&(!is.null(tree2))) tree2<-NULL
-  # if(any(dat$bind%in%tree2$tip.label)) drop.tip(tree2,dat[which(dat$bind%in%tree2$tip.label),1])->tree2
-
-  dat$bind.tips<-NA
-  if(all(dat$bind.type==1)) dat$bind.tips<-dat$bind else{
-    dat[which(dat$bind.type==2),]$bind.tips<-lapply(dat$bind[which(dat$bind.type==2)],function(x) tips(tree2,getMRCA(tree2,strsplit(x,"-")[[1]])))
-    if(any(is.na(dat$bind.tips))) dat[which(is.na(dat$bind.tips)),]$bind.tips<-dat[which(is.na(dat$bind.tips)),]$bind
-  }
-
-  ### bind missing from tree2 ###
-  if(!all(unlist(dat[which(dat$bind.type==2),]$bind.tips)%in%tree2$tip.label)){
-    stop(paste(paste(unlist(dat[which(dat$bind.type==2),]$bind.tips)[which(
-      unlist(dat[which(dat$bind.type==2),]$bind.tips)%in%tree2$tip.label)],
-      collapse=", "),"not in source.tree"))
-  }
-
-  ### reference missing ###
-  if(!all(unlist(strsplit(dat$reference,"-"))%in%c(tree$tip.label,unlist(dat$bind.tips),tree2$tip.label))){
-    stop(paste(paste(unlist(strsplit(dat$reference,"-"))[which(!unlist(strsplit(dat$reference,"-"))%in%c(tree$tip.label,unlist(dat$bind.tips),tree2$tip.label))],
-                     collapse=","),"missing from the backbone, the source and the tips to be attached"))
-  }
-
-  ### bind already on the backbone ###
-  if(any(dat$bind%in%tree$tip.label)){
-    warning(paste(paste(dat[which(dat$bind%in%tree$tip.label),1],collapse=", "),"removed from the backbone tree\n"),immediate. = TRUE)
-    drop.tip(tree,dat[which(dat$bind%in%tree$tip.label),1])->tree
-  }
 
   ### duplicated reference ###
   table(dat$reference)->tab.ref
@@ -311,27 +415,28 @@ tree.merger<-function(backbone,data,source.tree=NULL,age.offset=NULL,
   ### ordering ###
   strsplit(dat$reference,"-")->refs
   dat$ref.tree1<-NA
-  dat$ref.tree2<-NA
 
   lapply(refs,function(x){
-    if(length(x[which(!x%in%tree$tip.label)])<1) NA else x[which(!x%in%tree$tip.label)]
+    if(all(x%in%tree$tip.label)) NA else x[which(!x%in%tree$tip.label)]
   })->ref.tree
 
   dat[which(is.na(ref.tree)),][order(dat[which(is.na(ref.tree)),]$bind.type),]$ref.tree1<-seq(1,length(which(is.na(ref.tree))))
 
-  if(any(which(!is.na(ref.tree)))){
+  if(any(!is.na(ref.tree))){
     dat[which(!is.na(ref.tree)),]->dat.new
-    dat.new[,6:7]<-do.call(rbind,ref.tree[-which(is.na(ref.tree))])
+    dat.new$ref.tree1<-ref.tree[-which(is.na(ref.tree))]
 
-    if(any(dat.new[,6]%in%unlist(dat.new$bind.tips)|dat.new[,7]%in%unlist(dat.new$bind.tips))){
+    if(any(unlist(dat.new$ref.tree1)%in%unlist(dat.new$bind.tips))){
       while(nrow(dat.new)>0){
-        which(!(dat.new[,6]%in%unlist(dat.new$bind.tips)|dat.new[,7]%in%unlist(dat.new$bind.tips)))->outs
+        which(!sapply(dat.new$ref.tree1,function(w) any(w%in%unlist(dat.new$bind.tips))))->outs
+        # which(!(dat.new[,7]%in%unlist(dat.new$bind.tips)|dat.new[,8]%in%unlist(dat.new$bind.tips)))
         if(length(outs)<1) stop("Recursive species attachment: check rows ",paste(rownames(dat.new),collapse = ", ")," in data")
         dat[match(dat.new[outs,1],dat[,1]),]$ref.tree1<-max(dat$ref.tree1,na.rm=TRUE)+1:length(outs)
         dat.new[-outs,]->dat.new
       }
     }else{
-      which(!(dat.new[,6]%in%unlist(dat.new$bind.tips)|dat.new[,7]%in%unlist(dat.new$bind.tips)))->outs
+      # which(!(dat.new[,7]%in%unlist(dat.new$bind.tips)|dat.new[,8]%in%unlist(dat.new$bind.tips)))->outs
+      which(!sapply(dat.new$ref.tree1,function(w) any(w%in%unlist(dat.new$bind.tips))))->outs
       dat[match(dat.new[outs,1],dat[,1]),]$ref.tree1<-
         max(dat$ref.tree1,na.rm=TRUE)+1:length(which(!dat.new$ref.tree1%in%dat.new[,1]))
     }
@@ -347,13 +452,17 @@ tree.merger<-function(backbone,data,source.tree=NULL,age.offset=NULL,
       getMRCA(tree,strsplit(dat$reference,"-")[[k]])->where.ref else
         which(tree$tip.label==strsplit(dat$reference,"-")[[k]])->where.ref
 
-    if(where.ref!=(Ntip(tree)+1)) tree$edge.length[which(tree$edge[,2]==where.ref)]->br.len else{
-      if(is.null(tree$root.edge)) tree$root.edge<-mean(tree$edge.length)
-      tree$root.edge->br.len
-    }
+    if(where.ref!=(Ntip(tree)+1))
+      tree$edge.length[which(tree$edge[,2]==where.ref)]->br.len else{
+        if(is.null(tree$root.edge)||tree$root.edge==0) tree$root.edge<-mean(tree$edge.length)
+        tree$root.edge->br.len
+      }
 
     if(dat$bind.type[k]==1){
-      if(dat$poly[k]) 0->pos.ref else br.len/2->pos.ref
+      if(dat$poly[k]){
+        0->pos.ref
+        max(tree$edge.length[which(tree$edge[,1]%in%where.ref)])->br.len
+      } else br.len/2->pos.ref
       bind.tip(tree,dat$bind[k],where.ref,position = pos.ref,edge.length =br.len/2)->tree
     }else{
       extract.clade(tree2,dat$MRCAbind[k])->cla
@@ -368,7 +477,7 @@ tree.merger<-function(backbone,data,source.tree=NULL,age.offset=NULL,
               rescaleRR(cla,height=(H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),2]+max(diag(vcv(cla)))/10))->cla
         cla$root.edge<-max(diag(vcv(cla)))/10
       }else{
-        if(where.ref==(Ntip(tree)+1)) br.len/2->pos.ref else {
+        if(where.ref==(Ntip(tree)+1)) br.len/2+(max(diag(vcv(cla)))-max(diag(vcv(tree))))->pos.ref else {
           max(diag(vcv(cla)))+br.len/2->Hcla
           if((H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),2])<H/1000){
             # rescale(cla,"depth",br.len/4)->cla
@@ -387,10 +496,12 @@ tree.merger<-function(backbone,data,source.tree=NULL,age.offset=NULL,
       }
       bind.tree(tree,cla,where=where.ref,position = pos.ref)->tree
     }
-
   }
   close(pb)
   message("Binding done!")
+
+  if(is.null(backbone)) tree$edge.length<-rep(1,length(tree$edge.length))
+  if(!is.null(tip.ages)) tree<-rescaleRR(tree,height=tip.ages[which.max(tip.ages)]+tip.ages[which.max(tip.ages)]/10)
 
   trycal<-try({
     ### tips calibration ages ###
@@ -403,6 +514,7 @@ tree.merger<-function(backbone,data,source.tree=NULL,age.offset=NULL,
         warning(paste(paste(names(tip.ages)[which(!names(tip.ages)%in%tree$tip.label)],collapse=", "),
                       "not on the final tree: removed from the vector of tip.ages\n"),immediate. = TRUE)
         tip.ages<-tip.ages[which(names(tip.ages)%in%tree$tip.label)]
+
       }
       if(!all(names(ages)%in%names(tip.ages))) c(ages[which(!names(ages)%in%names(tip.ages))],tip.ages)->tip.ages
       if(!all(tree$tip.label%in%names(tip.ages))){
@@ -420,10 +532,12 @@ tree.merger<-function(backbone,data,source.tree=NULL,age.offset=NULL,
     }else node.ages<-c()
 
     ### age original root ###
-    if(!getMRCA(tree,names(ages))%in%names(node.ages)){
-      node.ages<-c(node.ages,Hset)
-      names(node.ages)[length(node.ages)]<-getMRCA(tree,names(ages))
-    }
+    if(!is.null(backbone)&!getMRCA(tree,names(ages))%in%names(node.ages))
+      setNames(c(node.ages,Hset),c(names(node.ages),getMRCA(tree,names(ages))))
+    # {
+    #   node.ages<-c(node.ages,Hset)
+    #   names(node.ages)[length(node.ages)]<-getMRCA(tree,names(ages))
+    #   }
 
     ### time distances inside attached clades ###
     if(any(dat$bind.type==2)){
@@ -505,5 +619,7 @@ tree.merger<-function(backbone,data,source.tree=NULL,age.offset=NULL,
 
   return(tree.final)
 }
+
+
 
 

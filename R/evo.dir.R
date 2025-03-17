@@ -21,7 +21,7 @@
 #'   needs to be written as in the example below.
 #' @param node node number to be specified if \code{pair.type = "node"}. Notice
 #'   the node number must refer to the dichotomic version of the original tree,
-#'   as produced by \code{RRphylo}.
+#'   as produced by \code{\link{RRphylo}}.
 #' @param random whether to perform randomization test
 #'   (\code{"yes"}/\code{"no"}).
 #' @param nrep number of replications must be indicated if \code{random =
@@ -92,63 +92,63 @@
 #'   DataApes$Tstage->Tstage
 #'   cc<- 2/parallel::detectCores()
 #'
-#'   RRphylo(tree=Tstage,y=PCstage, clus=cc)->RR
+#'   RRphylo(tree=Tstage,y=PCstage, clus=cc)->RRstage
 #'
 #' # Case 1. Without performing randomization test
 #'
 #'  # Case 1.1 Computing angles between rate vectors
-#'   # for each possible couple of species descending from node 72
-#'     evo.dir(RR,angle.dimension="rates",pair.type="node",node=72 ,
-#'     random="no")
+#'   # for each possible couple of species descending from node 57
+#'     evo.dir(RRstage,angle.dimension="rates",pair.type="node",node=57 ,
+#'     random="no")->ed1
 #'   # for a given couple of species
-#'     evo.dir(RR,angle.dimension="rates",pair.type="tips",
-#'     pair= c("Sap_1","Tro_2"),random="no")
+#'     evo.dir(RRstage,angle.dimension="rates",pair.type="tips",
+#'     pair= c("Sap_1","Tro_2"),random="no")->ed2
 #'
 #'  # Case 1.2 computing angles between phenotypic vectors provided by the user
-#'   # for each possible couple of species descending from node 72
-#'     evo.dir(RR,angle.dimension="phenotypes",y.type="original",
-#'     y=PCstage,pair.type="node",node=72,random="no")
+#'   # for each possible couple of species descending from node 57
+#'     evo.dir(RRstage,angle.dimension="phenotypes",y.type="original",
+#'     y=PCstage,pair.type="node",node=57,random="no")->ed3
 #'   # for a given couple of species
-#'     evo.dir(RR,angle.dimension="phenotypes",y.type="original",
-#'     y=PCstage,pair.type="tips",pair=c("Sap_1","Tro_2"),random="no")
+#'     evo.dir(RRstage,angle.dimension="phenotypes",y.type="original",
+#'     y=PCstage,pair.type="tips",pair=c("Sap_1","Tro_2"),random="no")->ed4
 #'
 #'  # Case 1.3 computing angles between phenotypic vectors produced by "RRphylo"
-#'   # for each possible couple of species descending from node 72
-#'     evo.dir(RR,angle.dimension="phenotypes",y.type="RR",
-#'     pair.type="node",node=72,random="no")
+#'   # for each possible couple of species descending from node 57
+#'     evo.dir(RRstage,angle.dimension="phenotypes",y.type="RR",
+#'     pair.type="node",node=57,random="no")->ed5
 #'   # for a given couple of species
-#'     evo.dir(RR,angle.dimension="phenotypes",y.type="RR",
-#'     pair.type="tips",pair=c("Sap_1","Tro_2"),random="no")
+#'     evo.dir(RRstage,angle.dimension="phenotypes",y.type="RR",
+#'     pair.type="tips",pair=c("Sap_1","Tro_2"),random="no")->ed6
 #'
 #'
 #' # Case 2. Performing randomization test
 #'
 #'  # Case 2.1 Computing angles between rate vectors
-#'   # for each possible couple of species descending from node 72
-#'     evo.dir(RR,angle.dimension="rates",pair.type="node",node=72 ,
-#'     random="yes",nrep=10)
+#'   # for each possible couple of species descending from node 57
+#'     evo.dir(RRstage,angle.dimension="rates",pair.type="node",node=57 ,
+#'     random="yes",nrep=10)->ed7
 #'
 #'   # for a given couple of species
-#'     evo.dir(RR,angle.dimension="rates",pair.type="tips",
-#'     pair= c("Sap_1","Tro_2"),random="yes",nrep=10)
+#'     evo.dir(RRstage,angle.dimension="rates",pair.type="tips",
+#'     pair= c("Sap_1","Tro_2"),random="yes",nrep=10)->ed8
 #'
 #'  # Case 2.2 computing angles between phenotypic vectors provided by the user
-#'   # for each possible couple of species descending from node 72
-#'     evo.dir(RR,angle.dimension="phenotypes",y.type="original",
-#'     y=PCstage,pair.type="node",node=72,random="yes",nrep=10)
+#'   # for each possible couple of species descending from node 57
+#'     evo.dir(RRstage,angle.dimension="phenotypes",y.type="original",
+#'     y=PCstage,pair.type="node",node=57,random="yes",nrep=10)->ed9
 #'
 #'   # for a given couple of species
-#'     evo.dir(RR,angle.dimension="phenotypes",y.type="original",
-#'     y=PCstage,pair.type="tips",pair=c("Sap_1","Tro_2"),random="yes",nrep=10)
+#'     evo.dir(RRstage,angle.dimension="phenotypes",y.type="original",
+#'     y=PCstage,pair.type="tips",pair=c("Sap_1","Tro_2"),random="yes",nrep=10)->ed10
 #'
 #'  # Case 2.3 computing angles between phenotypic vectors produced by "RRphylo"
-#'   # for each possible couple of species descending from node 72
-#'     evo.dir(RR,angle.dimension="phenotypes",y.type="RR",
-#'     pair.type="node",node=72,random="yes",nrep=10)
+#'   # for each possible couple of species descending from node 57
+#'     evo.dir(RRstage,angle.dimension="phenotypes",y.type="RR",
+#'     pair.type="node",node=57,random="yes",nrep=10)->ed11
 #'
 #'   # for a given couple of species
-#'     evo.dir(RR,angle.dimension="phenotypes",y.type="RR",
-#'     pair.type="tips",pair=c("Sap_1","Tro_2"),random="yes",nrep=10)
+#'     evo.dir(RRstage,angle.dimension="phenotypes",y.type="RR",
+#'     pair.type="tips",pair=c("Sap_1","Tro_2"),random="yes",nrep=10)->ed12
 #'     }
 
 evo.dir<-function(RR,
@@ -319,7 +319,6 @@ evo.dir<-function(RR,
 
   RR$tree->tree
   RR$tip.path->L
-  RR$lambda->lambda
 
 
   match.arg(angle.dimension)

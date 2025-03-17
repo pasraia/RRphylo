@@ -1,5 +1,8 @@
 #' @title Mapping rate and direction of phenotypic change on 3D surfaces.
-#' @description Given vectors of RW (or PC) scores, the function selects the
+#' @description \strong{The function is deprecated, please check the new version of
+#'   \code{rate.map} in package \pkg{RRmorph}}.
+#'
+#'   Given vectors of RW (or PC) scores, the function selects the
 #'   RW(PC) axes linked to highest (and lowest) evolutionary rate values and
 #'   reconstructs the morphology weighted on them. In this way, \code{rate.map}
 #'   shows where and how the phenotype changed the most between any pair of
@@ -58,45 +61,30 @@
 #' @examples
 #'   \dontrun{
 #'   data(DataSimians)
-#'   DataSimians$pca->pca
-#'   DataSimians$tree->tree
-#'   dato<-pca$PCscores
+#'   DataSimians$pca->pcasim
+#'   DataSimians$tree->treesim
 #'   cc<- 2/parallel::detectCores()
 #'
-#'   RRphylo(tree,dato,clus=cc)->RR
+#'   RRphylo(treesim,pcasim$PCscores,clus=cc)->RRsim
 #'
-#'   Rmap<-rate.map(x=c("Pan_troglodytes","Gorilla_gorilla"),RR=RR, PCscores=dato,
-#'                  pcs=pca$PCs, mshape=pca$mshape, shape.diff = TRUE)
+#'   Rmap<-rate.map(x=c("Pan_troglodytes","Gorilla_gorilla"),RR=RRsim, PCscores=pcasim$PCscores,
+#'                  pcs=pcasim$PCs, mshape=pcasim$mshape, shape.diff = TRUE)
 #'
 #'   }
 
 rate.map<-function (x, RR, PCscores, pcs, mshape,
                     out.rem = TRUE, shape.diff=FALSE, show.names=TRUE) {
 
-  if (!requireNamespace("inflection", quietly = TRUE)) {
-    stop("Package \"inflection\" needed for this function to work. Please install it.",
+  .Deprecated("rate.map","RRmorph","A new updated version of rate.map is available through the new R package RRmorph also accessible at:
+          https://github.com/pasraia/RRmorph")
+
+  misspacks<-sapply(c("inflection","ddpcr","rgl","Rvcg","Morpho"),requireNamespace,quietly=TRUE)
+  if(any(!misspacks)){
+    stop("The following package/s are needed for this function to work, please install it/them:\n ",
+         paste(names(misspacks)[which(!misspacks)],collapse=", "),
          call. = FALSE)
   }
 
-  if (!requireNamespace("rgl", quietly = TRUE)) {
-    stop("Package \"rgl\" needed for this function to work. Please install it.",
-         call. = FALSE)
-  }
-
-  if (!requireNamespace("Rvcg", quietly = TRUE)) {
-    stop("Package \"Rvcg\" needed for this function to work. Please install it.",
-         call. = FALSE)
-  }
-
-  if (!requireNamespace("Morpho", quietly = TRUE)) {
-    stop("Package \"Morpho\" needed for this function to work. Please install it.",
-         call. = FALSE)
-  }
-
-  if (!requireNamespace("ddpcr", quietly = TRUE)) {
-    stop("Package \"ddpcr\" needed for this function to work. Please install it.",
-         call. = FALSE)
-  }
   rates<-RR$multiple.rates
   tree<-RR$tree
   aces<-RR$aces
@@ -179,8 +167,8 @@ rate.map<-function (x, RR, PCscores, pcs, mshape,
   if (length(x)==1){
 
     ddpcr::quiet(meshes[[1]]<-localmeshdiff(sur[[1]],sur.ref, ploton = 2, n.int = 10000,
-                                     paltot=c("darkred","red","orange","white","lightblue","blue","darkblue"),
-                                     from = NULL,to= NULL,out.rem = out.rem,fact = 1.5,visual = 1,scale01 = TRUE, plot = TRUE)$mesh)
+                                            paltot=c("darkred","red","orange","white","lightblue","blue","darkblue"),
+                                            from = NULL,to= NULL,out.rem = out.rem,fact = 1.5,visual = 1,scale01 = TRUE, plot = TRUE)$mesh)
     title(main = x[1])
     if (show.names) rgl::mtext3d(text = paste(x[which(x%in%tree$tip.label)]), font = 2, edge = "x", line = 3)
 
@@ -188,8 +176,8 @@ rate.map<-function (x, RR, PCscores, pcs, mshape,
 
     rgl::mfrow3d(1,2,sharedMouse = TRUE)
     ddpcr::quiet(meshes[[1]]<-localmeshdiff(sur[[1]],sur.ref, ploton = 2, n.int = 10000,
-                                     paltot=c("darkred","red","orange","white","lightblue","blue","darkblue"),
-                                     from = NULL,to= NULL,out.rem = out.rem,fact = 1.5,visual = 1,scale01 = FALSE, densityplot = TRUE, plot = FALSE)$mesh)
+                                            paltot=c("darkred","red","orange","white","lightblue","blue","darkblue"),
+                                            from = NULL,to= NULL,out.rem = out.rem,fact = 1.5,visual = 1,scale01 = FALSE, densityplot = TRUE, plot = FALSE)$mesh)
     rgl::shade3d(meshes[[1]], specular = "black")
 
     title(main = x[1])
@@ -197,8 +185,8 @@ rate.map<-function (x, RR, PCscores, pcs, mshape,
     if (show.names) rgl::mtext3d(text = paste(x[1]), font = 2,edge = "x", line = 3)
     rgl::next3d()
     ddpcr::quiet(meshes[[2]]<-localmeshdiff(sur[[2]],sur.ref, ploton = 2, n.int = 10000,
-                                     paltot=c("darkred","red","orange","white","lightblue","blue","darkblue"),
-                                     from = NULL,to= NULL,out.rem = out.rem,fact = 1.5,visual = 1,scale01 = FALSE, densityplot = TRUE, plot = FALSE)$mesh)
+                                            paltot=c("darkred","red","orange","white","lightblue","blue","darkblue"),
+                                            from = NULL,to= NULL,out.rem = out.rem,fact = 1.5,visual = 1,scale01 = FALSE, densityplot = TRUE, plot = FALSE)$mesh)
     title(main = x[2])
     rgl::shade3d(meshes[[2]], specular = "black")
     if (show.names) rgl::mtext3d(text = paste(x[2]), font = 2, edge = "x", line = 3)
@@ -222,16 +210,16 @@ rate.map<-function (x, RR, PCscores, pcs, mshape,
 
       rgl::open3d()
       ddpcr::quiet(shape_diff<-localmeshdiff(surX1,surX2,ploton = 1,out.rem = out.rem,vec = msurD,scale01 = TRUE,
-                                      paltot = rev(c("#004251","#248e69","#5fff99","white","gold1","darkgoldenrod3","#663c14")),
-                                      plot=FALSE,densityplot = TRUE)$mesh)
+                                             paltot = rev(c("#004251","#248e69","#5fff99","white","gold1","darkgoldenrod3","#663c14")),
+                                             plot=FALSE,densityplot = TRUE)$mesh)
       title(main = paste(x,collapse = " vs. "))
 
       rgl::shade3d(shape_diff, specular = "black")
     } else {
       rgl::open3d()
       ddpcr::quiet(shape_diff<-localmeshdiff(surX1,sur.mshape,ploton = 1,out.rem = out.rem,scale01 = TRUE,
-                                      paltot = rev(c("#004251","#248e69","#5fff99","white","gold1","darkgoldenrod3","#663c14")),
-                                      plot=FALSE,densityplot = TRUE)$mesh)
+                                             paltot = rev(c("#004251","#248e69","#5fff99","white","gold1","darkgoldenrod3","#663c14")),
+                                             plot=FALSE,densityplot = TRUE)$mesh)
       title(main = paste(x[1],"vs. consensus shape"))
       rgl::shade3d(shape_diff, specular = "black")
     }

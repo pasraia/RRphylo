@@ -1,7 +1,10 @@
 #' @title Mapping morphological convergence on 3D surfaces
-#' @description Given vectors of RW (or PC) scores, the function selects the
-#'   RW(PC) axes which best account for convergence and maps convergent areas on
-#'   the corresponding 3D surfaces.
+#' @description \strong{The function is deprecated, please check the new version of
+#'   \code{conv.map} in package \pkg{RRmorph}}.
+#'
+#'   Given vectors of RW (or PC) scores, the function selects the RW(PC) axes
+#'   which best account for convergence and maps convergent areas on the
+#'   corresponding 3D surfaces.
 #' @usage conv.map(dataset,pcs,mshape,conv=NULL, exclude=NULL,out.rem=TRUE,
 #'   show.consensus=FALSE, plot=TRUE,col="blue",names = TRUE)
 #' @param dataset data frame (or matrix) with the RW (or PC) scores of the group
@@ -64,7 +67,7 @@
 #'   R-Packages for geometric morphometrics, shape analysis and surface
 #'   manipulations.} In: Statistical shape and deformation analysis. Academic
 #'   Press.
-#'   Melchionna, M., Profico, A., Castiglione, S., Serio, C., Mondanaro,
+#' @references Melchionna, M., Profico, A., Castiglione, S., Serio, C., Mondanaro,
 #'   A., Modafferi, M., Tamagnini, D., Maiorano, L. , Raia, P., Witmer, L.M.,
 #'   Wroe, S., & Sansalone, G. (2021). A method for mapping morphological
 #'   convergence on three-dimensional digital models: the case of the mammalian
@@ -72,24 +75,24 @@
 #' @examples
 #'   \dontrun{
 #'   data(DataSimians)
-#'   DataSimians$pca->pca
+#'   DataSimians$pca->pcasim
 #'
 #'   ## Case 1. Convergent species only
-#'      dato<-pca$PCscores[c(1,4),]
+#'      dato1<-pcasim$PCscores[c(1,4),]
 #'
-#'      CM<-conv.map(dataset = dato,
-#'                  pcs = pca$PCs,
-#'                  mshape = pca$mshape,
+#'      CM1<-conv.map(dataset = dato1,
+#'                  pcs = pcasim$PCs,
+#'                  mshape = pcasim$mshape,
 #'                  show.consensus = TRUE)
 #'
 #'   ## Case 2. Convergent and non-convergent species
-#'      dato<-pca$PCscores[c(1,4,7),]
+#'      dato2<-pcasim$PCscores[c(1,4,7),]
 #'      conv<-c("conv","conv","noconv")
-#'      names(conv)<-rownames(dato)
+#'      names(conv)<-rownames(dato2)
 #'
-#'      CM<-conv.map(dataset = dato,
-#'                   pcs = pca$PCs,
-#'                   mshape = pca$mshape,
+#'      CM2<-conv.map(dataset = dato2,
+#'                   pcs = pcasim$PCs,
+#'                   mshape = pcasim$mshape,
 #'                   conv = conv,
 #'                   show.consensus = TRUE,
 #'                   col = "orange")
@@ -106,29 +109,13 @@ conv.map<-function(dataset,pcs,mshape,
   # require(Rvcg)
   # require(Morpho)
 
+  .Deprecated("conv.map","RRmorph","A new updated version of conv.map is available through the new R package RRmorph also accessible at:
+          https://github.com/pasraia/RRmorph")
 
-  if (!requireNamespace("inflection", quietly = TRUE)) {
-    stop("Package \"inflection\" needed for this function to work. Please install it.",
-         call. = FALSE)
-  }
-
-  if (!requireNamespace("ddpcr", quietly = TRUE)) {
-    stop("Package \"ddpcr\" needed for this function to work. Please install it.",
-         call. = FALSE)
-  }
-
-  if (!requireNamespace("rgl", quietly = TRUE)) {
-    stop("Package \"rgl\" needed for this function to work. Please install it.",
-         call. = FALSE)
-  }
-
-  if (!requireNamespace("Rvcg", quietly = TRUE)) {
-    stop("Package \"Rvcg\" needed for this function to work. Please install it.",
-         call. = FALSE)
-  }
-
-  if (!requireNamespace("Morpho", quietly = TRUE)) {
-    stop("Package \"Morpho\" needed for this function to work. Please install it.",
+  misspacks<-sapply(c("inflection","ddpcr","rgl","Rvcg","Morpho"),requireNamespace,quietly=TRUE)
+  if(any(!misspacks)){
+    stop("The following package/s are needed for this function to work, please install it/them:\n ",
+         paste(names(misspacks)[which(!misspacks)],collapse=", "),
          call. = FALSE)
   }
 

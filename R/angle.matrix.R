@@ -15,7 +15,7 @@
 #'   retained to compute ontogenetic vectors. All variables are retained
 #'   otherwise.
 #' @param cova the covariate to be indicated if its effect on rate values must
-#'   be accounted for. Contrary to \code{RRphylo}, \code{cova} needs to be as
+#'   be accounted for. Contrary to \code{\link{RRphylo}}, \code{cova} needs to be as
 #'   long as the number of tips in the tree. As the covariate only affects rates
 #'   computation, there is no covariate to provide when \code{type =
 #'   "phenotypes"}.
@@ -27,11 +27,11 @@
 #'   tree (retrieved directly from an \code{\link{RRphylo}} object), including
 #'   the different ontogenetic stages of each species as polytomies. Names at
 #'   tips must be written as species ID and stage number separated by the
-#'   underscore. The \code{RRphylo} object \code{angle.matrix} is fed with is
+#'   underscore. The \code{RR} object \code{angle.matrix} is fed with is
 #'   just used to extract the dichotomized version of the phylogeny. This is
 #'   necessary because node numbers change randomly at dichotomizing non-binary
 #'   trees. However, when performing \code{angle.matrix} with the covariate the
-#'   \code{RRphylo } object must be produced without accounting for the
+#'   \code{RR} object must be produced without accounting for the
 #'   covariate. Furthermore, as the covariate only affects the rates
 #'   computation, it makes no sense to use it when computing vectors for
 #'   phenotypic variables. Once angles and vectors are computed,
@@ -93,30 +93,30 @@
 #'   DataApes$CentroidSize->CS
 #'   cc<- 2/parallel::detectCores()
 #'
-#'   RRphylo(tree=Tstage,y=PCstage,clus=cc)->RR
+#'   RRphylo(tree=Tstage,y=PCstage,clus=cc)->RRstage
 #' # Case 1. without accounting for the effect of a covariate
 #'
 #'  # Case 1.1 selecting shape variables that show significant relationship with age
 #'   # on phenotypic vectors
-#'     angle.matrix(RR,node=72,Y=PCstage,select.axes="yes",type="phenotypes",clus=cc)
+#'     angle.matrix(RRstage,node=72,Y=PCstage,select.axes="yes",type="phenotypes",clus=cc)->am1
 #'   # on rates vectors
-#'     angle.matrix(RR,node=72,Y=PCstage,select.axes="yes",type="rates",clus=cc)
+#'     angle.matrix(RRstage,node=72,Y=PCstage,select.axes="yes",type="rates",clus=cc)->am2
 #'
 #'  # Case 1.2 using all shape variables
 #'   # on phenotypic vectors
-#'     angle.matrix(RR,node=72,Y=PCstage,select.axes="no",type="phenotypes",clus=cc)
+#'     angle.matrix(RRstage,node=72,Y=PCstage,select.axes="no",type="phenotypes",clus=cc)->am3
 #'   # on rates vectors
-#'     angle.matrix(RR,node=72,Y=PCstage,select.axes="no",type="rates",clus=cc)
+#'     angle.matrix(RRstage,node=72,Y=PCstage,select.axes="no",type="rates",clus=cc)->am4
 #'
 #'
 #' # Case 2. accounting for the effect of a covariate (on rates vectors only)
 #'
 #'  # Case 2.1 selecting shape variables that show significant relationship with age
-#'    angle.matrix(RR,node=72,Y=PCstage,select.axes="yes",type="rates", cova=CS,clus=cc)
+#'    angle.matrix(RRstage,node=72,Y=PCstage,select.axes="yes",type="rates", cova=CS,clus=cc)->am5
 #'
 #'
 #'  # Case 2.2 using all shape variables
-#'    angle.matrix(RR,node=72,Y=PCstage,select.axes="no",type="rates",cova=CS,clus=cc)
+#'    angle.matrix(RRstage,node=72,Y=PCstage,select.axes="no",type="rates",cova=CS,clus=cc)->am6
 #'   }
 
 
@@ -125,13 +125,10 @@ angle.matrix<-function(RR,node,Y=NULL,select.axes=c("no","yes"),type=c("phenotyp
   #require(smatr)
   #require(rlist)
 
-  if (!requireNamespace("smatr", quietly = TRUE)) {
-    stop("Package \"smatr\" needed for this function to work. Please install it.",
-         call. = FALSE)
-  }
-
-  if (!requireNamespace("rlist", quietly = TRUE)) {
-    stop("Package \"rlist\" needed for this function to work. Please install it.",
+  misspacks<-sapply(c("smatr","rlist"),requireNamespace,quietly=TRUE)
+  if(any(!misspacks)){
+    stop("The following package/s are needed for this function to work, please install it/them:\n ",
+         paste(names(misspacks)[which(!misspacks)],collapse=", "),
          call. = FALSE)
   }
 
@@ -209,9 +206,9 @@ angle.matrix<-function(RR,node,Y=NULL,select.axes=c("no","yes"),type=c("phenotyp
   rad2deg <- function(rad) {(rad * 180) / (pi)}
 
   node->n
-  retrieve.angles(evo.p,wishlist="angles.between.species",focus="node",write2csv="no",node=n,random="no")->ret.ang
-  retrieve.angles(evo.p,wishlist="anglesMRCA",focus="node",write2csv="no",node=n,random="no")[,c(1,2,4)]->vecS
-  retrieve.angles(evo.p,wishlist="anglesMRCA",focus="node",write2csv="no",node=n,random="no")->angMRCA
+  retrieve.angles(evo.p,wishlist="angles.between.species",focus="node",node=n,random="no")->ret.ang
+  retrieve.angles(evo.p,wishlist="anglesMRCA",focus="node",node=n,random="no")[,c(1,2,4)]->vecS
+  retrieve.angles(evo.p,wishlist="anglesMRCA",focus="node",node=n,random="no")->angMRCA
   ret.ang[,c(2,4,3)]->btwsp
   data.frame(do.call(rbind,strsplit(as.character(btwsp[,1]), "/")),btwsp[,c(2,3)])->ansp
   colnames(ansp)<-c("sp1","sp2","anglesBTWspecies","angleBTWspecies2MRCA")
@@ -357,7 +354,7 @@ angle.matrix<-function(RR,node,Y=NULL,select.axes=c("no","yes"),type=c("phenotyp
 
     group.mats<-list()
     for(i in 1:length(group)){
-      retrieve.angles(evo.p,wishlist="angles.between.species",focus="species",species=group[i],random="no",write2csv = "no")->g1
+      retrieve.angles(evo.p,wishlist="angles.between.species",focus="species",species=group[i],random="no")->g1
       g1[grep(group[i],sapply(strsplit(as.character(g1[,2]),split="/"),"[[",1))[which(grep(group[i],sapply(strsplit(as.character(g1[,2]),split="/"),"[[",1))%in%grep(group[i],sapply(strsplit(as.character(g1[,2]),split="/"),"[[",2)))],]->g1
       data.frame(do.call(rbind,strsplit(as.character(g1[,2]), "/")),g1[,c(3,4)])->g1
       unique(c(as.character(g1[,1]),as.character(g1[,2])))[order(unique(c(as.character(g1[,1]),as.character(g1[,2]))))]->group1

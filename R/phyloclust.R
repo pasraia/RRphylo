@@ -9,8 +9,8 @@
 #' @param nsim number of simulations to perform the phylogenetic clustering
 #'   test.
 #' @export
-#' @return The function returns a list including the p-value ($p) for the test
-#'   of phylogenetic clustering and a $declusterized object containing the
+#' @return The function returns a list including the p-value (\code{$p}) for the test
+#'   of phylogenetic clustering and a \code{$declusterized} object containing the
 #'   declusterized versions of the original tree and state vector (i.e. tips are
 #'   removed as to make p>0.05) and the vector of removed species.
 #' @details To test for phylogenetic clustering, the function computes the mean
@@ -26,7 +26,7 @@
 #' DataFelids$treefel->treefel
 #' DataFelids$statefel->statefel
 #'
-#' phyloclust(tree=treefel,state=statefel,focal="saber")
+#' phyloclust(tree=treefel,state=statefel,focal="saber")->pcl
 
 phyloclust<-function(tree,state,focal,nsim=100){
   # if(!identical(tree$tip.label,tips(tree,(Ntip(tree)+1)))){
@@ -38,35 +38,22 @@ phyloclust<-function(tree,state,focal,nsim=100){
 
   # state <- treedata(tree, state, sort = TRUE)[[2]][,1]
   state <- treedataMatch(tree, state)[[1]][,1]
-  focal->st
-  cophenetic.phylo(tree)->cop
-  cop[which(state==st),which(state==st)]->subcop
-  mean(subcop[upper.tri(subcop)])->mds
-  dim(subcop)[1]->sl
 
-  r.mds<-array()
-  for(e in 1:nsim){
-    sample(tree$tip.label,sl)->test.tip
-    cop[test.tip,test.tip]->r.cop
-    mean(r.cop[upper.tri(r.cop)])->r.mds[e]
-  }
-  pval=length(which(r.mds<mds))/nsim
+  pval<-phylo.run.test(tree,state,focal,nsim=nsim)$p
 
   remT<-c()
-  length(which(state==st))->lenst
-  while(pval<0.05){
-    names(state)->nam
-    as.numeric(as.factor(state))->rt
-    data.frame(state,rt)->def
-    unique(def[which(def[,1]==st),2])->stN
-    data.frame(V=rle(rt)$values,L=rle(rt)$lengths)->VL
+  length(which(state==focal))->lenst
+  while(phylo.run.test(tree,state,focal,nsim=nsim)$p<0.05){
+    data.frame(state,rt=as.numeric(as.factor(state)))->def
+    unique(def[which(def[,1]==focal),2])->stN
+    data.frame(V=rle(def$rt)$values,L=rle(def$rt)$lengths)->VL
     data.frame(VL,pos=cumsum(VL[,2]))->VL
     VL[which(VL$V==stN),]->vel
     vel[which.max(vel$L),]->hit
     tree$tip.label[(hit[,3]-hit[,2]+1):hit[,3]]->hitips
     sample(hitips,ceiling(0.5*length(hitips)))->remtips
     drop.tip(tree,remtips)->tree
-    state[-which(names(state)%in%remtips)]->state
+    state[which(!names(state)%in%remtips)]->state
     if(length(c(remtips,remT))>(lenst-3)) break else c(remtips,remT)->remT
   }
   if(length(remT)==0) remT<-NA

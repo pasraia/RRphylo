@@ -16,7 +16,7 @@
 #' data("DataApes")
 #' DataApes$Tstage->Tstage
 #'
-#' makeL(tree=Tstage)
+#' makeL(tree=Tstage)->ml
 
 
 makeL<-function(tree){

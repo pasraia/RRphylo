@@ -7,7 +7,7 @@
 #'@usage
 #'  retrieve.angles(angles.res,wishlist=c("anglesMRCA","angleDir","angles.between.species"),
 #'   random=c("yes","no"),focus=c("node","species","both","none"),
-#'  node=NULL,species=NULL,write2csv=c("no","yes"),csvfile=NULL)
+#'  node=NULL,species=NULL,csvfile=NULL)
 #'@param angles.res the object resulting from \code{\link{evo.dir}} function.
 #'@param wishlist specifies whether to extract angles and sizes
 #'  (\code{"anglesMRCA"}) of resultant vectors between individual species and
@@ -20,11 +20,9 @@
 #'  \code{"none"}, whether the user wants the results for a focal node, or for a
 #'  given species, for both, or just wants to visualize everything.
 #'@param node must be indicated if \code{focus = "node"} or \code{"both"}. As
-#'  for \code{evo.dir}, the node number must refer to the dichotomic version of
+#'  for \code{\link{evo.dir}}, the node number must refer to the dichotomic version of
 #'  the original tree, as produced by \code{\link{RRphylo}}.
 #'@param species must be indicated if \code{focus = "species"} or \code{"both"}.
-#'@param write2csv has been deprecated; please see the argument
-#'   \code{csvfile} instead.
 #' @param csvfile if results should be saved to a .csv file, a character
 #'   indicating the name of the csv file and the path where it is to be saved.
 #'   If no path is indicated the file is stored in the working directory.
@@ -62,97 +60,97 @@
 #'     DataApes$Tstage->Tstage
 #'
 #'     cc<- 2/parallel::detectCores()
-#'     RRphylo(tree=Tstage,y=PCstage,clus=cc)->RR
+#'     RRphylo(tree=Tstage,y=PCstage,clus=cc)->RRstage
 #'
 #' # Case 1. "evo.dir" without performing randomization
-#'     evo.dir(RR,angle.dimension="rates",pair.type="node",
-#'     node=  57,random="no")->evo.p
+#'     evo.dir(RRstage,angle.dimension="rates",pair.type="node",
+#'     node=  57,random="no")->ed1
 #'
 #'  # Case 1.1 angles and sizes of resultant vectors between individual species and the MRCA:
 #'   # for a focal node
-#'     retrieve.angles(evo.p,wishlist="anglesMRCA",random="no",focus="node",
-#'     node=68)
+#'     retrieve.angles(ed1,wishlist="anglesMRCA",random="no",focus="node",
+#'     node=68)->ra1
 #'   # for a focal species
-#'     retrieve.angles(evo.p,wishlist="anglesMRCA",random="no",focus="species",
-#'     species="Sap")
+#'     retrieve.angles(ed1,wishlist="anglesMRCA",random="no",focus="species",
+#'     species="Sap")->ra2
 #'   # for both focal node and species
-#'     retrieve.angles(evo.p,wishlist="anglesMRCA",random="no",focus="both",
-#'     node=68,species="Sap")
+#'     retrieve.angles(ed1,wishlist="anglesMRCA",random="no",focus="both",
+#'     node=68,species="Sap")->ra3
 #'   # without any specific requirement
-#'     retrieve.angles(evo.p,wishlist="anglesMRCA",random="no",focus="none")
+#'     retrieve.angles(ed1,wishlist="anglesMRCA",random="no",focus="none")->ra4
 #'
 #'  # Case 1.2 angles and sizes of vectors between individual species
 #'  #and a fixed reference vector:
 #'   # for a focal node
-#'     retrieve.angles(evo.p,wishlist="angleDir",random="no",focus="node",
-#'     node=68)
+#'     retrieve.angles(ed1,wishlist="angleDir",random="no",focus="node",
+#'     node=68)->ra5
 #'   # for a focal species
-#'     retrieve.angles(evo.p,wishlist="angleDir",random="no",focus="species",
-#'     species="Sap")
+#'     retrieve.angles(ed1,wishlist="angleDir",random="no",focus="species",
+#'     species="Sap")->ra6
 #'   # for both focal node and species
-#'     retrieve.angles(evo.p,wishlist="angleDir",random="no",focus="both",
-#'     node=68,species="Sap")
+#'     retrieve.angles(ed1,wishlist="angleDir",random="no",focus="both",
+#'     node=68,species="Sap")->ra7
 #'   # without any specific requirement
-#'     retrieve.angles(evo.p,wishlist="angleDir",random="no",focus="none")
+#'     retrieve.angles(ed1,wishlist="angleDir",random="no",focus="none")->ra8
 #'
 #'  # Case 1.3 angles between species resultant vectors:
 #'   # for a focal node
-#'     retrieve.angles(evo.p,wishlist="angles.between.species",random="no",
-#'     focus="node", node=68)
+#'     retrieve.angles(ed1,wishlist="angles.between.species",random="no",
+#'     focus="node", node=68)->ra9
 #'   # for a focal species
-#'     retrieve.angles(evo.p,wishlist="angles.between.species",random="no",
-#'     focus="species", species="Sap")
+#'     retrieve.angles(ed1,wishlist="angles.between.species",random="no",
+#'     focus="species", species="Sap")->ra10
 #'   # for both focal node and species
-#'     retrieve.angles(evo.p,wishlist="angles.between.species",random="no",
-#'     focus="both",node=68,species="Sap")
+#'     retrieve.angles(ed1,wishlist="angles.between.species",random="no",
+#'     focus="both",node=68,species="Sap")->ra11
 #'   # without any specific requirement
-#'     retrieve.angles(evo.p,wishlist="angles.between.species",random="no",
-#'     focus="none")
+#'     retrieve.angles(ed1,wishlist="angles.between.species",random="no",
+#'     focus="none")->ra12
 #'
 #'
 #' # Case 2. "evo.dir" with performing randomization
-#'     evo.dir(RR,angle.dimension="rates",pair.type="node",node=57,
-#'     random="yes",nrep=10)->evo.p
+#'     evo.dir(RRstage,angle.dimension="rates",pair.type="node",node=57,
+#'     random="yes",nrep=10)->ed7
 #'
 #'  # Case 2.1 angles and sizes of resultant vectors between individual species and the MRCA:
 #'   # for a focal node
-#'     retrieve.angles(evo.p,wishlist="anglesMRCA",random="yes",focus="node",
-#'     node=68)
+#'     retrieve.angles(ed7,wishlist="anglesMRCA",random="yes",focus="node",
+#'     node=68)->ra13
 #'   # for a focal species
-#'     retrieve.angles(evo.p,wishlist="anglesMRCA",random="yes", focus="species",
-#'     species="Sap")
+#'     retrieve.angles(ed7,wishlist="anglesMRCA",random="yes", focus="species",
+#'     species="Sap")->ra14
 #'   # for both focal node and species
-#'     retrieve.angles(evo.p,wishlist="anglesMRCA",random="yes",focus="both",
-#'     node=68,species="Sap")
+#'     retrieve.angles(ed7,wishlist="anglesMRCA",random="yes",focus="both",
+#'     node=68,species="Sap")->ra15
 #'   # without any specific requirement
-#'     retrieve.angles(evo.p,wishlist="anglesMRCA",random="yes",focus="none")
+#'     retrieve.angles(ed7,wishlist="anglesMRCA",random="yes",focus="none")->ra16
 #'
 #'  # Case 2.2 angles and sizes of vectors between individual species and a fixed reference vector:
 #'   # for a focal node
-#'     retrieve.angles(evo.p,wishlist="angleDir",random="yes",focus="node",
-#'     node=68)
+#'     retrieve.angles(ed7,wishlist="angleDir",random="yes",focus="node",
+#'     node=68)->ra17
 #'   # for a focal species
-#'     retrieve.angles(evo.p,wishlist="angleDir",random="yes",focus="species",
-#'     species="Sap")
+#'     retrieve.angles(ed7,wishlist="angleDir",random="yes",focus="species",
+#'     species="Sap")->ra18
 #'   # for both focal node and species
-#'     retrieve.angles(evo.p,wishlist="angleDir",random="yes",focus="both",
-#'     node=68, species="Sap")
+#'     retrieve.angles(ed7,wishlist="angleDir",random="yes",focus="both",
+#'     node=68, species="Sap")->ra19
 #'   # without any specific requirement
-#'     retrieve.angles(evo.p,wishlist="angleDir",random="yes",focus="none")
+#'     retrieve.angles(ed7,wishlist="angleDir",random="yes",focus="none")->ra20
 #'
 #'  # Case 2.3 retrieve angles between species resultant vectors:
 #'   # for a focal node
-#'     retrieve.angles(evo.p,wishlist="angles.between.species",random="yes",
-#'     focus="node", node=68)
+#'     retrieve.angles(ed7,wishlist="angles.between.species",random="yes",
+#'     focus="node", node=68)->ra21
 #'   # for a focal species
-#'     retrieve.angles(evo.p,wishlist="angles.between.species",random="yes",
-#'     focus="species", species="Sap")
+#'     retrieve.angles(ed7,wishlist="angles.between.species",random="yes",
+#'     focus="species", species="Sap")->ra22
 #'   # for both focal node and species
-#'     retrieve.angles(evo.p,wishlist="angles.between.species",random="yes",
-#'     focus="both",node=68,species="Sap")
+#'     retrieve.angles(ed7,wishlist="angles.between.species",random="yes",
+#'     focus="both",node=68,species="Sap")->ra23
 #'   # without any specific requirement
-#'     retrieve.angles(evo.p,wishlist="angles.between.species",random="yes",
-#'     focus="none")
+#'     retrieve.angles(ed7,wishlist="angles.between.species",random="yes",
+#'     focus="none")->ra24
 #'     }
 
 
@@ -163,7 +161,6 @@ retrieve.angles<-function(angles.res,
                           focus=c("node","species","both","none"),
                           node=NULL,
                           species=NULL,
-                          write2csv=c("no","yes"),
                           csvfile=NULL)
 {
 

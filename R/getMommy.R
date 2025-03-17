@@ -5,7 +5,7 @@
 #' @usage getMommy(tree,N)
 #' @param tree a phylogenetic tree. The tree needs not to be ultrametric and
 #'   fully dichotomous.
-#' @param N the number of node or tip to perform the function on. The function also works with tip labels.
+#' @param N the number of node or tip to perform the function on. The function also works with tip/node labels.
 #' @export
 #' @return The function produces a vector of node numbers as integers, collated
 #'   from a node or a tip towards the tree root.
@@ -19,10 +19,15 @@
 #' data("DataApes")
 #' DataApes$Tstage->Tstage
 #'
-#' getMommy(tree=Tstage,N=12)
+#' getMommy(tree=Tstage,N=12)->gm
 
 getMommy<-function(tree,N){
-  if (is.character(N)) if(N%in%tree$tip.label) N <- which(tree$tip.label == N) else N<-as.numeric(N)
+  if (is.character(N)){
+    if(N%in%tree$tip.label) N <- which(tree$tip.label == N) else
+      if(N%in%tree$node.label) N<-which(tree$node.label==N)+Ntip(tree) else
+        if(!is.na(as.numeric(N))) N<-as.numeric(N) else
+          stop("N should be numeric or either a tree tip label or a node label")
+  }
 
   N->node
   curr<-vector()

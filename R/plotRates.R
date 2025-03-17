@@ -3,11 +3,9 @@
 #'  histograms and lollipop charts of the \code{\link{RRphylo}} rates computed
 #'  for a given clade as compared to the rates computed for the rest of the
 #'  tree.
-#'@usage plotRates(RR,node,export.tiff=NULL,filename=NULL)
+#'@usage plotRates(RR,node)
 #'@param RR an object produced by \code{\link{RRphylo}}.
 #'@param node the node subtending the clade of interest.
-#'@param export.tiff is deprecated.
-#'@param filename is deprecated.
 #'@export
 #'@seealso \href{../doc/RRphylo.html}{\code{RRphylo} vignette}
 #'@seealso \href{../doc/Plotting-tools.html}{\code{plotRates} vignette}
@@ -35,7 +33,7 @@
 #'  returns the vector of rates for the focal clade, collated in increasing
 #'  order.
 #'@seealso \href{../doc/RRphylo.html}{\code{RRphylo} vignette}
-#'@seealso \href{../doc/Plotting-tools.html}{\code{plotRates} vignette}
+#'@seealso \href{../doc/Plotting-tools.html#plotRates}{\code{plotRates} vignette}
 #' @examples
 #'\donttest{
 #' data("DataApes")
@@ -43,15 +41,15 @@
 #' DataApes$Tstage->Tstage
 #' cc<- 2/parallel::detectCores()
 #'
-#' RRphylo(tree=Tstage,y=PCstage,clus=cc)->RR
+#' RRphylo(tree=Tstage,y=PCstage,clus=cc)->RRstage
 #'
-#' plotRates(RR,node=72)->pR
+#' plotRates(RRstage,node=72)->pR
 #' pR$plotHist(hist.args=list(col1="cyan1",col2="blue"),legend.args=list(x="topright"))
 #' pR$plotLollipop(lollipop.args=list(col="chartreuse",bg="chartreuse"),
 #'                 line.args=list(col="deeppink",lwd=2))
 #' }
 
-plotRates<-function(RR,node,export.tiff=NULL,filename=NULL){
+plotRates<-function(RR,node){
   # require(phytools)
 
   RR$rates->rates
@@ -83,7 +81,8 @@ plotRates<-function(RR,node,export.tiff=NULL,filename=NULL){
       if(!"x"%in%names(legend.args)) legend.args$x<-"topleft"
       if(!"legend"%in%names(legend.args)) legend.args$legend<-c("back rates", "shift node rates")
       if(!"fill"%in%names(legend.args)&!any(c("lty","lwd")%in%names(legend.args))){
-        if(!"pch"%in%names(legend.args)) legend.args$pch<-rep(22,2)
+        if(!"pch"%in%names(legend.args)) legend.args$pch<-rep(22,2) else
+          legend.args$pch<-rep(legend.args$pch,length.out=2)
         if(any(legend.args$pch>20)&!"pt.bg"%in%names(legend.args)){
           legend.args$pt.bg<-rep(NA,length(legend.args$pch))
           legend.args$pt.bg[which(legend.args$pch>20)]<-c(col1,col2)[which(legend.args$pch>20)]

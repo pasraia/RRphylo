@@ -1,80 +1,51 @@
 #' @title Locating shifts in phenotypic evolutionary rates
 #' @usage search.shift(RR, status.type = c("clade", "sparse"),node = NULL, state
-#'   = NULL, cov = NULL, nrep = 1000, f = NULL,filename=NULL)
+#'   = NULL, cov = NULL, nrep = 1000, f = NULL)
 #' @description The function \code{search.shift} (\cite{Castiglione et al.
-#'   2018}) tests whether individual clades or isolated tips dispersed through
+#'   2018}) tests whether individual clades or group of tips dispersed through
 #'   the phylogeny evolve at different \code{\link{RRphylo}} rates as compared
-#'   to the rest of the tree. Instances of rate shifts may be automatically
-#'   found.
+#'   to the rest of the tree.
 #' @param RR an object fitted by the function \code{\link{RRphylo}}.
 #' @param status.type whether the \code{"clade"} or \code{"sparse"} condition
 #'   must be tested.
-#' @param node under the \code{"clade"} condition, the node (clade) to be tested
-#'   for the rate shift. When multiple nodes are tested, they need to be written
-#'   as in the example below. If \code{node} is left unspecified, the function
+#' @param node under the \code{"clade"} condition, the node/s (clades) to be
+#'   tested for the rate shift. If \code{node} is left unspecified, the function
 #'   performs under the 'auto-recognize' feature, meaning it will automatically
 #'   test individual clades for deviation of their rates from the background
 #'   rate of the rest of the tree (see details).
-#' @param state the state of the tips specified under the \code{"sparse"}
-#'   condition.
-#' @param cov the covariate vector to be indicated if its effect on rate values must be
-#'   accounted for. Contrary to \code{RRphylo}, \code{cov} needs to be as long
-#'   as the number of tips of the tree.
+#' @param state the named vector of states for each tip, to be provided under
+#'   the \code{"sparse"} condition.
+#' @param cov the covariate vector to be indicated if its effect on rate values
+#'   must be accounted for. Contrary to \code{\link{RRphylo}}, \code{cov} needs to be
+#'   as long as the number of tips of the tree.
 #' @param nrep the number of simulations to be performed for the rate shift
 #'   test, by default \code{nrep} is set at 1000.
 #' @param f the size of the smallest clade to be tested. By default, nodes
 #'   subtending to one tenth of the tree tips are tested.
-#' @param filename is deprecated. \code{search.shift} does not return plots
-#'   anymore, check the function \code{\link{plotShift}} instead.
 #' @importFrom graphics symbols mtext
 #' @importFrom stats sd
 #' @importFrom utils globalVariables
 #' @importFrom grDevices	pdf	dev.off
 #' @export
 #' @seealso \href{../doc/search.shift.html}{\code{search.shift} vignette}
-#' @seealso \href{../doc/Plotting-tools.html}{\code{plotShift} vignette}
-#' @details The function \code{search.shift} takes the object produced by
-#'   \code{\link{RRphylo}}. Two different conditions of rate change can be
-#'   investigated. Under the \code{"clade"} condition the vector of node or
-#'   nodes subjected to the shift must be provided. Alternatively, under the
-#'   \code{"sparse"} case the (named) vector of states (indicating which tips
-#'   are or are not evolving under the rate shift according to the tested
-#'   hypothesis) must be indicated. In the \code{"clade"} case, the function may
-#'   perform an 'auto-recognize' feature. Under such specification, the function
-#'   automatically tests individual clades (from clades as large as one half of
-#'   the tree down to a specified clade size) for deviation of their rates from
-#'   the background rate of the rest of the tree, which is identical to the
-#'   \code{"clade"} case. An inclusive clade with significantly high rates is
-#'   likely to include descending clades with similarly significantly high
-#'   rates. Hence, with 'auto-recognize' the \code{search.shift} function is
-#'   written as to scan clades individually and to select only the node
-#'   subtending to the highest difference in mean absolute rates as compared to
-#'   the rest of the tree. Caution must be put into interpreting the
-#'   'auto-recognize' results. For instance, a clade with small rates and
-#'   another with large rates could be individuated even under BM. This does not
-#'   mean these clades are actual instances for rate shifts. Clades must be
-#'   tested on their own without the 'auto-recognize' feature, which serves as
-#'   guidance to the investigator, when no strong a priori hypothesis to be
-#'   tested is advanced. The 'auto-recognize' feature is not meant to provide a
-#'   test for a specific hypothesis. It serves as an optional guidance to
-#'   understand whether and which clades show significantly large or small rates
-#'   as compared to the rest of the tree. Individual clades are tested at once,
-#'   meaning that significant instances of rate variation elsewhere on the tree
-#'   are ignored. Conversely, running the \code{"clade"} condition without
-#'   including the 'auto-recognize' feature, multiple clades presumed to evolve
-#'   under the same shift are tested together, meaning that their rates are
-#'   collectively contrasted to the rest of the tree, albeit they can
-#'   additionally be compared to each other upon request. Under both the
-#'   \code{"clade"} and \code{"sparse"} conditions, multiple clades could be
-#'   specified at once, and optionally tested individually (for deviation of
-#'   rates) against the rates of the rest of the tree and against each other.
-#'   Regardless of which condition is specified, the function output produces
-#'   the real difference of means, and their significance value.
-#' @return Under all circumstances, \code{search.shift} provides a vector of
-#'   \code{$rates}. If \code{'cov'} values are provided, rates are regressed
-#'   against the covariate and the residuals of such regression form the vector
-#'   \strong{\code{$rates}}. Otherwise, \strong{\code{$rates}} are the same
-#'   rates as with the \code{RR} argument.
+#' @seealso \code{\link{overfitSS}}; \href{../doc/overfit.html#overfitSS}{\code{overfitSS} vignette}
+#' @seealso \code{\link{plotShift}}; \href{../doc/Plotting-tools.html#plotShift}{\code{plotShift} vignette}
+#' @details Under the 'auto-recognize' mode, \code{search.shift} automatically
+#' tests individual clades (ranging in size from one half of the tree down to
+#' \code{f} tips) for deviation of their rates from the background rate of the
+#' rest of the tree. An inclusive clade with significantly high rates is likely
+#' to include descending clades with similarly significantly high rates. Hence,
+#' under 'auto-recognize' \code{search.shift} scans clades individually and
+#' selects only the node subtending to the highest difference in mean absolute
+#' rates as compared to the rest of the tree. If the argument \code{node}
+#' (\code{"clade"} condition) is provided, the function computes the difference
+#' between mean rate values of each clade and the rest of the tree, and compares
+#' it to a random distribution of differences generated by shuffling rates
+#' across tree branches. Additionally, if more than one \code{node} is
+#' indicated, the rate difference for one clade is additionally computed by
+#' excluding the rate values of the others from the rate vector of the rest of
+#' the tree. Also, all the clades are considered as to be under a common rate
+#' regime and compared as a single group to the rest of the tree.
 #' @return Under \code{"clade"} case without specifying nodes (i.e.
 #'   'auto-recognize') a list including:
 #' @return \strong{$all.clades} for each detected node, the data-frame includes
@@ -89,11 +60,8 @@
 #'   rest of the tree (at alpha = 0.05), when the probability is > 0.975; and
 #'   small rates are significantly small for p < 0.025.
 #' @return \strong{$single.clades} the same as with 'all.clades' but restricted
-#'   to the largest/smallest rate values along a single clade (i.e. nested
-#'   clades with smaller rate shifts are excluded). Large rates are
-#'   significantly larger than the rest of the tree (at alpha = 0.05), when the
-#'   probability is > 0.975; and small rates are significantly small for p <
-#'   0.025.
+#'   to the largest/smallest rate values along a single lineage (i.e. nested
+#'   clades with smaller rate shifts are excluded).
 #' @return Under \code{"clade"} condition by specifying the \code{node}
 #'   argument:
 #' @return \strong{$all.clades.together} if more than one node is tested, this
@@ -102,10 +70,10 @@
 #'   rate. As with the 'auto-recognize' feature, large rates are significantly
 #'   larger than the rest of the tree (at alpha = 0.05), when the probability is
 #'   > 0.975; and small rates are significantly small for p < 0.025.
-#' @return \strong{$single.clades} this gives the significance for individual
-#'   clades, tested separately. As previously, large rates are significantly
-#'   larger than the rest of the tree (at alpha = 0.05), when the probability is
-#'   > 0.975; and small rates are significantly small for p < 0.025.
+#' @return \strong{$single.clades} gives the significance for individual clades
+#'   tested individually against the rest of the tree (\strong{$singles}) and by
+#'   excluding the rate values of other shifting clades from the rate vector of the rest of
+#'   the tree (\strong{$no.others})
 #' @return Under the \code{"sparse"} condition:
 #' @return   \strong{$state.results} for each state, the data-frame includes the
 #'   average rate difference (computed as the mean rate over all leaves evolving
@@ -114,6 +82,10 @@
 #'   are significantly larger (at alpha = 0.05), when the probability is >
 #'   0.975; and small rates are significantly small for p < 0.025. States are
 #'   compared pairwise.
+#' @return Under all circumstances, if \code{'cov'} values are provided to the
+#'   function, \code{search.shift} returns as \strong{$rates} object the vector of
+#'   residuals of \code{\link{RRphylo}} rates versus \code{cov} regression.
+#' @return The output always has an attribute "Call" which returns an unevaluated call to the function.
 #' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro
 #'   Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
 #'   Carotenuto
@@ -136,22 +108,22 @@
 #'
 #' # Case 1.1 "clade" condition
 #' # with auto-recognize
-#' search.shift(RR=dinoRates,status.type="clade")
+#' search.shift(RR=dinoRates,status.type="clade")->SSauto
 #' # testing two hypothetical clades
-#' search.shift(RR=dinoRates,status.type="clade",node=c(696,746))
+#' search.shift(RR=dinoRates,status.type="clade",node=c(696,746))->SSnode
 #'
 #' # Case 1.2 "sparse" condition
 #' # testing the sparse condition.
-#' search.shift(RR=dinoRates,status.type= "sparse",state=statedino)
+#' search.shift(RR=dinoRates,status.type= "sparse",state=statedino)->SSstate
 #'
 #'
 #' # Case 2. Accounting for the effect of a covariate
 #'
 #' # Case 2.1 "clade" condition
-#' search.shift(RR=dinoRates,status.type= "clade",cov=massdino)
+#' search.shift(RR=dinoRates,status.type= "clade",cov=massdino)->SSauto.cov
 #'
 #' # Case 2.2 "sparse" condition
-#' search.shift(RR=dinoRates,status.type="sparse",state=statedino,cov=massdino)
+#' search.shift(RR=dinoRates,status.type="sparse",state=statedino,cov=massdino)->SSstate.cov
 #'     }
 
 
@@ -162,20 +134,23 @@ search.shift<-function(RR,
                        state=NULL,
                        cov=NULL,
                        nrep=1000,
-                       f=NULL,
-                       filename=NULL)
+                       f=NULL)
 {
   # require(phytools)
-  # require(scales)
 
-  if (!requireNamespace("scales", quietly = TRUE)) {
-    stop("Package \"scales\" needed for this function to work. Please install it.",
-         call. = FALSE)
+  SScore<-function(leaves,rates){
+    leaf.rates <- rates[match(leaves, rownames(rates),nomatch = 0),]
+    NCrates <- rates[which(!rownames(rates)%in%names(leaf.rates))]
+    leaf2NC.diff <- mean(abs(leaf.rates))-mean(abs(NCrates))
+    C <- length(leaf.rates)
+    NC <- length(rates) - C
+    ran.diffR <- replicate(nrep,mean(sample(abs(rates), C)) -
+                             mean(sample(abs(rates),NC)))
+    p.shift <- rank(c(leaf2NC.diff, ran.diffR[-nrep]))[1]/nrep
+    return(cbind(diff=leaf2NC.diff,p=p.shift))
   }
 
-  if(!missing(filename))
-    warning("The argument filename is deprecated. Check the function plotShift to plot results",immediate. = TRUE)
-
+  funcall <- match.call()
   tree <- RR$tree
   rates <- RR$rates[,,drop=FALSE]
   betas<-RR$multiple.rates[,,drop=FALSE]
@@ -187,254 +162,158 @@ search.shift<-function(RR,
     RRphylo(tree,cov,clus=0)->RRcova
     abs(c(RRcova$aces,cov))->Y
     c(rownames(RRcova$aces),names(cov))->names(Y)
-
-    if(length(which(apply(betas,1,sum)==0))>0){
-      which(apply(betas,1,sum)==0)->zeroes
-      log(abs(betas))->R
-      R[-zeroes,]->R
-      Y[-zeroes]->Y
-
-      residuals(lm(R~Y))->res
-      which(apply(betas,1,sum)!=0)->factOut
-      betas[factOut,]<-res
-      betas[zeroes,]<-0
-
-    }else {
-      log(abs(betas))->R
-      residuals(lm(R~Y))->res
-      as.matrix(res)->betas
-    }
+    covRates(Y,betas)->betas
 
     if(ncol(betas)>1) rates <- as.matrix(apply(betas, 1, function(x) sqrt(sum(x^2)))) else rates<-betas
-    # rates <- apply(betas, 1, function(x) sqrt(sum(x^2)))
-    # rates <- as.matrix(rates)
   }
 
   if (status.type == "clade") {
     if (is.null(node)) {
       st <- subtrees(tree)
       len<-sapply(st,Ntip)
-      st <- st[which(len < (Ntip(tree)/2) & len > round(f))]
-      node <- sapply(st, function(x) getMRCA(tree, x$tip.label))
-      leaf2N.diff <- p.single <- array()
-      for (j in 1:length(node)) {
-        Cleaf <- c(getDescendants(tree, node[j]), tips(tree, node[j]))
-        leaf.rates <-  na.omit(rates[match(Cleaf, rownames(rates)),])
-        NCrates <- rates[-match(names(leaf.rates), rownames(rates))]
-        leaf2N.diff[j] <- mean(abs(leaf.rates))- mean(abs(NCrates))
-        C <- length(leaf.rates)
-        NC <- length(rates) - C
-        ran.diffM <- replicate(nrep,mean(sample(abs(rates), C)) - mean(sample(abs(rates),NC)))
-        p.single[j] <- rank(c(leaf2N.diff[j], ran.diffM[-nrep]))[1]/nrep
+      st <- st[which(len < (Ntip(tree)/2) & len >= round(f))]
+      nns <- sapply(st, function(x) getMRCA(tree, x$tip.label))
+    } else node->nns
+
+
+    allres<-do.call(rbind,lapply(nns,function(j) SScore(c(getDescendants(tree, j), tips(tree, j)),rates)))
+    rownames(allres)<-nns
+    colnames(allres)<-c("rate.difference","p.value")
+
+    l2N.init<-allres[,1]
+    p.init<-allres[,2]
+    names(l2N.init)<-names(p.init)<-nns
+    # data.frame(rate.difference=l2N.init[match(names(p.init),names(l2N.init))],p.value=p.init)->allres
+
+    if(is.null(node)){
+      if (length(p.init[p.init>=0.975|p.init<=0.025])==0) p.single <-leaf2N.diff <-NULL else{
+        p.single <- p.init[p.init>=0.975|p.init<=0.025]
+        leaf2N.diff <- l2N.init[match(names(p.single),names(l2N.init))]
       }
-      names(leaf2N.diff) <- names(p.single) <- node
-
-
-      if (length(p.single[p.single>=0.975|p.single<=0.025])==0){
-        p.init <- p.single
-        l2N.init <- leaf2N.diff[match(names(p.init),names(leaf2N.diff))]
-        p.single <- leaf2N.diff <- NULL
-      }
-
-      if (length(p.single[p.single>=0.975|p.single<=0.025])==1){
-        p.init <- p.single
-        l2N.init <- leaf2N.diff[match(names(p.init),names(leaf2N.diff))]
-
-        p.single <- p.single[p.single>=0.975|p.single<=0.025]
-        leaf2N.diff <- leaf2N.diff[match(names(p.single),names(leaf2N.diff))]
-
-      }
-
-      if (length(p.single[p.single>=0.975|p.single<=0.025])>= 2){
-        p.init <- p.single
-        l2N.init <- leaf2N.diff[match(names(p.init),names(leaf2N.diff))]
-
-        p.single <- p.single[p.single>=0.975|p.single<=0.025]
-
-        leaf2N.diff <- leaf2N.diff[match(names(p.single), names(leaf2N.diff))]
-
+      if (length(p.single)>= 2){
         ups <- p.single[p.single >= 0.975]
         dws <- p.single[p.single <= 0.025]
-        ups <- ups[na.omit(match(names(leaf2N.diff[order(leaf2N.diff,
-                                                         decreasing = FALSE)]), names(ups)))]
-        dws <- dws[na.omit(match(names(leaf2N.diff[order(leaf2N.diff,
-                                                         decreasing = FALSE)]), names(dws)))]
-        if (is.na(mean(dws))) {
-          dws = Nnode(tree) * 2
-        } else {
-          s = 1
-          repeat{
-            d <- which(names(dws) %in% getDescendants(tree, names(dws)[s]))
-            if (length(d) > 0) {
-              leaf2N.diff[c(match(names(dws[d]),names(leaf2N.diff)),match(names(dws[s]),names(leaf2N.diff)))]->cla
-              names(which.max(abs(leaf2N.diff[c(match(names(dws[d]),names(leaf2N.diff)),match(names(dws[s]),names(leaf2N.diff)))])))->IN
-              dws[-match(names(cla[which(names(cla)!=IN)]),names(dws))]->dws
-              s=1
-            } else {
-              dws <- dws
-              s = s+1
+        ups.sel<-sapply(node.paths(tree,names(ups)),function(x){
+          x[which.max(abs(leaf2N.diff[match(x,names(leaf2N.diff))]))]
+        })
+        dws.sel<-sapply(node.paths(tree,names(dws)),function(x){
+          x[which.max(abs(leaf2N.diff[match(x,names(leaf2N.diff))]))]
+        })
+        ups<-ups[which(names(ups)%in%ups.sel)]
+        dws<-dws[which(names(dws)%in%dws.sel)]
 
-            }
-
-            if (s > length(dws))  break
-
-          }
-        }
-
-        if (is.na(mean(ups))) {
-          ups = Nnode(tree) * 2
-        } else {
-          z = 1
-          repeat{
-            d <- which(names(ups) %in% getDescendants(tree, names(ups)[z]))
-            if (length(d) > 0) {
-              leaf2N.diff[c(match(names(ups[d]),names(leaf2N.diff)),match(names(ups[z]),names(leaf2N.diff)))]->cla
-              names(which.max(abs(leaf2N.diff[c(match(names(ups[d]),names(leaf2N.diff)),match(names(ups[z]),names(leaf2N.diff)))])))->IN
-              ups[-match(names(cla[which(names(cla)!=IN)]),names(ups))]->ups
-              z=1
-            } else {
-              ups <- ups
-              z = z+1
-
-            }
-            if (z > length(ups))  break
-          }
-        }
-
-
-        # p.init <- p.single
-        # l2N.init <- leaf2N.diff[match(names(p.init),
-        #                               names(leaf2N.diff))]
         p.single <- p.single[which(names(p.single)%in%names(c(ups, dws)))]
-
         leaf2N.diff <- leaf2N.diff[match(names(p.single),names(leaf2N.diff))]
 
         p.single[order(p.single)]->p.single
       }
 
-      data.frame(rate.difference=l2N.init[match(names(p.init),names(l2N.init))],p.value=p.init)->allres
-      if(!is.null(p.single))
+      if(is.null(p.single)) single<-NULL else
         data.frame(rate.difference=leaf2N.diff[match(names(p.single),names(leaf2N.diff))],
-                   p.value=p.single)->single else single<-NULL
-      res<-list(allres,single)
-      names(res)<-c("all.clades","single.clades")
-    } else {
-      Cbranch<-unlist(lapply(node,function(k) getDescendants(tree,k)))
-      Cbranch <- unique(Cbranch[-which(Cbranch < Ntip(tree))])
-      Ctips<-unique(unlist(lapply(node,function(k) tips(tree,k))))
-      Cleaf <- c(Cbranch, Ctips)
-      leaf.rates <- na.omit(rates[match(Cleaf, rownames(rates)),])
-      NCrates <- rates[-match(names(leaf.rates), rownames(rates))]
-      leaf2NC.diff <- mean(abs(leaf.rates))-mean(abs(NCrates))
-      C <- length(leaf.rates)
-      NC <- length(rates) - C
-      ran.diffR <- replicate(nrep,mean(sample(abs(rates), C)) -
-                               mean(sample(abs(rates),NC)))
-      p.shift <- rank(c(leaf2NC.diff, ran.diffR[-nrep]))[1]/nrep
-      #names(leaf2NC.diff)<-names(p.shift)<-node
-      res<-list(data.frame(rate.difference=leaf2NC.diff,p.value=p.shift))
+                   p.value=p.single)->single
+      res<-list(all.clades=allres,single.clades=single)
 
-      if(length(node)>1){
-        leaf2N.diff <- p.single <- array()
-        for (i in 1:length(node)) {
-          NOD <- node[-i]
-          others <- unlist(lapply(NOD,function(k) tips(tree, k)))
-          mommies <- unlist(lapply(NOD,function(k) getDescendants(tree, k)))
-          mommies <- mommies[-which(mommies< Ntip(tree)+1)]
-          otmom <- c(mommies, others)
-          Cleaf <- c(getDescendants(tree, node[i]),unlist(tips(tree, node[i])))
-          leaf.rates <- na.omit(rates[match(Cleaf, rownames(rates)),])
-          NC <- rates[-c(which(rownames(rates) %in% names(leaf.rates)),
-                         which(rownames(rates) %in% otmom)), ]
-          leaf2N.diff[i] <- mean(abs(leaf.rates))-mean(abs(NC))
-          NC.l <- length(NC)
-          leaf.l <- length(leaf.rates)
-          tot.r <- abs(c(NC, leaf.rates))
-          RAN.diff<-replicate(nrep,mean(sample(tot.r, leaf.l))-mean(sample(tot.r, NC.l)))
-          p.single[i] <- rank(c(leaf2N.diff[i], RAN.diff[-nrep]))[1]/nrep
+    }else{
+      if(length(nns)==1)
+        res<-list(single.clades=allres) else{
+          totshtips<-length(unlist(lapply(nns,function(x) tips(tree,x))))
+          if(totshtips>Ntip(tree)*0.5){
+            warning("The clades under testing include more than one half of the tree species")
+            res<-list(single.clades=allres)
+          }else{
+            node.paths(tree,nns)->np
+            if(any(sapply(np,length)>1)){
+              nsp<-np[which(sapply(np,length)>1)]
+              warning(paste("Nodes",paste(sapply(nsp,function(x) paste(x,collapse="-")),collapse=" and "),
+                            "are on the same path,only one per pair will be tested"),immediate.=TRUE)
+              nns<-c(unlist(np[which(sapply(np,length)==1)]),
+                     sapply(nsp,function(x) x[which.max(abs(allres[match(x,rownames(allres)),1]))]))
+
+            }
+
+            Cbranch<-unlist(lapply(nns,function(k) getDescendants(tree,k)))
+            Cbranch <- unique(Cbranch[which(Cbranch>=Ntip(tree))])
+            Ctips<-unique(unlist(lapply(nns,function(k) tips(tree,k))))
+            Cleaf <- c(Cbranch, Ctips)
+            allclatog<-SScore(Cleaf,rates)
+            rownames(allclatog)<-"all"
+            colnames(allclatog)<-c("rate.difference","p.value")
+
+            ssc.list<-list()
+            for (i in 1:length(nns)) {
+              NOD <- nns[-i]
+              others <- unlist(lapply(NOD,function(k) tips(tree, k)))
+              des<-unlist(lapply(NOD,function(k) getDescendants(tree, k)[which(getDescendants(tree, k)>Ntip(tree))]))
+              otdes<- c(des, others)
+
+              Cleaf <- c(getDescendants(tree, nns[i]),unlist(tips(tree, nns[i])))
+              NCrates<-rates[which(!rownames(rates)%in%otdes),,drop=FALSE]
+              ssc.list[[i]]<-SScore(Cleaf,NCrates)
+            }
+            noothers<-do.call(rbind,ssc.list)
+            rownames(noothers)<-nns
+            colnames(noothers)<-c("rate.difference","p.value")
+
+            res<-list(all.clades.together=allclatog,single.clades=list(singles=allres,no.others=noothers))
+          }
         }
-        names(p.single) <- names(leaf2N.diff) <-node
-
-        res<-c(res,list(data.frame(rate.difference=leaf2N.diff[match(names(p.single),names(leaf2N.diff))],
-                                 p.value=p.single)))
-
-      }
-
-      if(length(res)>1) names(res)<-c("all.clades.together","single.clades") else{
-        rownames(res[[1]])<-node
-        names(res)<-"single.clades"
-      }
     }
   } else {
     state<-as.matrix(state)
     state <- treedataMatch(tree, state)[[1]][,1]
     frame <- data.frame(status = as.factor(state),
                         rate = rates[match(names(state),rownames(rates))])
-    p.status.diff <- array()
-    if (length(unique(state)) > 2) {
-      status.diff <- apply(combn(tapply(abs(frame$rate),
-                                        frame$status, mean), 2), 2, diff)
-      sta <- tapply(abs(frame$rate), frame$status, mean)
-      sta <- sta[match(unique(state), names(sta))]
+    sta <- tapply(abs(frame$rate), frame$status, mean)
+    sta <- sta[match(unique(state), names(sta))]
+    status.diff <- apply(combn(sta, 2), 2, diff)
 
+    if(length(unique(state)) > 2){
       w <- sapply(1:length(sta),function(x) sta[x]-
-                    mean(abs(frame[-which(frame$status ==names(sta)[x]), 2])))
+                    mean(abs(frame[which(frame$status!=names(sta)[x]), 2])))
       status.diff <- c(status.diff, w)
-      names(status.diff) <- c(apply(combn(levels(frame$status),
-                                          2), 2, function(x) paste(x[2], x[1], sep = "_")),
+      names(status.diff) <- c(apply(combn(names(sta),2), 2, function(x) paste(x[2], x[1], sep = "_")),
                               names(sta))
-      status.diffS <- matrix(ncol = length(status.diff),
-                             nrow = nrep)
-      for (i in 1:nrep) {
-        s.ran <- sample(frame$status)
-        s.frame <- data.frame(s.ran, frame$rate)
-        SD <- apply(combn(tapply(abs(s.frame$frame.rate),
-                                 s.frame$s.ran, mean), 2), 2, diff)
-        sta <- tapply(abs(frame$rate), s.ran, mean)
-        sta <- sta[match(unique(state), names(sta))]
+    } else names(status.diff)<-paste(combn(names(sta), 2)[2:1],collapse="_")
 
+
+    status.diffS <- matrix(ncol = length(status.diff),
+                           nrow = nrep)
+    for (i in 1:nrep) {
+      s.ran <- sample(frame$status)
+      s.frame <- data.frame(s.ran, frame$rate)
+      sta <- tapply(abs(frame$rate), s.ran, mean)
+      sta <- sta[match(unique(state), names(sta))]
+      SD <- apply(combn(sta, 2), 2, diff)
+      if(length(unique(state)) > 2){
         w <- sapply(1:length(sta),function(x) sta[x]-
-                      mean(abs(frame[-which(s.frame$s.ran ==names(sta)[x]), 2])))
+                      mean(abs(frame[which(s.frame$s.ran!=names(sta)[x]), 2])))
         status.diffS[i, ] <- c(SD, w)
-      }
-      colnames(status.diffS) <- names(status.diff)
-
-      p.status.diff<-sapply(1:length(status.diff),function(i)
-        rank(c(status.diff[i],status.diffS[-nrep, i]))[1]/nrep)
-      names(p.status.diff) <- names(status.diff)
-      unlist(p.status.diff)->p.status.diff
-      unlist(status.diff)->status.diff
-
-      res<-list(data.frame(rate.difference=status.diff[match(names(p.status.diff),names(status.diff))],p.status.diff))
-      names(res)<-"state.results"
-      if(!is.null(cov)) {
-        res<-c(res,list(rates))
-        names(res)[2]<-"rates"
-      }
-    } else {
-      status.diff <- diff(tapply(abs(frame$rate), state,
-                                 mean))
-      status.diffS <- array()
-      for (i in 1:nrep) {
-        s.state <- frame$status
-        s.frame <- data.frame(sample(s.state), frame$rate)
-        s.frame[, 1] <- as.factor(s.frame[, 1])
-        status.diffS[i] <- diff(tapply(abs(s.frame$frame.rate),
-                                       s.frame[,1], mean))
-      }
-
-      p.status.diff <- rank(c(status.diff, status.diffS[-nrep]))[1]/nrep
-      state.results<-data.frame(rate.difference=status.diff[match(names(p.status.diff),names(status.diff))],p.value=p.status.diff)
-      rownames(state.results)<-paste(names(p.status.diff),unique(state)[which(unique(state)!=names(p.status.diff))],sep="-")
-      res<-list(state.results)
-      names(res)<-c("state.results")
+      }else status.diffS[i, ] <- SD
     }
+    colnames(status.diffS) <- names(status.diff)
+
+    p.status.diff<-sapply(1:length(status.diff),function(i)
+      rank(c(status.diff[i],status.diffS[-nrep, i]))[1]/nrep)
+    names(p.status.diff) <- names(status.diff)
+
+    if(any(colnames(status.diffS)%in%unique(state)))
+      pldata<-status.diffS[,which(colnames(status.diffS)%in%unique(state))] else
+      pldata<-status.diffS
+
+    res<-list(state.results=data.frame(rate.difference=status.diff[match(names(p.status.diff),names(status.diff))],p.status.diff),
+              plotData=pldata)
   }
 
   if(!is.null(cov)) {
-    res<-c(res,list(rates))
-    names(res)[length(res)]<-"rates"
+    if(!is.null(res$plotData)){
+      res<-c(res[which(names(res)!="plotData")],rates=list(rates),res[which(names(res)=="plotData")])
+    } else res<-c(res,rates=list(rates))
   }
+
+  class(res)<-c("RRphyloList","list")
+  attr(res,"hidden")<-"plotData"
+  attr(res,"Call")<-funcall
 
   return(res)
 }
+

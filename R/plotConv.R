@@ -3,19 +3,19 @@
 #'  \code{\link{search.conv}} results.
 #'@usage plotConv(SC,y,variable,RR=NULL,state=NULL,aceV=NULL)
 #'@param SC an object produced by \code{\link{search.conv}}.
-#'@param y the multivariate phenotype used to perform \code{search.conv}.
+#'@param y the multivariate phenotype used to perform \code{\link{search.conv}}.
 #'@param variable the index of result to plot. If convergence between clades is
 #'  inspected, this is the position within the \code{SC$'average distance from
 #'  group centroids'} vector of the clade pair to be plotted. In the case of
 #'  convergence between states, this is the number of the line of
 #'  \code{SC$state.res} where results for the state pair are returned.
 #'@param RR the object produced by \code{\link{RRphylo}} used to perform
-#'  \code{search.conv}. This is not indicated if convergence between states is
+#'  \code{\link{search.conv}}. This is not indicated if convergence between states is
 #'  tested.
-#'@param state the named vector of tip states used to perform \code{search.conv}.
+#'@param state the named vector of tip states used to perform \code{\link{search.conv}}.
 #'  This is not indicated if convergence between clades is tested.
 #'@param aceV phenotypic values at internal nodes to be provided if used to
-#'  perform \code{search.conv}.
+#'  perform \code{\link{search.conv}}.
 #'@return If convergence between clades was tested, \code{plotConv} returns a
 #'  list of four functions:
 #'@return \strong{\code{$plotHistTips}} shows the mean Euclidean distance
@@ -79,7 +79,7 @@
 #'@author Silvia Castiglione
 #'@export
 #'@seealso \href{../doc/search.conv.html}{\code{search.conv} vignette}
-#'@seealso \href{../doc/Plotting-tools.html}{\code{plotConv} vignette}
+#'@seealso \href{../doc/Plotting-tools.html#plotConv}{\code{plotConv} vignette}
 #'@references Castiglione, S., Serio, C., Tamagnini, D., Melchionna, M.,
 #'  Mondanaro, A., Di Febbraro, M., Profico, A., Piras, P.,Barattolo, F., &
 #'  Raia, P. (2019). A new, fast method to search for morphological convergence
@@ -96,32 +96,39 @@
 #'
 #' RRphylo(treefel,PCscoresfel,clus=cc)->RRfel
 #'
-#' search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="node9",clus=cc)->sc_clade
-#' plotConv(sc_clade,PCscoresfel,variable=2,RR=RRfel)->pc
+#' search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="node9",clus=cc)->sc.clade
+#' plotConv(sc.clade,PCscoresfel,variable=2,RR=RRfel)->pc.clade
 #'
-#' pc$plotHistTips(hist.args = list(col="gray80",yaxt="n",cex.axis=0.8,cex.main=1.5),
+#' pc.clade$plotHistTips(hist.args = list(col="gray80",yaxt="n",cex.axis=0.8,cex.main=1.5),
 #'                 line.args = list(lwd=3,lty=4,col="purple"))
-#' pc$plotHistAces(hist.args = list(col="gray80",cex.axis=0.8,cex.main=1.5),
+#' pc.clade$plotHistAces(hist.args = list(col="gray80",cex.axis=0.8,cex.main=1.5),
 #'                 line.args = list(lwd=3,lty=4,col="gold"))
-#' pc$plotPChull(chull.args = list(border=c("cyan","magenta"),lty=1),
+#' pc.clade$plotPChull(chull.args = list(border=c("cyan","magenta"),lty=1),
 #'               means.args = list(pch=c(23,22),cex=3,bg=c("cyan2","magenta2")),
 #'               ace.args=list(pch=9),legend.args = NULL)
-#' pc$plotTraitgram(colTree = "gray70",colNodes = c("cyan","magenta"))
+#' pc.clade$plotTraitgram(colTree = "gray70",colNodes = c("cyan","magenta"))
 #'
 #'
-#' search.conv(tree=treefel, y=PCscoresfel, state=statefel,declust=TRUE,clus=cc)->sc_state
-#' plotConv(sc_state,PCscoresfel,variable=1,state=statefel)->pc
-#' pc$plotPChull(chull.args = list(border=c("gray70","blue"),lty=1),
+#' search.conv(tree=treefel, y=PCscoresfel, state=statefel,declust=TRUE,clus=cc)->sc.state
+#' plotConv(sc.state,PCscoresfel,variable=1,state=statefel)->pc.state
+#' pc.state$plotPChull(chull.args = list(border=c("gray70","blue"),lty=1),
 #'               points.args = list(pch=c(23,22),bg="gray"),
 #'               legend.args = list(pch=c(23,22),x="top"))
 #'
-#' pc$plotPolar(polar.args = list(clockwise=TRUE,start=0,rad.col="black",grid.col="black"),
+#' pc.state$plotPolar(polar.args = list(clockwise=TRUE,start=0,rad.col="black",grid.col="black"),
 #'              polygon.args = list(line.col="green",poly.col=NA,lwd=2),
 #'              line.args = list(line.col="deeppink",lty=2,lwd=3))
 #'
 #'     }
 
 plotConv<-function(SC,y,variable,RR=NULL,state=NULL,aceV=NULL){
+
+  misspacks<-sapply(c("picante","scales","RColorBrewer","cluster","plotrix"),requireNamespace,quietly=TRUE)
+  if(any(!misspacks)){
+    stop("The following package/s are needed for this function to work, please install it/them:\n ",
+         paste(names(misspacks)[which(!misspacks)],collapse=", "),
+         call. = FALSE)
+  }
 
   variable->i
   if(!is.null(SC$`average distance from group centroids`)){

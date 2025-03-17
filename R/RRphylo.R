@@ -48,10 +48,13 @@
 #' @param verbose logical indicating whether a "RRlog.txt" printing progresses
 #'   should be stored into the working directory.
 #' @export
+#' @seealso \href{../doc/RRphylo.html}{\code{RRphylo} vignette}
+#' @seealso \code{\link{overfitRR}}; \href{../doc/overfit.html#overfitRR}{\code{overfitRR} vignette}
+#' @seealso \code{\link{plotRates}}; \href{../doc/Plotting-tools.html#plotRates}{\code{plotRates} vignette}
+#' @seealso \code{\link{plotRR}}; \href{../doc/Plotting-tools.html#plotRR}{\code{plotRR} vignette}
 #' @importFrom ape multi2di Ntip is.binary Nnode dist.nodes drop.tip subtrees
-#'   nodelabels
-#' @importFrom stats dist lm residuals weighted.mean
-#' @importFrom stats4 mle
+#'   nodelabels ladderize
+#' @importFrom stats dist lm residuals weighted.mean optim
 #' @importFrom phytools bind.tip
 #' @return \strong{tree} the tree used by \code{RRphylo}. The fully dichotomous
 #'   version of the tree argument. For trees with polytomies, the tree is
@@ -73,15 +76,15 @@
 #' @return \strong{multiple.rates} a \eqn{n * m} matrix, where n= number of
 #'   branches (i.e. n*2-1) and m = number of variables. For each branch, the
 #'   column entries represent the evolutionary rate.
-#' @return \strong{lambda} the regularization factor fitted within
-#'   \code{RRphylo} by the inner function \code{optL}. With multivariate data,
-#'   several \code{optL} runs are performed. Hence, the function provides a
-#'   single lambda for each individual variable.
+#' @return \strong{lambda} a list of mle-class objects for each element of
+#'   \code{y}. These are the results of \code{lambda} optimization within the
+#'   function.
 #' @return \strong{ace.values} if \code{aces} are specified, the function
 #'   returns a dataframe containing the corresponding node number on the
 #'   \code{RRphylo} tree  for each node , along with estimated values.
 #' @return \strong{x1.rate} if \code{x1} is specified, the function returns the
 #'   partial regression coefficient for \code{x1}.
+#' @return The output always has an attribute "Call" which returns an unevaluated call to the function.
 #' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro
 #'   Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
 #'   Carotenuto
@@ -116,14 +119,14 @@
 #' cc<- 2/parallel::detectCores()
 #'
 #' # Case 1. "RRphylo" without accounting for the effect of a covariate
-#' RRphylo(tree=treedino,y=massdino,clus=cc)->RRcova
+#' RRphylo(tree=treedino,y=massdino,clus=cc)->dinoRates
 #'
 #' # Case 2. "RRphylo" accounting for the effect of a covariate
 #' # "RRphylo" on the covariate in order to retrieve ancestral state values
-#' c(RRcova$aces,massdino)->cov.values
-#' c(rownames(RRcova$aces),names(massdino))->names(cov.values)
+#' c(dinoRates$aces,massdino)->cov.val
+#' c(rownames(dinoRates$aces),names(massdino))->names(cov.val)
 #'
-#' RRphylo(tree=treedino,y=massdino,cov=cov.values,clus=cc)->RR
+#' RRphylo(tree=treedino,y=massdino,cov=cov.val,clus=cc)->RRcova
 #'
 #' # Case 3. "RRphylo" specifying the ancestral states
 #' data("DataCetaceans")
@@ -132,7 +135,7 @@
 #' DataCetaceans$brainmasscet->brainmasscet
 #' DataCetaceans$aceMyst->aceMyst
 #'
-#' RRphylo(tree=treecet,y=masscet,aces=aceMyst,clus=cc)->RR
+#' RRphylo(tree=treecet,y=masscet,aces=aceMyst,clus=cc)->RRace
 #'
 #' # Case 4. Multiple "RRphylo"
 #' library(ape)
@@ -143,13 +146,13 @@
 #' RRmass.multi$aces[,1]->acemass.multi
 #' c(acemass.multi,masscet.multi)->x1.mass
 #'
-#' RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass,clus=cc)->RR
+#' RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass,clus=cc)->RRmulti
 #'
 #' # Case 5. Categorical and multiple "RRphylo" with 2 additional predictors
 #' library(phytools)
 #'
 #' set.seed(1458)
-#' rtree(50)->tree
+#' rtree(100)->tree
 #' fastBM(tree)->y
 #' jitter(y)*10->y1
 #' rep(1,length(y))->y2
@@ -161,12 +164,12 @@
 #' RRphylo(tree,y2,clus=cc)->RRcat ### this is the RRphylo on the categorical variable
 #' c(RRcat$aces[,1],y2)->x2
 #'
-#' cbind(c(jitter(mean(y1[tips(tree,83)])),1),
-#'       c(jitter(mean(y1[tips(tree,53)])),2))->acex
-#' c(jitter(mean(y[tips(tree,83)])),jitter(mean(y[tips(tree,53)])))->acesy
-#' names(acesy)<-rownames(acex)<-c(83,53)
+#' rbind(c(jitter(mean(y1[tips(tree,183)])),1),
+#'       c(jitter(mean(y1[tips(tree,153)])),2))->acex
+#' c(jitter(mean(y[tips(tree,183)])),jitter(mean(y[tips(tree,153)])))->acesy
+#' names(acesy)<-rownames(acex)<-c(183,153)
 #'
-#' RRphylo(tree,y,aces=acesy,x1=cbind(x1,x2),aces.x1 = acex,clus=cc)
+#' RRphylo(tree,y,aces=acesy,x1=cbind(x1,x2),aces.x1 = acex,clus=cc)->RRcat2
 #'
 #'     }
 
@@ -192,14 +195,17 @@ RRphylo<-function (tree, y,
     on.exit(sink())
   }
 
-  optL <- function(lambda) {
+  optL <- function(lambda,tr,y,L,Lprod,rootV) {
     y <- scale(y)
-    betas <- (solve(t(L) %*% L + lambda * diag(ncol(L))) %*%
+    betas <- (solve(Lprod + lambda * diag(ncol(L))) %*%
                 t(L)) %*% (as.matrix(y) - rootV)
-    # aceRR <- (L1 %*% betas[1:Nnode(t), ]) + rootV
+
+    # betas <- (solve(t(L) %*% L + lambda * diag(ncol(L))) %*%
+    #             t(L)) %*% (as.matrix(y) - rootV)
+    # aceRR <- (L1 %*% betas[1:Nnode(tr), ]) + rootV
     y.hat <- (L %*% betas) + rootV
     Rvar <- array()
-    for (i in 1:Ntip(t)) {
+    for (i in 1:Ntip(tr)) {
       ace.tip <- betas[match(names(which(L[i, ] != 0)),
                              rownames(betas)), ]
       mat = as.matrix(dist(ace.tip))
@@ -207,7 +213,7 @@ RRphylo<-function (tree, y,
     }
     abs(1 - (var(Rvar) + (mean(as.matrix(y))/mean(y.hat))))
   }
-  optLmultiple <- function(lambda){
+  optLmultiple <- function(lambda,tr,y,y1,L,L1,rootV){
     scale(c(rootV,y))->yx
     yx[1]->rv
     yx[-1]->y
@@ -227,31 +233,43 @@ RRphylo<-function (tree, y,
     betas <- (solve(t(L) %*% L + lambda * diag(ncol(L))) %*%
                 t(L)) %*% (as.matrix(yy))
     y.hat <- (L %*% betas)+rootV
-    aceRR <- ((L1 %*% betas[c(1:Nnode(t),(length(betas)+1-ncol(y1)):length(betas)), ]))+rootV
+    aceRR <- ((L1 %*% betas[c(1:Nnode(tr),(length(betas)+1-ncol(y1)):length(betas)), ]))+rootV
 
     abs(1-summary(lm(c(aceRR[1],y.hat)~c(rootV,y)))$coef[2])
   }
 
+  funcall<-match.call()
   if(!identical(tree$edge[tree$edge[,2]<=Ntip(tree),2],seq(1,Ntip(tree)))){
     tree$tip.label<-tree$tip.label[tree$edge[tree$edge[,2]<=Ntip(tree),2]]
     tree$edge[tree$edge[,2]<=Ntip(tree),2]<-seq(1,Ntip(tree))
   }
 
+  treedataMatch(tree, y)->tdm
+  if("tree"%in%names(tdm)){
+    tree<-tdm$tree
+    warning(paste(paste(tdm$removed.from.tree,collapse=", "),"removed from the tree"),immediate. = TRUE)
+  }
+  if("removed.from.y"%in%names(tdm)){
+    warning(paste(paste(tdm$removed.from.y,collapse=", "),"removed from data"),immediate. = TRUE)
+  }
+
   if (is.binary(tree))
-    t <- tree else t <- multi2di(tree, random = FALSE)
+    tr <- tree else tr <- multi2di(tree, random = FALSE)
 
-  toriginal<-t
-  # yoriginal <- y <- treedata(tree, y, sort = TRUE)[[2]]
-  yoriginal <- y <- treedataMatch(tree, y)[[1]]
+  # toriginal<-tr
+  # yoriginal <- yr <- treedataMatch(tree, y)[[1]]
 
-  Loriginal <-L<-makeL(t)
-  L1original <-L1<-makeL1(t)
+  yoriginal <- yr <- tdm$y
+  toriginal<-tr
+
+  Loriginal <-L<-makeL(tr)
+  L1original <-L1<-makeL1(tr)
 
   if(!is.null(x1)){ #### multiple Ridge Regression ####
     if(is.null(nrow(x1))) x1<-as.matrix(x1)
     if(is.null(colnames(x1))) paste("pred",seq(1,ncol(x1)),sep="")->colnames(x1)
-    x1[-match(t$tip.label,rownames(x1)),,drop=FALSE]->ace1
-    x1[match(t$tip.label,rownames(x1)),,drop=FALSE]->y1
+    x1[-match(tr$tip.label,rownames(x1)),,drop=FALSE]->ace1
+    x1[match(tr$tip.label,rownames(x1)),,drop=FALSE]->y1
     if(!is.null(aces.x1)){
       as.matrix(aces.x1)->aces.x1
       colnames(x1)->colnames(aces.x1)
@@ -259,236 +277,174 @@ RRphylo<-function (tree, y,
   }
 
   if (!is.null(aces)) { #### phenotypes at internal nodes ####
-    #L <- makeL(t)
     aceV <- aces <- as.matrix(aces)
     if (is.null(rownames(aceV)))
       stop("The matrix of aces needs to be named")
 
     if (!is.binary(tree)){
-      sapply(1:nrow(aceV),function(i) getMRCA(t, tips(tree, as.numeric(rownames(aceV)[i]))))->rownames(aceV)
-      if(!is.null(aces.x1)) sapply(1:nrow(aces.x1),function(i) getMRCA(t, tips(tree, as.numeric(rownames(aces.x1)[i]))))->rownames(aces.x1)
+      sapply(1:nrow(aceV),function(i) getMRCA(tr, tips(tree, as.numeric(rownames(aceV)[i]))))->rownames(aceV)
+      if(!is.null(aces.x1)) sapply(1:nrow(aces.x1),function(i) getMRCA(tr, tips(tree, as.numeric(rownames(aces.x1)[i]))))->rownames(aces.x1)
     }
 
-    t$edge.length[match(rownames(aceV),t$edge[,2])]->aces.bran
+    tr$edge.length[match(rownames(aceV),tr$edge[,2])]->aces.bran
     if(any(aces.bran==0)) stop(paste("Error at nodes ",paste(rownames(aceV)[which(aces.bran==0)],collapse = ", "),
                                      ": attempt to set ancestors at nodes with zero-length branches."))
 
-    P <- aceV
+    # P <- aceV
     N <- as.numeric(rownames(aceV))
-    tar.tips <- lapply(N, function(x) tips(t, x))
+    tar.tips <- lapply(N, function(x) tips(tr, x))
     names(tar.tips) <- N
-    treeN <- t
-    ynew <- y
 
-    if(!is.null(x1)){
-      if(is.vector(aces.x1)) t(as.matrix(aces.x1))->Px1 else t(aces.x1)->Px1
-      y1new <- y1
-      ace1new<-ace1
-    }
+    tr<-ftipTree(tr=tr,N=N,tar.tips=tar.tips,ftiplen=0)
 
-    ftiplen<-0
-
-    i = 1
-    while (i <= length(N)) {
-      nn <- getMRCA(treeN, tar.tips[[i]])
-      treeN$edge.length[which(treeN$edge[,2]==nn)]->edlen
-      if(edlen<=0.001) edlen/10->pp else 0.001->pp
-      treeN <- bind.tip(treeN, tip.label = paste("fnd",N[i], sep = ""),
-                        edge.length = ftiplen,
-                        where = nn,position = pp)
-      npos <- which(treeN$tip.label == paste("fnd", N[i], sep = ""))
-      if (npos == 1) ynew <- rbind(unname(P[i,,drop=FALSE]), ynew)
-      if (npos == nrow(ynew) + 1) ynew <- rbind(ynew, unname(P[i,,drop=FALSE])) else {
-        if (npos > 1 & npos < (nrow(ynew) + 1)) ynew <- rbind(ynew[1:(npos - 1), ,drop=FALSE],
-                                                              unname(P[i,,drop=FALSE]),
-                                                              ynew[npos:nrow(ynew),,drop=FALSE])
-      }
-
-      if(!is.null(x1)){
-        if (npos == 1) y1new <- rbind(unname(Px1[,i]), y1new)
-
-        if (npos == nrow(y1new) + 1)  y1new <- rbind(y1new, unname(Px1[,i])) else {
-          if (npos > 1 & npos < (nrow(y1new) + 1)) y1new <- rbind(y1new[1:(npos - 1), ,drop=FALSE],
-                                                                  unname(Px1[,i]),
-                                                                  y1new[npos:nrow(y1new),,drop=FALSE])
-        }
-      }
-
-      rownames(ynew)[npos] <- paste("fnd", N[i], sep = "")
-      if(is.null(x1)==FALSE) rownames(y1new)[npos] <- paste("fnd", N[i], sep = "")
-      i = i + 1
-    }
+    rownames(aceV)<-paste0("fnd",rownames(aceV)) ####
+    yr<-rbind(yr,aceV)
+    yr<-treedataMatch(tr,yr)[[1]]
 
     if(!is.null(x1)){
       sort(N)->Ns
-      Px1[,match(Ns,colnames(Px1)),drop=FALSE]->Px1
+      aces.x1[match(Ns,rownames(aces.x1)),,drop=FALSE]->Px1
 
       h=1
       while(h<=length(Ns)){
-        np<-which(treeN$tip.label ==
-                    paste("fnd",Ns[h], sep = ""))
-        (getMommy(treeN,np)[1]-(Ntip(treeN)))->npos
-        if(npos== Nnode(treeN)) rbind(ace1new,Px1[,h])->ace1new else
-          rbind(ace1new[1:(npos - 1), ,drop=FALSE], unname(Px1[,h]), ace1new[npos:nrow(ace1new),,drop=FALSE])->ace1new
-
+        np<-which(tr$tip.label==paste0("fnd",Ns[h]))
+        (getMommy(tr,np)[1]-(Ntip(tr)))->npos
+        if(npos== Nnode(tr)) rbind(ace1,unname(Px1[h,,drop=FALSE]))->ace1 else
+          rbind(ace1[1:(npos - 1), ,drop=FALSE],
+                unname(Px1[h,,drop=FALSE]),
+                ace1[npos:nrow(ace1),,drop=FALSE])->ace1
         h=h+1
       }
-      rownames(ace1new)<-seq((Ntip(treeN)+1),(Ntip(treeN)+Nnode(treeN)))
-      ace1<-ace1new
-      y1<-y1new
+      rownames(ace1)<-seq((Ntip(tr)+1),(Ntip(tr)+Nnode(tr)))
+
+      rownames(aces.x1)<-paste0("fnd",rownames(aces.x1)) ####
+      y1<-rbind(y1,aces.x1)
+      y1<-treedataMatch(tr,y1)[[1]]
     }
 
-    t <- treeN
-    y <- ynew
-
-    L<-makeL(t)
-    L1<-makeL1(t)
+    L<-makeL(tr)
+    L1<-makeL1(tr)
   }
 
-  internals<-unique(c(t$edge[,1],t$edge[, 2][which(t$edge[,2]>Ntip(t))]))
-  edged <- data.frame(t$edge, t$edge.length)
+  if(!is.null(x1)){
+    cbind(L,sweep(y1,2,ace1[1,]))->LX
+    apply(ace1,2,mean)->mean.ace1
+    cbind(L1,sweep(ace1,2,mean.ace1))->LX1
+    Lprod<-t(LX)%*%LX
+  }else Lprod<-t(L)%*%L
+
+  internals<-unique(c(tr$edge[,1],tr$edge[, 2][which(tr$edge[,2]>Ntip(tr))]))
+  edged <- data.frame(tr$edge, tr$edge.length)
 
   if(verbose) cat(paste("Initial settings DONE\n"))
 
-  # if(ncol(y)==1) clus<-0
-  if(round((detectCores() * clus), 0)==0) cl<-makeCluster(1, setup_strategy = "sequential") else
-    cl <- makeCluster(round((detectCores() * clus), 0), setup_strategy = "sequential")
-  registerDoParallel(cl)
+  core.chunk<-expression({
+    if(verbose) sink("RRlog.txt", append=TRUE)
+    if(verbose) cat(paste("Variable",i,"- optimization started\n"))
+    # rootV <- rv[i]
+    # y <- yr[, i]
+    if(!is.null(x1)){ #### multiple Ridge Regression ####
+      # h <- mle(optLmultiple,start = list(lambda = 1), method = "L-BFGS-B",
+      #          upper = 10, lower = 0.001)
+      h <- optim(par = list(lambda = 1),tr=tr,y=yr[, i],y1=y1,L=L,L1=L1,rootV=rv[i],
+                 fn=optLmultiple, method = "L-BFGS-B",upper = 10, lower = 0.001)
+      if(verbose) cat(paste("Variable",i,"- optimization DONE\n"))
+
+      h$par->lambda
+      RRest<-RRcore(lambda,yr[,i],rv[i],LX,LX1,Lprod,tr,y1=y1)
+
+    }else{
+      # h <- mle(optL, start = list(lambda = 1), method = "L-BFGS-B",
+      #          upper = 10, lower = 0.001)
+      h <- optim(par = list(lambda = 1),tr=tr,y=yr[,i],L=L,Lprod=Lprod,rootV=rv[i],
+                 fn=optL, method = "L-BFGS-B",upper = 10, lower = 0.001)
+      if(verbose) cat("Variable",i,"- optimization DONE\n")
+
+      lambda <- h$par
+      RRest<-RRcore(lambda,yr[,i],rv[i],L,L1,Lprod,tr)
+    }
+    if(verbose) cat(paste("Variable",i,"- rates and aces estimation DONE\n"))
+    c(RRest,list(h))
+  })
+  cldef<-({
+    'cl <- makeCluster(round((detectCores() * clus), 0), setup_strategy = "sequential")
+     clusterExport(cl, "RRcore",envir=environment(RRphylo))
+     clusterEvalQ(cl, {library(ape)})
+    '
+  })
 
   {## No missing data
     out.pp<-NULL ### Needed for results
 
-    if (is.null(rootV)) { #### rootV ####
-      if (!is.binary(tree)) u <- data.frame(yoriginal, (1/diag(vcv(tree))^2)) else
-        u <- data.frame(yoriginal,(1/diag(vcv(toriginal))^2))
-      u <- u[order(u[, ncol(u)], decreasing = TRUE),]
-      u1 <- u[1:(nrow(u) * 0.1), ,drop=FALSE]
-      rootV <- apply(u1[, 1:(ncol(u1)-1),drop=FALSE],2,function(x)
-        weighted.mean(x,u1[, dim(u1)[2]]))
-    }else  if (inherits(rootV,"data.frame")) as.matrix(rootV)->rootV
+    if(is.null(rootV)) { #### rootV ####
+      rv <-rootVfun(tree=tree,toriginal = toriginal,yoriginal)
+    }else  ifelse(inherits(rootV,"data.frame"),as.matrix(rootV)->rv,rootV->rv)
 
-    y.real <- y
-    rv.real <- rootV
-    res <- foreach(i = 1:ncol(y.real), .packages = c("stats4", "ape")) %dopar% {
-      if(verbose) sink("RRlog.txt", append=TRUE)
-      if(verbose) cat(paste("Variable",i,"- optimization started\n"))
-      # for(i in 1:k){
-      rootV <- rv.real[i]
-      y <- y.real[, i]
-      if(!is.null(x1)){ #### multiple Ridge Regression ####
-        h <- mle(optLmultiple, start = list(lambda = 1), method = "L-BFGS-B",
-                 upper = 10, lower = 0.001)
-        if(verbose) cat(paste("Variable",i,"- optimization DONE\n"))
-
-        h@coef->lambda
-        cbind(L,sweep(y1,2,ace1[1,]))->LX
-        apply(ace1,2,mean)->mean.ace1
-        cbind(L1,sweep(ace1,2,mean.ace1))->LX1
-
-        betas <- (solve(t(LX) %*% LX + lambda * diag(ncol(LX))) %*%
-                    t(LX)) %*% (as.matrix(y)-rootV)
-
-        aceRR <- ((LX1 %*% betas[c(1:Nnode(t),(length(betas)+1-ncol(y1)):length(betas)), ]))+rootV
-        y.hat <- (LX %*% betas)+rootV
-        betas[(length(betas)+1-ncol(y1)):length(betas),]->x1.rate
-        betas[1:(length(betas)-ncol(y1)),,drop=FALSE]->betas
-        colnames(betas)<-NULL
-        if(verbose) cat("Variable",i,"- rates and aces estimation DONE\n")
-
-        list(aceRR, betas, y.hat, lambda,x1.rate)
-
-      }else{
-        h <- mle(optL, start = list(lambda = 1), method = "L-BFGS-B",
-                 upper = 10, lower = 0.001)
-        if(verbose) cat("Variable",i,"- optimization DONE\n")
-
-        lambda <- h@coef
-        betas <- (solve(t(L) %*% L + lambda * diag(ncol(L))) %*%
-                    t(L)) %*% (as.matrix(y) - rootV)
-        aceRR <- (L1 %*% betas[1:Nnode(t), ]) + rootV
-        y.hat <- (L %*% betas) + rootV
-        if(verbose) cat(paste("Variable",i,"- rates and aces estimation DONE\n"))
-        list(aceRR, betas, y.hat, lambda)
-      }
-    }
-    y <- y.real
+    i=NULL
+    res=NULL
+    if(ncol(yr)>1&round((detectCores() * clus), 0)>1)
+      eval(parse(text=paste0(cldef,'\nres<-parLapply(cl=cl,1:ncol(yr),function(i)',
+                             core.chunk,")\n stopCluster(cl)"))) else
+        eval(parse(text=paste0('res<-lapply(1:ncol(yr),function(i)',core.chunk,")")))
   }
-  stopCluster(cl)
 
   aceRR <- do.call(cbind, lapply(res, "[[", 1))
   betas <- do.call(cbind, lapply(res, "[[", 2))
   y.hat <- do.call(cbind, lapply(res, "[[", 3))
-  lambda <- sapply(res, "[[", 4)
+  opts <- lapply(res, "[[", length(res[[1]]))
   if(!is.null(x1)){
-    x1.rate <- sapply(res,"[[",5)
-    if(!is.null(nrow(x1.rate))) colnames(x1.rate)<-colnames(y) else names(x1.rate)<-colnames(y)
+    x1.rate <- do.call(cbind,lapply(res,"[[",4))
+    colnames(x1.rate)<-colnames(y)
   }
 
   rownames(betas) <- colnames(L)
-  rownames(y.hat) <- rownames(y)
+  rownames(y.hat) <- rownames(yr)
   rownames(aceRR) <- colnames(L1)
-  colnames(betas) <- colnames(y.hat) <- colnames(aceRR) <- colnames(y)
+  colnames(betas) <- colnames(y.hat) <- colnames(aceRR) <- colnames(yr)
 
   if (!is.null(aces)) {
     tip.rem <- paste("fnd", N, sep = "")
-    mapply(a=tip.rem,b=tar.tips,function(a,b) getMRCA(t, c(a, b)))->nod.rem
-    t <- drop.tip(t, tip.rem)
+    # mapply(a=tip.rem,b=tar.tips,function(a,b) getMRCA(tr, c(a, b)))->nod.rem
+    sapply(tar.tips,function(b) getMRCA(tr,b))->nod.rem
+    tr <- drop.tip(tr, tip.rem)
 
     if(!is.null(out.pp)){
       out.pp[-match(c(nod.rem, tip.rem), rownames(out.pp)),,drop=FALSE]->out.pp
-      rownames(out.pp)[1:Nnode(t)]<-seq((Ntip(t)+1),(Ntip(t)+Nnode(t)),1)
+      rownames(out.pp)[1:Nnode(tr)]<-seq((Ntip(tr)+1),(Ntip(tr)+Nnode(tr)),1)
     }
 
     aceRR <- aceRR[-match(nod.rem, rownames(aceRR)),,drop=FALSE]
     betas <- betas[-match(c(nod.rem, tip.rem),rownames(betas)),,drop=FALSE]
     y.hat <- y.hat[-match(tip.rem, rownames(y.hat)),,drop=FALSE]
 
-    rownames(betas)[1:Nnode(t)] <- rownames(aceRR) <- seq((Ntip(t) +
-                                                             1), (Ntip(t) + Nnode(t)), 1)
+    rownames(betas)[1:Nnode(tr)] <- rownames(aceRR) <- seq((Ntip(tr) +
+                                                              1), (Ntip(tr) + Nnode(tr)), 1)
 
-    ace.est <- aceRR[match(rownames(aceV), rownames(aceRR)),]
+    ace.est <- aceRR[match(gsub("fnd","",rownames(aceV)), rownames(aceRR)),]
     #if (nrow(aceV) < 2)
     ace.estimates <- data.frame(real.node = rownames(aces),
-                                RRnode = rownames(aceV), ace.estimate =unname(ace.est))
+                                RRnode = gsub("fnd","",rownames(aceV)), ace.estimate =unname(ace.est))
     # else ace.estimates <- data.frame(real.node = rownames(aces),
     #                                  RRnode = rownames(aceV), ace.estimate = unname(ace.est))
 
   }
   betasREAL <- betas
 
-  if (!is.null(cov)){
-    cov[match(rownames(betas),names(cov))]->cov
-    #### Covariate multi ####
-    if (length(which(apply(betas, 1, sum) == 0)) > 0) {
-      zeroes <- which(apply(betas, 1, sum) == 0)
-      R <- log(abs(betas))
-      R <- R[-zeroes, ]
-      Y <- abs(cov)
-      Y <- Y[-zeroes]
-      res <- residuals(lm(R ~ Y))
-      factOut <- which(apply(betas, 1, sum) != 0)
-      betas[factOut, ] <- res
-      betas[zeroes, ] <- 0
-    } else { #### Covariate uni ####
-      R <- log(abs(betas))
-      Y <- abs(cov)
-      res <- residuals(lm(R ~ Y))
-      betas <- as.matrix(res)
-    }
-  }
+  if (!is.null(cov)) covRates(cov=cov,betas=betas)->betas
 
-  if(ncol(y)>1) rates <- as.matrix(apply(betas, 1, function(x) sqrt(sum(x^2)))) else rates<-betas
+  if(ncol(yr)>1) rates <- as.matrix(apply(betas, 1, function(x) sqrt(sum(x^2)))) else rates<-betas
 
 
-  res <- list(t, Loriginal, L1original, rates, aceRR, y.hat, betas,
-              lambda)
-  names(res) <- c("tree", "tip.path", "node.path", "rates",
+  res.tot <- list(tr, Loriginal, L1original, rates, aceRR, y.hat, betas,
+              opts)
+  names(res.tot) <- c("tree", "tip.path", "node.path", "rates",
                   "aces", "predicted.phenotype", "multiple.rates",
                   "lambda")
 
-  if(!is.null(aces)) res <- c(res, ace.values=list(ace.estimates))
-  if(!is.null(x1)) res <- c(res, x1.rate=list(x1.rate))
-  if(!is.null(out.pp)) res <- c(res, phylopars.res=list(as.matrix(out.pp)))
+  if(!is.null(aces)) res.tot <- c(res.tot, ace.values=list(ace.estimates))
+  if(!is.null(x1)) res.tot <- c(res.tot, x1.rate=list(x1.rate))
+  if(!is.null(out.pp)) res.tot <- c(res.tot, phylopars.res=list(as.matrix(out.pp)))
+  attr(res.tot,"Call")<-funcall
 
-  return(res)
+  return(res.tot)
 }

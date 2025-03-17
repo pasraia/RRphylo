@@ -1,10 +1,96 @@
+ftipTree<-function(tr,N,tar.tips,ftiplen){
+  i = 1
+  while (i <= length(N)) {
+    nn <- getMRCA(tr, tar.tips[[i]])
+    tr$edge.length[which(tr$edge[,2]==nn)]->edlen
+    # if(edlen<=0.001) edlen/10->pp else 0.001->pp
+    pp<-1e-8
+    tr <- bind.tip(tr, tip.label = paste0("fnd",N[i]),
+                   edge.length = ftiplen,
+                   where = nn,position = pp)
+    i = i + 1
+  }
+  return(tr)
+}
+
+rootVfun<-function(tree,toriginal,yoriginal){
+  if (!is.binary(tree)) u <- data.frame(yoriginal, (1/diag(vcv(tree))^2)) else
+    u <- data.frame(yoriginal,(1/diag(vcv(toriginal))^2))
+  u <- u[order(u[, ncol(u)], decreasing = TRUE),]
+  u1 <- u[1:(nrow(u) * 0.1), ,drop=FALSE]
+  rv <- apply(u1[, 1:(ncol(u1)-1),drop=FALSE],2,function(x)
+    weighted.mean(x,u1[, dim(u1)[2]]))
+  return(rv)
+}
+
+RRcore<-function(lambda,y,rootV,L,L1,Lprod,tr,y1=NULL){
+  if(!is.null(y1)){
+    LX<-L
+    LX1<-L1
+    betas <- (solve(Lprod + lambda * diag(ncol(LX))) %*%
+                t(LX)) %*% (as.matrix(y)-rootV)
+
+    aceRR <- ((LX1 %*% betas[c(1:Nnode(tr),(length(betas)+1-ncol(y1)):length(betas)), ]))+rootV
+    y.hat <- (LX %*% betas)+rootV
+    betas[(length(betas)+1-ncol(y1)):length(betas),,drop=FALSE]->x1.rate
+    betas[1:(length(betas)-ncol(y1)),,drop=FALSE]->betas
+    colnames(betas)<-NULL
+    list(aceRR,betas,y.hat,x1.rate)
+  }else{
+    betas <- (solve(Lprod + lambda * diag(ncol(L))) %*%
+                t(L)) %*% (as.matrix(y) - rootV)
+    aceRR <- (L1 %*% betas[1:Nnode(tr), ]) + rootV
+    y.hat <- (L %*% betas) + rootV
+    list(aceRR,betas,y.hat)
+  }
+}
+
+covRates<-function(cov,betas){
+  cov[match(rownames(betas),names(cov))]->cov
+  Y <- abs(cov)
+  R <- log(abs(betas))
+  #### Covariate multi ####
+  if (length(which(apply(betas, 1, sum) == 0)) > 0) {
+    zeroes <- which(apply(betas, 1, sum) == 0)
+    R <- R[-zeroes, ]
+    Y <- Y[-zeroes]
+    res <- residuals(lm(R ~ Y))
+    factOut <- which(apply(betas, 1, sum) != 0)
+    betas[factOut, ] <- res
+    betas[zeroes, ] <- 0
+  } else { #### Covariate uni ####
+    res <- residuals(lm(R ~ Y))
+    betas <- as.matrix(res)
+  }
+  return(betas)
+}
+
+phylo.run.test<-function(tree,state,st,nsim=100){
+  cophenetic.phylo(tree)->cop
+  cop[which(state==st),which(state==st)]->subcop
+  mean(subcop[upper.tri(subcop)])->mds
+  nrow(subcop)->sl
+  r.mds<-replicate(nsim,{
+    sample(tree$tip.label,sl)->test.tip
+    cop[test.tip,test.tip]->r.cop
+    mean(r.cop[upper.tri(r.cop)])
+  })
+  return(list(p=length(which(r.mds<mds))/nsim))
+}
+
 range01 <- function(x, ...){(x - min(x, ...)) / (max(x, ...) - min(x, ...))}
 
-unitV <- function(x) sum(x^2)^0.5
+unitV <- function(x,na.rm=FALSE) sum(x^2,na.rm=na.rm)^0.5
 
 deg2rad <- function(deg) (deg * pi)/(180)
 
 rad2deg <- function(rad)  (rad * 180)/(pi)
+
+angle.vecs<-function(vec1,vec2){
+  ((vec1%*%vec2)/(unitV(vec1) *unitV(vec2)))->ppA
+  if((ppA-1)>0) ppA<-1 else if((1+ppA)<0) ppA<-(-1)
+  rad2deg(acos(ppA))
+}
 
 traitgram <- function(x, phy,
                       xaxt='s',
@@ -157,7 +243,7 @@ localmeshdiff <- function(mesh1, mesh2, ploton, paltot = rainbow(200),
     area_shape1<-adiff$ash1
     area_shape2<-adiff$ash2
     diff_areas<-adiff$dareas
-    } else diff_areas<-vec
+  } else diff_areas<-vec
 
   cat("the range of diff_areas is ", range(diff_areas),
       sep = "\n")
@@ -221,3 +307,4 @@ localmeshdiff <- function(mesh1, mesh2, ploton, paltot = rainbow(200),
     return(list(ash1 = area_shape1, ash2 = area_shape2,
                 dareas = diff_areas, mesh = mesh))
 }
+

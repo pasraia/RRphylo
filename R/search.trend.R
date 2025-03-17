@@ -2,14 +2,14 @@
 #'@description This function searches for evolutionary trends in the phenotypic
 #'  mean and the evolutionary rates for the entire tree and individual clades.
 #'@usage search.trend(RR,y,x1=NULL,x1.residuals = FALSE,
-#'  node=NULL,cov=NULL,nsim=100,clus=0.5,ConfInt=NULL,filename=NULL)
+#'  node=NULL,cov=NULL,nsim=100,clus=0.5)
 #'@param RR an object produced by \code{\link{RRphylo}}.
 #'@param y the named vector (or matrix if multivariate) of phenotypes.
 #'@param x1 the additional predictor to be specified if the RR object has been
 #'  created using an additional predictor (i.e. multiple version of
-#'  \code{RRphylo}). \code{'x1'} vector must be as long as the number of nodes
+#'  \code{\link{RRphylo}}). \code{'x1'} vector must be as long as the number of nodes
 #'  plus the number of tips of the tree, which can be obtained by running
-#'  \code{RRphylo} on the predictor as well, and taking the vector of ancestral
+#'  \code{\link{RRphylo}} on the predictor as well, and taking the vector of ancestral
 #'  states and tip values to form the \code{x1}. Note: only one predictor at
 #'  once can be specified.
 #'@param x1.residuals logical specifying whether the residuals of regression
@@ -18,31 +18,28 @@
 #'@param node the node number of individual clades to be specifically tested and
 #'  contrasted to each other. It is \code{NULL} by default. Notice the node
 #'  number must refer to the dichotomic version of the original tree, as
-#'  produced by \code{RRphylo}.
+#'  produced by \code{\link{RRphylo}}.
 #'@param cov the covariate values to be specified if the RR object has been
-#'  created using a  covariate for rates calculation.  As for \code{RRphylo},
+#'  created using a  covariate for rates calculation.  As for \code{\link{RRphylo}},
 #'  \code{'cov'} must be as long as the number of nodes plus the number of tips
-#'  of the tree, which can be obtained by running \code{RRphylo} on the
+#'  of the tree, which can be obtained by running \code{\link{RRphylo}} on the
 #'  covariate as well, and taking the vector of ancestral states and tip values
 #'  to form the covariate (see the example below).
 #'@param nsim number of simulations to be performed. It is set at 100 by
 #'  default.
 #'@param clus the proportion of clusters to be used in parallel computing. To
 #'  run the single-threaded version of \code{search.trend} set \code{clus} = 0.
-#'@param ConfInt is deprecated.
-#'@param filename is deprecated. \code{search.trend} does not return plots
-#'  anymore, check the function \code{\link{plotTrend}} instead.
 #'@return The function returns a list object containing:
 #'@return \strong{$trends.data} a 'RRphyloList' object including:
 #'  \enumerate{\item{\code{$phenotypeVStime}}: a data frame of phenotypic values
 #'  (or \code{y} versus \code{x1} regression residuals if
 #'  \code{x1.residuals=TRUE}) and their distance from the tree root for each
 #'  node (i.e. ancestral states) and tip of the tree.
-#'  \item{\code{$absrateVStime}}: a data frame of \code{RRphylo} rates and the
+#'  \item{\code{$absrateVStime}}: a data frame of \code{\link{RRphylo}} rates and the
 #'  distance from the tree root (age). If y is multivariate, it also includes
 #'  the multiple rates for each y vector. If \code{node} is specified, each
 #'  branch is classified as belonging to an indicated clade.
-#'  \item{\code{$rescaledrateVStime}}: a data frame of rescaled \code{RRphylo}
+#'  \item{\code{$rescaledrateVStime}}: a data frame of rescaled \code{\link{RRphylo}}
 #'  rates and the distance from the tree root (age). If y is multivariate, it
 #'  also includes the multiple rates for each y vector. If \code{node} is
 #'  specified, each branch is classified as belonging to an indicated clade. NAs
@@ -88,6 +85,7 @@
 #'  \strong{$group.comparison} reports the same results as
 #'  $node.phenotypic.regression and $node.rate.regression obtained by comparing
 #'  individual clades to each other.
+#'@return The output always has an attribute "Call" which returns an unevaluated call to the function.
 #'@author Silvia Castiglione, Carmela Serio, Pasquale Raia, Alessandro
 #'  Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
 #'  Carotenuto
@@ -109,7 +107,7 @@
 #'  The \href{../doc/RRphylo.html#predictor}{multiple regression version of
 #'  RRphylo} allows to incorporate the effect of an additional predictor in the
 #'  computation of evolutionary rates without altering the ancestral character
-#'  estimation. Thus, when a multiple \code{RRphylo} output is fed to
+#'  estimation. Thus, when a multiple \code{\link{RRphylo}} output is fed to
 #'  \code{search.trend}, the predictor effect is accounted for on the absolute
 #'  evolutionary rates, but not on the phenotype. However, in some situations
 #'  the user might want to factor out the predictor effect on phenotypes as
@@ -118,15 +116,15 @@
 #'  regression are used as to represent the phenotype.
 #'@importFrom stats as.formula coef resid density predict cor
 #'@importFrom phytools nodeHeights
-#'@importFrom parallel makeCluster detectCores stopCluster
+#'@importFrom parallel makeCluster detectCores stopCluster clusterEvalQ clusterExport parLapply
 #'@importFrom doParallel registerDoParallel
 #'@importFrom foreach foreach %dopar%
 #'@importFrom utils combn
 #'@importFrom emmeans emmeans emtrends
 #'@export
 #'@seealso \href{../doc/search.trend.html}{\code{search.trend} vignette}
-#'@seealso \href{../doc/Plotting-tools.html}{\code{plotTrend} vignette}
-#'@seealso \code{\link{plotTrend}}
+#'@seealso \code{\link{overfitST}}; \href{../doc/overfit.html#overfitST}{\code{overfitST} vignette}
+#'@seealso \code{\link{plotTrend}}; \href{../doc/Plotting-tools.html#plotTrend}{\code{plotTrend} vignette}
 #'@references Castiglione, S., Serio, C., Mondanaro, A., Di Febbraro, M.,
 #'  Profico, A., Girardi, G., & Raia, P. (2019) Simultaneous detection of
 #'  macroevolutionary patterns in phenotypic means and rate of change with and
@@ -149,24 +147,23 @@
 #' RRphylo(tree=treeptero,y=log(massptero),clus=cc)->RRptero
 #'
 #' # Case 1.1. "search.trend" whitout indicating nodes to be tested for trends
-#' search.trend(RR=RRptero, y=log(massptero), nsim=100, clus=cc,cov=NULL,node=NULL)
+#' search.trend(RR=RRptero, y=log(massptero), nsim=100, clus=cc,cov=NULL,node=NULL)->st1
 #'
 #' # Case 1.2. "search.trend" indicating nodes to be specifically tested for trends
-#' search.trend(RR=RRptero, y=log(massptero), nsim=100, node=143, clus=cc,cov=NULL)
+#' search.trend(RR=RRptero, y=log(massptero), nsim=100, node=143, clus=cc,cov=NULL)->st2
 #'
 #'
 #' # Case 2. "RRphylo" accounting for the effect of a covariate
 #' # "RRphylo" on the covariate in order to retrieve ancestral state values
-#' RRphylo(tree=treeptero,y=log(massptero),clus=cc)->RRptero
 #' c(RRptero$aces,log(massptero))->cov.values
 #' names(cov.values)<-c(rownames(RRptero$aces),names(massptero))
 #' RRphylo(tree=treeptero,y=log(massptero),cov=cov.values,clus=cc)->RRpteroCov
 #'
 #' # Case 2.1. "search.trend" whitout indicating nodes to be tested for trends
-#' search.trend(RR=RRpteroCov, y=log(massptero), nsim=100, clus=cc,cov=cov.values)
+#' search.trend(RR=RRpteroCov, y=log(massptero), nsim=100, clus=cc,cov=cov.values)->st3
 #'
 #' # Case 2.2. "search.trend" indicating nodes to be specifically tested for trends
-#' search.trend(RR=RRpteroCov, y=log(massptero), nsim=100, node=143, clus=cc,cov=cov.values)
+#' search.trend(RR=RRpteroCov, y=log(massptero), nsim=100, node=143, clus=cc,cov=cov.values)->st4
 #'
 #'
 #' # Case 3. "search.trend" on multiple "RRphylo"
@@ -186,19 +183,18 @@
 #' RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass,clus=cc)->RRmulti
 #'
 #' # incorporating the effect of body size at inspecting trends in absolute evolutionary rates
-#' search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,clus=cc)
+#' search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,clus=cc)->STcet
 #'
 #' # incorporating the effect of body size at inspecting trends in both absolute evolutionary
 #' # rates and phenotypic values (by using brain versus body mass regression residuals)
-#' search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,x1.residuals=TRUE,clus=cc)
+#' search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,x1.residuals=TRUE,clus=cc)->st5
 #'    }
 
 
 search.trend<-function (RR,y,
                         x1=NULL,x1.residuals=FALSE,
                         node = NULL, cov = NULL,
-                        nsim = 100, clus = 0.5, ConfInt = NULL,
-                        filename=NULL)
+                        nsim = 100, clus = 0.5)
 {
   # require(ape)
   # require(phytools)
@@ -207,27 +203,17 @@ search.trend<-function (RR,y,
   # require(doParallel)
   # require(parallel)
   # require(nlme)
-  # require(RColorBrewer)
   # require(emmeans)
-  # require(outliers)
   # require(car)
 
-  if (!requireNamespace("RColorBrewer", quietly = TRUE)) {
-    stop("Package \"RColorBrewer\" needed for this function to work. Please install it.",
+  misspacks<-sapply(c("car","nlme"),requireNamespace,quietly=TRUE)
+  if(any(!misspacks)){
+    stop("The following package/s are needed for this function to work, please install it/them:\n ",
+         paste(names(misspacks)[which(!misspacks)],collapse=", "),
          call. = FALSE)
   }
 
-  if (!requireNamespace("car", quietly = TRUE)) {
-    stop("Package \"car\" needed for this function to work. Please install it.",
-         call. = FALSE)
-  }
-
-  if(!missing(filename))
-    warning("The argument filename is deprecated. Check the function plotTrend to plot results",immediate. = TRUE)
-
-  if(!missing(ConfInt))
-    warning("The argument ConfInt is deprecated.",immediate. = TRUE)
-
+  funcall <- match.call()
 
   range01 <- function(x, ...){(x - min(x, ...)) / (max(x, ...) - min(x, ...))}
 
@@ -597,18 +583,8 @@ search.trend<-function (RR,y,
       rownames(ace1T)<-rownames(aceRR)
     }
   }
-
-  ii=NULL
-  res <- list()
-  if(round((detectCores() * clus), 0)==0) cl<-makeCluster(1, setup_strategy = "sequential") else
-    cl <- makeCluster(round((detectCores() * clus), 0), setup_strategy = "sequential")
-  registerDoParallel(cl)
-  res <- foreach(ii = 1:nsim, .packages = c("car","nlme", "ape",
-                                            "phytools", "doParallel"
-  )) %dopar% {
-    # for(ii in 1:nsim){
-    gc()
-    #for(ii in 1:nsim){
+  #### End of Random ####
+  core.chunk<-  expression({
     {
       yD <- lapply(yyD, function(x) x[,ii])
       yD <- do.call(cbind, yD)
@@ -630,8 +606,8 @@ search.trend<-function (RR,y,
       aceRRD<- matrix(ncol=ncol(yD), nrow=Nnode(t))
       for (s in 1:ncol(yT)){
         rootV<-a[s]
-        lambda <- RR$lambda[s]
-
+        # lambda <- RR$lambda[[s]]@coef
+        lambda <- RR$lambda[[s]]$par
         if(!is.null(x1)){
 
           m.betasT <- (solve(t(LX) %*% LX + lambda * diag(ncol(LX))) %*%
@@ -834,16 +810,29 @@ search.trend<-function (RR,y,
       }else{
         phen.NvsN.ran<-NULL
       }
-      res[[ii]] <- list(phen.coef, rate.coef,
-                        phen.data, rate.data,yT,yD,ee,scalrat.data,
-                        phen.reg.sel,phen.NvsN.ran)
+      list(phen.coef, rate.coef,
+           phen.data, rate.data,yT,yD,ee,scalrat.data,
+           phen.reg.sel,phen.NvsN.ran)
     }else {
-      res[[ii]] <- list(phen.coef, rate.coef,
-                        phen.data, rate.data,yT,yD,ee,scalrat.data)
+      list(phen.coef, rate.coef,
+           phen.data, rate.data,yT,yD,ee,scalrat.data)
     }
-  }
-  stopCluster(cl)
-  #### End of Random ####
+  })
+
+  cldef<-({
+    'cl <- makeCluster(round((detectCores() * clus), 0), setup_strategy = "sequential")
+     clusterEvalQ(cl, {library(ape)\nlibrary(phytools)\nlibrary(nlme)\nlibrary(car)})
+     clusterExport(cl=cl,varlist = list("cov"),envir = environment())
+    '
+  })
+
+
+  ii=NULL
+  res=NULL
+  if(round((detectCores() * clus), 0)>1)
+    eval(parse(text=paste0(cldef,'\nres<-parLapply(cl=cl,1:nsim,function(ii)',
+                           core.chunk,")\n stopCluster(cl)"))) else
+                             eval(parse(text=paste0('res<-lapply(1:nsim,function(ii)',core.chunk,")")))
 
   {#### p Rate Trend Multi####
     p.rate<-spread<-array()
@@ -974,7 +963,7 @@ search.trend<-function (RR,y,
   class(CInts)<-"RRphyloList"
 
   list(phen.dataRES,rate.dataRES,scalrat.data)->tabs
-  names(tabs) <- c("phenotypeVStime", "absrateVStime","rescaledrateVStime")
+  names(tabs) <- c("phenotypeVStime", "rateVStime","rescaledrateVStime")
   class(tabs)<-"RRphyloList"
 
   if (!is.null(node)) {
@@ -1061,5 +1050,7 @@ search.trend<-function (RR,y,
 
   if(length(which(sapply(res,function(x) is.null(x))))>0)
     res<-res[-which(sapply(res,function(x) is.null(x)))]
+
+  attr(res,"Call")<-funcall
   return(res)
 }

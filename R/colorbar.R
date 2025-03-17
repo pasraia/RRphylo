@@ -1,5 +1,9 @@
 #' @title Draw colorbar on a plot
-#' @description The function adds a color bar to  plot.
+#' @description The function adds a color bar to the current plot.
+#' @usage colorbar(colors,x,y=NULL,direction="vertical",
+#'   height=1,width=1,border="black",lwd=2,lty=1,
+#'   labs=NULL,labs.pos=NULL,title=NULL,title.pos=NULL,
+#'   ticks=TRUE,tck.pos=NULL,tck.length=1,xpd=FALSE,...)
 #' @param colors vector of colors.
 #' @param x,y the x and y coordinates where the bottom left corner of the bar is
 #'   positioned. Keywords as in \code{\link[graphics]{legend}} are allowed.
@@ -28,8 +32,8 @@
 #' @param xpd a value of the \code{\link[graphics]{par}} \code{xpd}.
 #' @param ... further arguments passed to the functions \code{text} (for labels
 #'   and title) and \code{segments}. All these arguments must be hooked to the
-#'   element they refer to by indicating: \code{labs.*} for labels,
-#'   \code{title.\*} for title, and \code{tck.\*} for ticks. See example for
+#'   element they refer to by indicating: \code{labs.}\* for labels,
+#'   \code{title.}\* for title, and \code{tck.}\* for ticks. See example for
 #'   further details.
 #' @export
 #' @author Silvia Castiglione
@@ -47,8 +51,6 @@
 #'          labs=labs,labs.pos="left",labs.cex=1.3,labs.adj=1,
 #'          title="Colorbar!",title.cex=1.4,title.font=2,title.adj=c(0,0),
 #'          tck.pos="out",tck.lwd=2,xpd=TRUE)
-
-
 
 colorbar<-function(colors,x,y=NULL,direction="vertical",
                    height=1,width=1,border="black",lwd=2,lty=1,
@@ -79,8 +81,9 @@ colorbar<-function(colors,x,y=NULL,direction="vertical",
   (lims[4]-lims[3])->yscale
   (lims[2]-lims[1])->xscale
 
-  leny<-ifelse(direction=="vertical",yscale/4,xscale/16*yscale/xscale)
-  lenx<-ifelse(direction=="vertical",xscale/16*xscale/yscale,xscale/4)
+  leny<-ifelse(direction=="vertical",yscale/4,yscale/16)
+  lenx<-ifelse(direction=="vertical",xscale/20,xscale/4)
+
   Htot<-H<-leny*height
   Wtot<-W<-lenx*width
 
@@ -101,7 +104,7 @@ colorbar<-function(colors,x,y=NULL,direction="vertical",
 
       top.adj<-H+hlabs[1]+Htitle
       bottom.adj<-hlabs[1]
-      left.adj<-0
+      left.adj<-ifelse(Wtitle>Wtot,Wtitle-Wtot,0)
       right.adj<-Wtot
 
     }else{
@@ -128,10 +131,12 @@ colorbar<-function(colors,x,y=NULL,direction="vertical",
     #   xstart<-lims[1]+xscale/2-Wtot/2
     # }
 
-    if(grepl("bottom",x)) ystart<-lims[3]+yscale/80+bottom.adj else if(grepl("top",x)) ystart<-lims[4]-yscale/80-top.adj else{
+    if(grepl("bottom",x)) ystart<-lims[3]+yscale/80+bottom.adj else
+      if(grepl("top",x)) ystart<-lims[4]-yscale/80-top.adj else{
       ystart<-lims[3]+yscale/2-Htot/2
     }
-    if(grepl("left",x)) xstart<-lims[1]+xscale/80+left.adj else if(grepl("right",x)) xstart<-lims[2]-xscale/80-right.adj else{
+    if(grepl("left",x)) xstart<-lims[1]+xscale/80+left.adj else
+      if(grepl("right",x)) xstart<-lims[2]-xscale/80-right.adj else{
       xstart<-lims[1]+xscale/2-Wtot/2
     }
 
@@ -198,10 +203,10 @@ colorbar<-function(colors,x,y=NULL,direction="vertical",
   if(!is.null(title)){
     if(direction=="vertical"&!is.null(labs.pos)&&labs.pos=="left")
       xtitle<-xstart-Wtot/2 else xtitle<-xstart+Wtot/2
-    if(is.null(title.pos)||title.pos=="top")
-      ytitle<-yend+yscale/20 else
-        ytitle<-ystart-yscale/20
-      title.args<-c(list(x=xtitle,y=ytitle,labels=title),title.args)
+      if(is.null(title.pos)||title.pos=="top")
+        ytitle<-yend+yscale/20 else
+          ytitle<-ystart-yscale/20
+        title.args<-c(list(x=xtitle,y=ytitle,labels=title),title.args)
   }
 
 

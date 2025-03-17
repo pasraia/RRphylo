@@ -3,17 +3,19 @@
 #'  phylogenetic tree (as returned by \code{\link{RRphylo}}) with branches
 #'  colored according to phenotypic values or phenotypic evolutionary rates.
 #'@usage plotRR(RR,y,multivariate=NULL)
-#'@param RR an object produced by \code{RRphylo}.
+#'@param RR an object produced by \code{\link{RRphylo}}.
 #'@param y the vector/matrix of phenotypic values used to perform
-#'  \code{RRphylo}.
-#'@param multivariate if \code{RRphylo} was performed on multivariate data, this
+#'  \code{\link{RRphylo}}.
+#'@param multivariate if \code{\link{RRphylo}} was performed on multivariate data, this
 #'  argument indicates whether individual rates for each variables (\code{=
 #'  "multiple.rates"}) or the norm2 vector of multivariate rates (\code{=
 #'  "rates"}) should be plotted.
 #'@export
 #'@seealso \href{../doc/RRphylo.html}{\code{RRphylo} vignette}
+#'@seealso \href{../doc/Plotting-tools.html#plotRR}{\code{plotRR} vignette}
 #'@author Silvia Castiglione, Pasquale Raia
 #'@importFrom graphics rect strheight strwidth
+#'@importFrom grDevices colorRampPalette
 #'@return The function returns a list of functions:
 #'@return \strong{$plotRRphen} charts phenotypic values along the tree branches.
 #'  Phenotypes at tips are taken as they are from the \code{y} object.
@@ -22,10 +24,11 @@
 #'  \code{...$plotRRphen(variable=NULL,tree.args=NULL,color.pal=NULL,colorbar.args=list())},
 #'  where \code{variable} is the index or name of the variable to be plotted in
 #'  case of multivariate data, \code{tree.args} is a list of further arguments
-#'  passed to the function \code{plot.phylo}, \code{color.pal} is a function to
-#'  generate the color palette, and \code{colorbar.args} is a list of further
-#'  arguments passed to the function \code{\link{colorbar}} (if \code{= NULL}
-#'  the bar is not plotted).
+#'  passed to the function \code{plot.phylo} plus a logical indicating whether
+#'  the tree should be ladderized  before plotting (see examples below),
+#'  \code{color.pal} is a function to generate the color palette, and
+#'  \code{colorbar.args} is a list of further arguments passed to the function
+#'  \code{\link{colorbar}} (if \code{= NULL} the bar is not plotted).
 #'@return \strong{$plotRRrates} charts evolutionary rate values along the tree
 #'  branches. The usage is identical to \code{$plotRRphen}. In case of
 #'  multivariate data and \code{multivariate = "rates"}, the argument
@@ -39,17 +42,17 @@
 #' DataApes$Tstage->Tstage
 #' cc<- 2/parallel::detectCores()
 #'
-#' RRphylo(tree=Tstage,y=PCstage,clus=cc)->RR
+#' RRphylo(tree=Tstage,y=PCstage,clus=cc)->RRstage
 #'
-#' plotRR(RR,y=PCstage,multivariate="multiple.rates")->pRR
-#' pRR$plotRRphen(variable=1,tree.args=list(edge.width=2),color.pal=rainbow,
+#' plotRR(RRstage,y=PCstage,multivariate="multiple.rates")->pRR1
+#' pRR1$plotRRphen(variable=1,tree.args=list(edge.width=2),color.pal=rainbow,
 #'                colorbar.args = list(x="bottomleft",labs.adj=0.7,xpd=TRUE))
-#' pRR$plotRRrates(variable=2,tree.args=list(edge.width=2,direction="leftwards"),
+#' pRR1$plotRRrates(variable=2,tree.args=list(edge.width=2,direction="leftwards",ladderize=TRUE),
 #'                 color.pal=rainbow,colorbar.args = list(x="topright",labs.adj=0.7,xpd=TRUE))
 #'
 #'
-#' plotRR(RR,y=PCstage,multivariate="rates")->pRR
-#' pRR$plotRRrates(tree.args=list(edge.width=2),
+#' plotRR(RRstage,y=PCstage,multivariate="rates")->pRR2
+#' pRR2$plotRRrates(tree.args=list(edge.width=2),
 #'                 color.pal=hcl.colors,
 #'                 colorbar.args = list(x="topleft",labs.adj=0.7,xpd=TRUE,title.pos="bottom"))
 #' }
@@ -88,10 +91,15 @@ plotRR<-function(RR,y,multivariate=NULL){
       if(all(!c("show.tip.label","cex")%in%names(tree.args))) tree.args$show.tip.label<-FALSE
     }
 
-    if(isTRUE(tree.args$no.margin)){
-        mars <- par("mar")
-        on.exit(par(mar = mars))
+    if(!is.null(tree.args$ladderize)&&isTRUE(tree.args$ladderize)){
+      ladderize(tree)->tree
+      tree.args<-tree.args[which(names(tree.args)!="ladderize")]
     }
+
+    # if(isTRUE(tree.args$no.margin)){
+    #     mars <- par("mar")
+    #     on.exit(par(mar = mars))
+    # }
 
     if(is.null(color.pal)) colorRampPalette(c("plum1","purple3"))->color.pal
     color.pal(nrow(phenvar))->colpal
@@ -128,10 +136,15 @@ plotRR<-function(RR,y,multivariate=NULL){
       if(all(!c("show.tip.label","cex")%in%names(tree.args))) tree.args$show.tip.label<-FALSE
     }
 
-    if(isTRUE(tree.args$no.margin)){
-      mars <- par("mar")
-      on.exit(par(mar = mars))
+    if(!is.null(tree.args$ladderize)&&isTRUE(tree.args$ladderize)){
+      ladderize(tree)->tree
+      tree.args<-tree.args[which(names(tree.args)!="ladderize")]
     }
+
+    # if(isTRUE(tree.args$no.margin)){
+    #   mars <- par("mar")
+    #   on.exit(par(mar = mars))
+    # }
 
     if(is.null(color.pal)) colorRampPalette(c("lightblue1","darkblue"))->color.pal
     color.pal(nrow(ratevar))->colpal

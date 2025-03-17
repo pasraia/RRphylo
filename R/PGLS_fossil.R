@@ -10,11 +10,11 @@
 #'   as named in \code{modform}. If not found in \code{data}, the variables are
 #'   taken from current environment.
 #' @param tree a phylogenetic tree to be indicated for any model except if
-#'   \code{RRphylo} is used to rescale tree branches. The tree needs not to be
+#'   \code{\link{RRphylo}} is used to rescale tree branches. The tree needs not to be
 #'   ultrametric and fully dichotomous.
-#' @param RR the result of \code{RRphylo} performed on the response variable. If
+#' @param RR the result of \code{\link{RRphylo}} performed on the response variable. If
 #'   \code{RR} is specified, tree branches are rescaled to the absolute
-#'   branch-wise rate values calculated by \code{RRphylo} to transform the
+#'   branch-wise rate values calculated by \code{\link{RRphylo}} to transform the
 #'   variance-covariance matrix.
 #' @param GItransform logical indicating whether the PGLS approach as in Garland
 #'   and Ives (2000) must be applied.
@@ -33,8 +33,9 @@
 #' @importFrom stats terms model.frame update manova
 #' @export
 #' @seealso \href{../doc/RRphylo.html}{\code{RRphylo} vignette};
-#'   \code{\link[mvMORPH]{mvgls}} ; \code{\link[mvMORPH]{manova.gls}}
-#'   ;\code{\link[phylolm]{phylolm}}
+#' @seealso \code{\link{overfitPGLS}}; \href{../doc/overfit.html#overfitPGLS}{\code{overfitPGLS} vignette}
+#' @seealso \code{\link[mvMORPH]{mvgls}} ; \code{\link[mvMORPH]{manova.gls}}
+#' @seealso \code{\link[phylolm]{phylolm}}
 #' @details The function is meant to work with both univariate or multivariate
 #'   data, both low- or high-dimensional. In the first case, \code{PGLS_fossil}
 #'   uses \code{phylolm}, returning an object of class "phylolm". In the latter,
@@ -47,6 +48,7 @@
 #'   manova applied on the multivariate linear model.
 #' @return Fitted pgls parameters and significance. The class of the output
 #'   object depends on input data (see details).
+#'   The output always has an attribute "Call" which returns an unevaluated call to the function.
 #' @author Silvia Castiglione, Pasquale Raia, Carmela Serio, Gabriele Sansalone,
 #'   Giorgia Girardi
 #' @references Garland, Jr, T., & Ives, A. R. (2000). Using the past to predict
@@ -69,7 +71,7 @@
 #' PGLS_fossil(modform=resp~pred1+pred2,tree=tree,GItransform=TRUE)->GIpgls_noRR
 #'
 #' RRphylo(tree,resp,clus=cc)->RR
-#' PGLS_fossil(modform=resp~pred1+pred2,tree=tree,RR=RR)->pgls_RR
+#' PGLS_fossil(modform=resp~pred1+pred2,RR=RR)->pgls_RR
 #' PGLS_fossil(modform=resp~pred1+pred2,tree=tree,RR=RR,GItransform=TRUE)->GIpgls_RR
 #'
 #' # To derive log-likelihood and AIC for outputs of PGLS_fossil applied on univariate
@@ -88,9 +90,9 @@
 #' pgls2_noRR$manova
 #' summary(GIpgls2_noRR$manova)
 #'
-#' RRphylo(tree,resp.multi,clus=cc)->RR
-#' PGLS_fossil(modform=resp.multi~pred1+pred2,tree=tree,RR=RR)->pgls2_RR
-#' PGLS_fossil(modform=resp.multi~pred1+pred2,tree=tree,RR=RR,GItransform=TRUE)->GIpgls2_RR
+#' RRphylo(tree,resp.multi,clus=cc)->RR2
+#' PGLS_fossil(modform=resp.multi~pred1+pred2,RR=RR2)->pgls2_RR
+#' PGLS_fossil(modform=resp.multi~pred1+pred2,tree=tree,RR=RR2,GItransform=TRUE)->GIpgls2_RR
 #'
 #' # To evaluate statistical significance of multivariate models, the '$manova'
 #' # object must be inspected
@@ -108,15 +110,15 @@ PGLS_fossil<-function(modform,data=NULL,tree=NULL,RR=NULL,
   # require(nlme)
   # require(ape)
   # require(phylolm)
-  if (!requireNamespace("phylolm", quietly = TRUE)) {
-    stop("Package \"phylolm\" needed for this function to work. Please install it.",
-         call. = FALSE)
-  }
-  if (!requireNamespace("mvMORPH", quietly = TRUE)) {
-    stop("Package \"mvMORPH\" needed for this function to work. Please install it.",
+
+  misspacks<-sapply(c("phylolm","mvMORPH","ddpcr"),requireNamespace,quietly=TRUE)
+  if(any(!misspacks)){
+    stop("The following package/s are needed for this function to work, please install it/them:\n ",
+         paste(names(misspacks)[which(!misspacks)],collapse=", "),
          call. = FALSE)
   }
 
+  funcall<-match.call()
   if(!is.null(RR)){
     rescaleRR(RR$tree,RR=RR)->tree
     if(model!="BM") warning("The tree is rescaled by using RR rates, 'model' argument is not allowed",immediate. = TRUE)
@@ -124,6 +126,10 @@ PGLS_fossil<-function(modform,data=NULL,tree=NULL,RR=NULL,
   }
 
   mf<-model.frame(modform,data=data)
+  if(any(grepl("\\$",colnames(mf)))){
+    gsub("\\$","DOLL",colnames(mf))->colnames(mf)
+    modform<-eval(parse(text=gsub("\\$","DOLL",deparse(modform))))
+  }
   treedataMatch(tree,mf)$y->mf
 
   if(!GItransform){
@@ -132,6 +138,7 @@ PGLS_fossil<-function(modform,data=NULL,tree=NULL,RR=NULL,
     if(!is.null(ncol(mf[[1]]))&&ncol(mf[[1]])>1){
       resgls <-  mvMORPH::mvgls(modform,data=data,tree=tree,model=model,method=method,...)
       resman<-mvMORPH::manova.gls(resgls,permutation=permutation,...)
+      cat("\n")
       res<-list(pgls=resgls,manova=resman)
     }else{
       res <-phylolm::phylolm(modform,data=data,phy=tree,model=model,method=method,...)
@@ -164,6 +171,9 @@ PGLS_fossil<-function(modform,data=NULL,tree=NULL,RR=NULL,
       res<-list(pgls=lmmod,manova=resman)
     } else res<-lmmod
   }
+
+  attr(res,"Call")<-funcall
+
   return(res)
 }
 

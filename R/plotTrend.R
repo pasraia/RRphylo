@@ -3,7 +3,7 @@
 #'  phenotype versus time and absolute evolutionary rates versus time
 #'  regressions for the entire phylogeny and individual clades. Each custom
 #'  function takes as first argument the index or name of the variable (as in
-#'  the \code{search.trend} output in \code{$trends.data$phenotypeVStime}) to be
+#'  the \code{\link{search.trend}} output in \code{$trends.data$phenotypeVStime}) to be
 #'  plotted.
 #'@usage plotTrend(ST)
 #'@param ST an object produced by \code{\link{search.trend}}.
@@ -33,7 +33,7 @@
 #'  \code{...$plotSTphenNode(variable,node,plot.args=NULL,lineTree.args=NULL,}
 #'  \code{lineNode.args=NULL,node.palette=NULL)}, where \code{variable} is the
 #'  same as \code{plotSTphen} and \code{node} is the vector of indices or numbers
-#'  (as inputted to \code{search.trend}, to be indicated as character) of nodes
+#'  (as inputted to \code{\link{search.trend}}, to be indicated as character) of nodes
 #'  to be plotted. The function allows up to nine nodes at the same time.
 #'  \code{plot.args} is a list of further arguments passed to the function
 #'  \code{plot}, including \code{pch.node}, a custom argument to set individual
@@ -54,7 +54,7 @@
 #'@importFrom graphics points text title polygon pairs plot
 #'@export
 #'@seealso \href{../doc/search.trend.html}{\code{search.trend} vignette}
-#'@seealso \href{../doc/Plotting-tools.html}{\code{plotTrend} vignette}
+#'@seealso \href{../doc/Plotting-tools.html#plotTrend}{\code{plotTrend} vignette}
 #'@references Castiglione, S., Serio, C., Mondanaro, A., Di Febbraro, M.,
 #'  Profico, A., Girardi, G., & Raia, P. (2019) Simultaneous detection of
 #'  macroevolutionary patterns in phenotypic means and rate of change with and
@@ -75,9 +75,9 @@
 #'
 #' RRphylo(tree=treeptero,y=log(massptero),clus=cc)->RRptero
 #'
-#' search.trend(RR=RRptero, y=log(massptero), nsim=100, node=143, clus=cc,cov=NULL)->ST
+#' search.trend(RR=RRptero, y=log(massptero), nsim=100, node=143, clus=cc,cov=NULL)->st2
 #'
-#' plotTrend(ST)->plotST
+#' plotTrend(st2)->plotST
 #'
 #' plotST$plotSTphen(1) # to plot phenotypic trend through time for entire tree
 #' plotST$plotSTphen("log(massptero)",plot.args=list(cex=1.2,col="blue")) # equivalent to above
@@ -95,8 +95,16 @@
 #'    }
 
 plotTrend<-function(ST){
+
+  misspacks<-sapply(c("car","RColorBrewer"),requireNamespace,quietly=TRUE)
+  if(any(!misspacks)){
+    stop("The following package/s are needed for this function to work, please install it/them:\n ",
+         paste(names(misspacks)[which(!misspacks)],collapse=", "),
+         call. = FALSE)
+  }
+
   ST$trend.data$phenotypeVStime->phen.plot
-  ST$trend.data$absrateVStime->absrate.plot
+  ST$trend.data$rateVStime->rate.plot
   ST$trend.data$rescaledrateVStime->resrate.plot
   ST$ConfInts$phenotype->CIphen
   ST$ConfInts$rescaled_rate->CIresrate
@@ -109,19 +117,19 @@ plotTrend<-function(ST){
 
 
   apply(phen.plot[,1:ny,drop=FALSE],2,range01)->phen.plot[,1:ny]
-  abs(absrate.plot[,1:nyrate,drop=FALSE])->absrate.plot[,1:nyrate]
+  abs(rate.plot[,1:nyrate,drop=FALSE])->rate.plot[,1:nyrate]
   phen.plot$age<-max(phen.plot$age)-phen.plot$age
 
-  if(!is.null(absrate.plot$group)){
-    phen.plot$group<-absrate.plot$group[match(rownames(phen.plot),rownames(absrate.plot))]
-    if("others"%in%unique(absrate.plot$group))
-      unique(absrate.plot$group)[-which(unique(absrate.plot$group)=="others")]->groups
-    absrate.plot$age<-max(absrate.plot$age)-absrate.plot$age
+  if(!is.null(rate.plot$group)){
+    phen.plot$group<-rate.plot$group[match(rownames(phen.plot),rownames(rate.plot))]
+    if("others"%in%unique(rate.plot$group))
+      unique(rate.plot$group)[-which(unique(rate.plot$group)=="others")]->groups
+    rate.plot$age<-max(rate.plot$age)-rate.plot$age
 
-    car::outlierTest(lm(absrate.plot[,1]~absrate.plot[,2]))->outT
+    car::outlierTest(lm(rate.plot[,1]~rate.plot[,2]))->outT
     if(any(outT$p<=0.05))
-      max(absrate.plot[-as.numeric(names(outT$p)),1])->maxy else
-        max(absrate.plot[,1])->maxy
+      max(rate.plot[-as.numeric(names(outT$p)),1])->maxy else
+        max(rate.plot[,1])->maxy
 
     plotSTphenNode<-function(variable,node=NULL,plot.args=NULL,lineTree.args=NULL,lineNode.args=NULL,node.palette=NULL){
       if(is.character(variable)){
@@ -220,8 +228,8 @@ plotTrend<-function(ST){
 
     plotSTratesNode<-function(variable,node=NULL,plot.args=NULL,lineTree.args=NULL,lineNode.args=NULL,node.palette=NULL){
       if(is.character(variable)){
-        if(any(is.na(match(variable,colnames(absrate.plot))))) stop("variable do not match column names")
-        match(variable,colnames(absrate.plot))->variable
+        if(any(is.na(match(variable,colnames(rate.plot))))) stop("variable do not match column names")
+        match(variable,colnames(rate.plot))->variable
       }else if(any(variable>nyrate)) stop("variable is out of y bounds")
 
       if(!is.null(node)){
@@ -257,8 +265,8 @@ plotTrend<-function(ST){
 
       variable->i
       lapply(1:length(groups),function(j){
-        absrate.plot[which(absrate.plot$group==groups[j]),c(i,nyrate+1)]->node.rates
-        absrate.plot[which(absrate.plot$group!=groups[j]),c(i,nyrate+1)]->tree.rates
+        rate.plot[which(rate.plot$group==groups[j]),c(i,nyrate+1)]->node.rates
+        rate.plot[which(rate.plot$group!=groups[j]),c(i,nyrate+1)]->tree.rates
         predict(lm(tree.rates[,1]~tree.rates[,2]))->pred.tree
         predict(lm(node.rates[,1]~node.rates[,2]))->pred.node
 
@@ -273,27 +281,27 @@ plotTrend<-function(ST){
           if(length(ylabs)>1) plot.args$ylab<-ylabs[j]
         }
         if("main"%in%names(plot.args)) maint<-plot.args$main else maint<-NULL
-        if(is.null(maint)) plot.args$main<-paste("Absolute Rates for Variable",colnames(absrate.plot)[i]) else{
+        if(is.null(maint)) plot.args$main<-paste("Absolute Rates for Variable",colnames(rate.plot)[i]) else{
           if(length(maint)>1) plot.args$main<-maint[j]
         }
 
-        if(!"xlim"%in%names(plot.args)) plot.args$xlim<-c(max(absrate.plot[,nyrate+1]),min(absrate.plot[,nyrate+1]))
-        if(!"ylim"%in%names(plot.args)) plot.args$ylim<-c(min(absrate.plot[,1]),maxy)
+        if(!"xlim"%in%names(plot.args)) plot.args$xlim<-c(max(rate.plot[,nyrate+1]),min(rate.plot[,nyrate+1]))
+        if(!"ylim"%in%names(plot.args)) plot.args$ylim<-c(min(rate.plot[,1]),maxy)
         if(!"col"%in%names(plot.args)) "black"->plot.args$col
         if(!"bg"%in%names(plot.args)) "white"->plot.args$bg
         if(!"pch"%in%names(plot.args)) plot.args$pch<-21
-        rep(plot.args$pch,length(absrate.plot[, i]))->plot.args$pch
-        if(!is.null(pch.node)) plot.args$pch[which(rownames(absrate.plot)%in%rownames(node.rates))]<-pch.node[j]
+        rep(plot.args$pch,length(rate.plot[, i]))->plot.args$pch
+        if(!is.null(pch.node)) plot.args$pch[which(rownames(rate.plot)%in%rownames(node.rates))]<-pch.node[j]
 
-        if(unique(plot.args$pch[which(rownames(absrate.plot)%in%rownames(node.rates))])%in%21:25){
-          rep(plot.args$bg,length(absrate.plot[, i]))->plot.args$bg
-          plot.args$bg[which(rownames(absrate.plot)%in%rownames(node.rates))]<-node.palette[j]
+        if(unique(plot.args$pch[which(rownames(rate.plot)%in%rownames(node.rates))])%in%21:25){
+          rep(plot.args$bg,length(rate.plot[, i]))->plot.args$bg
+          plot.args$bg[which(rownames(rate.plot)%in%rownames(node.rates))]<-node.palette[j]
         }else{
-          rep(plot.args$col,length(absrate.plot[, i]))->plot.args$col
-          plot.args$col[which(rownames(absrate.plot)%in%rownames(node.rates))]<-node.palette[j]
+          rep(plot.args$col,length(rate.plot[, i]))->plot.args$col
+          plot.args$col[which(rownames(rate.plot)%in%rownames(node.rates))]<-node.palette[j]
         }
 
-        c(x=list(absrate.plot[, nyrate+1]),y=list(absrate.plot[, i]),plot.args)->points.args
+        c(x=list(rate.plot[, nyrate+1]),y=list(rate.plot[, i]),plot.args)->points.args
         c(x=list(NA),y=list(NA),plot.args)->plot.args
 
         c(x=list(tree.rates$age[order(tree.rates$age)]),
@@ -378,8 +386,8 @@ plotTrend<-function(ST){
 
   plotSTrates<-function(variable,plot.args=NULL,polygon.args=NULL,line.args=NULL){
     if(is.character(variable)){
-      if(any(is.na(match(variable,colnames(absrate.plot))))) stop("variable do not match column names")
-      match(variable,colnames(absrate.plot))->variable
+      if(any(is.na(match(variable,colnames(rate.plot))))) stop("variable do not match column names")
+      match(variable,colnames(rate.plot))->variable
     }else if(any(variable>nyrate)) stop("variable is out of y bounds")
 
     resrate.plot$age<-max(na.omit(resrate.plot$age))-resrate.plot$age
@@ -396,7 +404,7 @@ plotTrend<-function(ST){
 
     if(!"main"%in%names(plot.args)) plot.args$main<-"Rescaled Rate Trend Test"
     if(!"xlab"%in%names(plot.args)) plot.args$xlab<-"age"
-    if(!"ylab"%in%names(plot.args)) plot.args$ylab<-paste("log rescaled rate for variable",colnames(absrate.plot)[i])
+    if(!"ylab"%in%names(plot.args)) plot.args$ylab<-paste("log rescaled rate for variable",colnames(rate.plot)[i])
     if(!"ylim"%in%names(plot.args)) plot.args$ylim<-range(na.omit(resrate.plot[,i]))
     if(!"xlim"%in%names(plot.args)) plot.args$xlim<-c(max(na.omit(resrate.plot$age)),min(na.omit(resrate.plot$age)))
     if(!"pch"%in%names(plot.args)) plot.args$pch<-21

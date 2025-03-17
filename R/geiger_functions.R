@@ -1,23 +1,23 @@
 #' @title Cross-reference tree and data
-#' @description The function matches data names with tree tips. If either there is no
-#'   data for a tip or it is not present on the tree, the function removes the entry
-#'   from both.
+#' @description The function matches data names with tree tips. If either there
+#'   is no data for a tip or it is not present on the tree, the function removes
+#'   the entry from both.
 #' @usage treedataMatch(tree,y)
 #' @param tree a phylogenetic tree. The tree needs not to be ultrametric and
 #'   fully dichotomous.
-#' @param y either a single vector variable or a multivariate dataset. In any
-#'   case, \code{y} must be named.
+#' @param y named variable. It can be a vector or a multivariate dataset or a 3D
+#'   array. Alternatively, \code{y} can also be a vector of species names.
 #' @return The function returns a \code{list} object. If no mismatch between
 #'   \code{tree} and \code{y} is detected, the list only includes the matrix of
-#'   \code{y} ordered according to the order of tips on the tree (\code{$y}).
-#'   If some tips on the \code{tree} are missing from \code{y}, they are
-#'   removed from the phylogeny. Thus, the list also includes the pruned tree
-#'   (\code{$tree}) and the vector of dropped tips
-#'   (\code{$removed.from.tree}). Similarly, if some entries in \code{y} are
-#'   missing from the \code{tree}, the list also includes the vector of
-#'   mismatching entry names (\code{$removed.from.y}). In this latter case, the
-#'   first element of the list (\code{$y}) does not include the entries
-#'   \code{$removed.from.y}, so that it perfectly matches the phylogeny.
+#'   \code{y} ordered according to the order of tips on the tree (\code{$y}). If
+#'   some tips on the \code{tree} are missing from \code{y}, they are removed
+#'   from the phylogeny. Thus, the list also includes the pruned tree
+#'   (\code{$tree}) and the vector of dropped tips (\code{$removed.from.tree}).
+#'   Similarly, if some entries in \code{y} are missing from the \code{tree},
+#'   the list also includes the vector of mismatching entry names
+#'   (\code{$removed.from.y}). In this latter case, the first element of the
+#'   list (\code{$y}) does not include the entries \code{$removed.from.y}, so
+#'   that it perfectly matches the phylogeny.
 #' @export
 #' @author Silvia Castiglione, Pasquale Raia, Carmela Serio
 #' @examples
@@ -28,11 +28,18 @@
 #'
 #' treedataMatch(tree=treecet,y=masscet)
 #' treedataMatch(tree=treecet,y=brainmasscet)
+#' treedataMatch(tree=treecet,y=names(brainmasscet))
 
 
 treedataMatch<-function (tree, y){
-  if(!inherits(y,"matrix")&!inherits(y,"data.frame")) as.matrix(y)->y
-  if(is.null(rownames(y))) stop("y needs to be named") else rownames(y)->ynams
+  #if(!inherits(y,"matrix")&!inherits(y,"data.frame")) as.matrix(y)->y
+  if(length(dim(y))<3){
+    if(is.null(ncol(y))||is.na(ncol(y))) as.matrix(y)->y
+    rownames(y)->ynams
+  }else dimnames(y)[[3]]->ynams
+  if(is.null(ynams)){
+    if(any(y%in%tree$tip.label)) rownames(y)<-ynams<-y else stop("y needs to be named")
+  }
   if(all(!tree$tip.label%in%ynams)) stop("There is no match between tree tip labels and y names")
 
   if(!all(tree$tip.label%in%ynams)){
@@ -42,11 +49,13 @@ treedataMatch<-function (tree, y){
 
   if(!all(ynams%in%tree$tip.label)){
     ynams[which(!ynams%in%tree$tip.label)]->rem.y
-    y[which(ynams%in%tree$tip.label),,drop=FALSE]->y
+    #y[which(ynams%in%tree$tip.label),,drop=FALSE]->y
   }else rem.y<-NULL
 
-  y[match(tree$tip.label,rownames(y)),,drop=FALSE]->y
+  if(length(dim(y))<3) y[match(tree$tip.label,rownames(y)),,drop=FALSE]->y else
+    y[,,match(tree$tip.label,dimnames(y)[[3]])]->y
 
+  if(all(is.character(y))&all(y%in%tree$tip.label)) rownames(y)<-NULL
   list(y=y)->res
   if(!is.null(rem.tree)) c(res,list(tree=tree,removed.from.tree=rem.tree))->res
   if(!is.null(rem.y)) c(res,removed.from.y=list(rem.y))->res
@@ -76,8 +85,8 @@ treedataMatch<-function (tree, y){
 #' ### Multivariate data ###
 #' data(DataUng)
 #' DataUng$treeung->treeung
-#' DataUng$PCscoresung->PCscores
-#' sig2BM(tree=treeung,y=PCscores)
+#' DataUng$PCscoresung->PCung
+#' sig2BM(tree=treeung,y=PCung)
 
 sig2BM<-function(tree,y){
   if (is.binary(tree))

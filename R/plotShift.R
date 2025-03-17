@@ -1,28 +1,33 @@
 #'@title Graphical representation of search.shift results
 #'@description \code{plotShift} generates customized functions to produce plots
-#'  out of \code{\link{search.shift}} results.
-#'  \code{addShift} adds circles to highlight shifting clades onto the currently
-#'  plotted tree.
+#'  out of \code{\link{search.shift}} results. \code{addShift} adds circles to
+#'  highlight shifting clades onto the currently plotted tree.
 #'@aliases plotShift
 #'@aliases addShift
-#'@usage plotShift(RR,SS,state=NULL)
+#'@usage plotShift(RR,SS,mode,state=NULL)
 #'@usage addShift(SS,symbols.args=NULL)
 #'@param RR the object produced by \code{\link{RRphylo}} used to perform
-#'  \code{search.shift}.
-#'@param SS an object produced by \code{search.shift}.
-#'@param state if \code{search.shift} was performed under \code{status.type =
+#'  \code{\link{search.shift}}.
+#'@param SS an object produced by \code{\link{search.shift}}.
+#'@param mode if \code{\link{search.shift}} was performed under \code{status.type =
+#'  "clade"} by setting the \code{node} argument, \code{mode} is a numeric
+#'  indicating whether the output number 1, that is
+#'  \code{...$single.clades$singles} or the output number 2
+#'  \code{...$single.clades$no.others} should be plotted.
+#'@param state if \code{\link{search.shift}} was performed under \code{status.type =
 #'  "sparse"}, this is the same \code{state} vector provided to the function.
 #'@param symbols.args as described for \code{$plotClades} below.
 #'@details Using \code{...$plotClades()} or plotting the tree and applying
 #'  \code{addShift()} returns the same plot. The latter function might be useful
-#'  in combination with \code{\link{plotRR}} to add the shifts information to the
-#'  branch-wise plot of evolutionary rate values.
+#'  in combination with \code{\link{plotRR}} to add the shifts information to
+#'  the branch-wise plot of evolutionary rate values.
 #'@return The function returns a function to generate a customizable plot of
-#'  \code{search.shift} results.
-#'@return If \code{search.shift} was performed under \code{status.type =
+#'  \code{\link{search.shift}} results.
+#'@return If \code{\link{search.shift}} was performed under \code{status.type =
 #'  "clade"}, \code{plotShift} returns a \strong{\code{$plotClades}} function
 #'  which highlights the shifting clades onto the phylogenetic tree. The usage
-#'  is: \code{...$plotClades(tree.args=NULL,symbols.args=NULL)}, where
+#'  is:
+#'  \code{...$plotClades(tree.args=NULL,symbols.args=NULL)}, where
 #'  \code{tree.args} is a list of further arguments passed to the function
 #'  \code{plot.phylo}, and \code{symbols.args} is a list of further arguments
 #'  passed to the function \code{symbols} (n.b. the shape of the symbol is not
@@ -33,24 +38,27 @@
 #'  \code{symbols.args=list(fg=c(pos="color for positive shift",neg="color for
 #'  negative shift"))}, or provide a vector of as many colors as the number of
 #'  shifting clades. The same applies to the argument "bg".
-#'@return If \code{search.shift} was performed under \code{status.type =
+#'@return If \code{\link{search.shift}} was performed under \code{status.type =
 #'  "sparse"}, \code{plotShift} returns a \strong{\code{$plotStates}} function
-#'  which plots the states onto the phylogenetic trees. The usage is:
-#'  \code{...$plotStates(tree.args=NULL,points.args=NULL,legend.args=list())},
-#'  where \code{tree.args} is a list of further arguments passed to the function
-#'  \code{plot.phylo}, \code{points.args} is a list of further arguments passed
-#'  to the function \code{points}, and \code{legend.args} is a list of
-#'  additional arguments passed to the function \code{legend} (if \code{= NULL}
-#'  the legend is not plotted). If as many colors/pch values as the number of
-#'  different states are provided in \code{points.args}, each of them is
-#'  assigned to each states taken in the same order they are returned by
-#'  \code{search.shift}.
-#'@author Silvia Castiglione
+#'  which plots the comparison between the real difference and the distributions
+#'  of random differences (see
+#'  \href{../doc/search.shift.html}{\code{search.shift} vignette#sparse}). The
+#'  usage is:
+#'  \code{...$plotStates(plot.args=NULL,points.args=NULL,legend.args=list())},
+#'  where \code{plot.args} is a list of further arguments passed to the function
+#'  \code{plot} (used in the form: \code{plot(y~x)}), \code{points.args} is a
+#'  list of further arguments passed to the function \code{points}, and
+#'  \code{legend.args} is a list of additional arguments passed to the function
+#'  \code{legend} (if \code{= NULL} the legend is not plotted). If as many
+#'  colors/pch values as the number of different states are provided in
+#'  \code{points.args}, each of them is assigned to each states taken in the
+#'  same alphabetical order.
+#'@author Silvia Castiglione, Giorgia Girardi
 #'@importFrom graphics symbols
 #'@importFrom ape plot.phylo
 #'@export
 #'@seealso \href{../doc/search.shift.html}{\code{search.shift} vignette}
-#'@seealso \href{../doc/Plotting-tools.html}{\code{plotShift} vignette}
+#'@seealso \href{../doc/Plotting-tools.html#plotShift}{\code{plotShift} vignette}
 #'@references Castiglione, S., Tesone, G., Piccolo, M., Melchionna, M.,
 #'  Mondanaro, A., Serio, C., Di Febbraro, M., & Raia, P.(2018). A new method
 #'  for testing evolutionary rate variation and shifts in phenotypic evolution.
@@ -67,44 +75,54 @@
 #' RRphylo(tree=treedino,y=massdino,clus=cc)->dinoRates
 #'
 #' search.shift(RR=dinoRates,status.type="clade")->SSauto
-#' plotShift(RR=dinoRates,SS=SSauto)->plotSS
-#' plotSS$plotClades()
+#' plotShift(RR=dinoRates,SS=SSauto)->plotSSauto
+#' plotSSauto$plotClades()
 #'
 #' plot(dinoRates$tree)
 #' addShift(SS=SSauto)
 #'
 #' search.shift(RR=dinoRates,status.type="clade",node=c(696,746))->SSnode
-#' plotShift(RR=dinoRates,SS=SSnode)->plotSS
-#' plotSS$plotClades(tree.args=list(no.margin=TRUE),
+#' plotShift(RR=dinoRates,SS=SSnode,mode=2)->plotSSnode
+#' plotSSnode$plotClades(tree.args=list(no.margin=TRUE),
 #'                   symbols.args=list(fg=NA,bg=c(pos="cyan",neg="magenta")))
 #'
 #'
 #' search.shift(RR=dinoRates,status.type= "sparse",state=statedino)->SSstate
-#' plotShift(RR=dinoRates,SS=SSstate,state=statedino)->plotSS
-#' plotSS$plotStates(tree.args=list(no.margin=TRUE),
-#'                   points.args=list(bg=c("gold","forestgreen","royalblue","white"),
+#' plotShift(RR=dinoRates,SS=SSstate,state=statedino)->plotSSstate
+#' plotSSstate$plotStates(points.args=list(bg=c("gold","forestgreen","royalblue","white"),
 #'                                    col=c("black","black","black","orangered"),
 #'                                    pch=c(21,22,24,11)),legend.args=list())
 #'     }
 
-plotShift<-function(RR,SS,state=NULL){
+plotShift<-function(RR,SS,mode=NULL,state=NULL){
+
+  misspacks<-sapply(c("scales","RColorBrewer"),requireNamespace,quietly=TRUE)
+  if(any(!misspacks)){
+    stop("The following package/s are needed for this function to work, please install it/them:\n ",
+         paste(names(misspacks)[which(!misspacks)],collapse=", "),
+         call. = FALSE)
+  }
+
   RR$tree->tree
   if(is.null(SS$single.clades)&is.null(SS$state.results)){
     stop("No significant result available")
   }
+  if(is.null(SS$single.clades$singles)) mode<-NULL
+  if(!is.null(SS$single.clades$singles)&is.null(mode))
+    stop("Please set the argument `mode` to indicate which output of search.shift you wish to plot")
 
   if(!is.null(SS$single.clades)){
-    SS$single.clades->single
+    if(is.null(mode)) SS$single.clades->single else SS$single.clades[[mode]]->single
     plotClades<-function(tree.args=NULL,symbols.args=NULL){
 
       if(Ntip(tree)>100){
         if(all(!c("show.tip.label","cex")%in%names(tree.args))) tree.args$show.tip.label<-FALSE
       }
 
-      if(isTRUE(tree.args$no.margin)){
-        mars <- par("mar")
-        on.exit(par(mar = mars))
-      }
+      # if(isTRUE(tree.args$no.margin)){
+      #   mars <- par("mar")
+      #   on.exit(par(mar = mars))
+      # }
 
       if(any(c("pos","neg")%in%names(symbols.args$fg))|is.null(symbols.args$fg)){
         symbols.args$fg[which(names(symbols.args$fg)=="pos")]->colpos
@@ -143,84 +161,61 @@ plotShift<-function(RR,SS,state=NULL){
     if(is.null(state)) stop("Please provide the vector of species states")
 
     SS$state.results->stateres
-    stateres[which(rownames(stateres)%in%unique(state)),]->stateres
+    if(any(rownames(stateres)%in%unique(state)))
+      stateres[which(rownames(stateres)%in%unique(state)),]->stateres
+    stateres[order(rownames(stateres)),]->stateres
     stateres[which(stateres[,2]<=0.025|stateres[,2]>=0.975),]->statesign
     state <- treedataMatch(tree, state)[[1]][,1]
+    SS$plotData[,match(rownames(stateres),colnames(SS$plotData)),drop=FALSE]->pldata
+    pldata<-do.call(rbind,lapply(1:ncol(pldata),function(j)
+      data.frame(v=pldata[,j],state=colnames(pldata)[j])))
 
-    plotStates<-function(tree.args=NULL,points.args=NULL,legend.args=list()){
-      if(Ntip(tree)>100){
-        if(all(!c("show.tip.label","cex")%in%names(tree.args))) tree.args$show.tip.label<-FALSE
-        if(!"type"%in%names(tree.args)) tree.args$type<-"fan"
+    plotStates<-function(plot.args=NULL,points.args=NULL,legend.args=list()){
+      # if(is.null(plot.args)) plot.args<-list()
+      # if(is.null(points.args)) points.args<-list()
+
+      if(!"xlab"%in%names(plot.args)) plot.args$xlab<-""
+      if(!"ylab"%in%names(plot.args)) plot.args$ylab<-"random differences"
+      if(!"ylim"%in%names(plot.args)) plot.args$ylim<-range(pldata[,1],stateres[,1])
+
+      if(!"cex"%in%names(points.args)){
+        points.args$cex<-rep(2.5,nrow(stateres))
+        if((!"pch"%in%names(points.args))&nrow(statesign)>0)
+          points.args$cex[which(!rownames(stateres)%in%rownames(statesign))]<-3
       }
-
-      if(isTRUE(tree.args$no.margin)){
-        mars <- par("mar")
-        on.exit(par(mar = mars))
-      }
-
       if(!"pch"%in%names(points.args)) {
-        points.args$pch<-16
-      }else{
-        if(length(points.args$pch)==nrow(stateres)){
-          pchs<-state
-          sapply(1:nrow(stateres),function(x) pchs[which(pchs==rownames(stateres)[x])]<<-points.args$pch[x])
-          points.args$pch<-as.numeric(pchs)
-        }
-      }
-      if(length(points.args$pch)<length(state)) rep(points.args$pch,length.out=length(state))->points.args$pch
+        points.args$pch<-rep("\U2022",nrow(stateres))
+        if(nrow(statesign)>0) points.args$pch[match(rownames(statesign),rownames(stateres))]<-"\U2605"
+      }else if(length(points.args$pch)<nrow(stateres)) points.args$pch<-rep(points.args$pch,length.out=nrow(stateres))
+
       pch.type<-points.args$pch
-      pch.type[which(points.args$pch>=20)]<-"bg"
-      pch.type[which(points.args$pch<20)]<-"col"
-
+      if(all(is.numeric(pch.type))){
+        pch.type[which(points.args$pch>=20)]<-"bg"
+        pch.type[which(points.args$pch<20)]<-"col"
+      }
       if(!"col"%in%names(points.args)){
-        points.args$col<-suppressWarnings(RColorBrewer::brewer.pal(nrow(stateres), "Set2")[as.numeric(as.factor(state))])
-      }else{
-        if(length(points.args$col)==nrow(stateres)){
-          colo<-state
-          sapply(1:nrow(stateres),function(x) colo[which(colo==rownames(stateres)[x])]<<-points.args$col[x])
-          points.args$col<-colo
-        }
-      }
-
+        points.args$col<-suppressWarnings(RColorBrewer::brewer.pal(nrow(stateres), "Set2"))
+        if(any(pch.type=="bg")) points.args$col[which(pch.type=="bg")]<-"black"
+      } else if(length(points.args$col)<nrow(stateres)) points.args$col<-rep(points.args$col,length.out=nrow(stateres))
       if(!"bg"%in%names(points.args)){
-        points.args$bg<-suppressWarnings(RColorBrewer::brewer.pal(nrow(stateres), "Set2")[as.numeric(as.factor(state))])
-      }else{
-        if(length(points.args$bg)==nrow(stateres)){
-          colo<-state
-          sapply(1:nrow(stateres),function(x) colo[which(colo==rownames(stateres)[x])]<<-points.args$bg[x])
-          points.args$bg<-colo
-        }
-      }
+        points.args$bg<-suppressWarnings(RColorBrewer::brewer.pal(nrow(stateres), "Set2"))
+        if(any(pch.type=="col")) points.args$bg[which(pch.type=="col")]<-"white"
+      }else  if(length(points.args$bg)<nrow(stateres)) points.args$bg<-rep(points.args$bg,length.out=nrow(stateres))
 
-      if(any(pch.type=="bg")) points.args$col[which(pch.type=="bg")]<-"black"
-      if(any(pch.type=="col")) points.args$bg[which(pch.type=="col")]<-"white"
-
-      # leg.col<-sapply(1:length(pch.type),function(j) points.args[[grep(pch.type[j],names(points.args))]][j])
-
-      do.call(plot.phylo,c(x=list(tree),tree.args))
-      xx<-get("last_plot.phylo",envir =ape::.PlotPhyloEnv)[[22]][1:Ntip(tree)]
-      yy<-get("last_plot.phylo",envir =ape::.PlotPhyloEnv)[[23]][1:Ntip(tree)]
-      do.call(points,c(list(x=xx,y=yy),points.args))
+      do.call(plot,c(x=list(as.factor(pldata$state)),y=list(pldata$v),plot.args))
+      do.call(points,c(list(x=as.factor(rownames(stateres)),y=stateres[,1]),points.args))
 
       if(!is.null(legend.args)){
         if(!"x"%in%names(legend.args)) legend.args$x<-"topleft"
         if(!"legend"%in%names(legend.args))
-          legend.args$legend<-sapply(1:nrow(statesign),function(x){
-            if(statesign[x,2]<=0.025) paste(rownames(statesign)[x],"- negative shift") else
-              paste(rownames(statesign)[x],"- positive shift")
-          })
+          legend.args$legend<-rownames(stateres)
         if(!"fill"%in%names(legend.args)&!any(c("lty","lwd")%in%names(legend.args))){
-          if(!"pch"%in%names(legend.args)) legend.args$pch<-points.args$pch[match(rownames(statesign),state)]
-          legend.args$pch<-rep(legend.args$pch,length.out=nrow(statesign))
-          if(any(legend.args$pch>20)&!"pt.bg"%in%names(legend.args)){
-            legend.args$pt.bg<-rep(NA,length(legend.args$pch))
-            legend.args$pt.bg[which(legend.args$pch>20)]<-sapply(match(rownames(statesign),state)[which(legend.args$pch>20)],function(k) ifelse(points.args$pch[k]<20,points.args$col[k],points.args$bg[k]))
+          if(!"pch"%in%names(legend.args)){
+            legend.args$pch<-points.args$pch
+            if(!"pt.bg"%in%names(legend.args)) legend.args$pt.bg<-points.args$bg
+            if(!"col"%in%names(legend.args)) legend.args$col<-points.args$col
           }
-          if(any(legend.args$pch<21)&!"col"%in%names(legend.args)){
-            legend.args$col<-rep(NA,length(legend.args$pch))
-            legend.args$col[which(legend.args$pch<21)]<-sapply(match(rownames(statesign),state)[which(legend.args$pch<21)],function(k) ifelse(points.args$pch[k]<20,points.args$col[k],points.args$bg[k]))
-            legend.args$col[which(is.na(legend.args$col))]<-"black"
-          }
+
           if(!"pt.cex"%in%names(legend.args)) legend.args$pt.cex<-1.5
         }
 

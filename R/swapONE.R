@@ -34,11 +34,11 @@
 #' DataOrnithodirans$treedino->treedino
 #'
 #' ## Case 1. change the topology and the branch lengths for the entire tree
-#' swapONE(tree=treedino,si=0.5,si2=0.5,plot.swap=FALSE)
+#' swapONE(tree=treedino,si=0.5,si2=0.5,plot.swap=FALSE)->sw1
 #'
 #' ## Case 2. change the topology and the branch lengths of the
 #' ##         tree by keeping the monophyly of a specific clade
-#' swapONE(tree=treedino,node=422,si=0.5,si2=0.5,plot.swap=FALSE)
+#' swapONE(tree=treedino,node=422,si=0.5,si2=0.5,plot.swap=FALSE)->sw2
 #' }
 
 
@@ -49,6 +49,11 @@ swapONE<-function(tree,
                   plot.swap=FALSE){
 
   #require(phangorn)
+  if (!requireNamespace("phangorn", quietly = TRUE)) {
+    stop("Package \"phangorn\" needed for this function to work. Please install it.",
+         call. = FALSE)
+  }
+
 
   if(!identical(tree$edge[tree$edge[,2]<=Ntip(tree),2],seq(1,Ntip(tree)))){
     tree$tip.label<-tree$tip.label[tree$edge[tree$edge[,2]<=Ntip(tree),2]]

@@ -2,9 +2,11 @@
 #' @description Geometric morphometrics shape data regarding felids' mandible
 #'   and phylogentic tree (\cite{Piras et al., 2018}).
 #' @name DataFelids
-#' @format A list containing: \describe{ \item{\strong{$PCscoresfel}}{A data
-#'   frame containing 83 shape variables for felids' mandible}.
-#'   \item{\strong{$treefel}}{Phylogenetic tree of felids}. }
+#' @format A list containing: \describe{\item{\strong{$treefel}}{Phylogenetic tree of felids}.
+#' \item{\strong{$landfel}}{list of 2D landmark configuration for each species of the tree}.
+#'  \item{\strong{$PCscoresfel}}{A data.frame containing 83 shape variables for felids' mandible}.
+#'  \item{\strong{$statefel}}{sabertooth - not sabertooth ecomorph categorization for each species}.
+#'   }
 #' @docType data
 #' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro
 #'   Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
