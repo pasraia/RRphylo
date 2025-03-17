@@ -1,3 +1,76 @@
+# RRphylo 3.0.0
+What's new in version 3.0.0
+
+New functions added!
+We did some heavy changes to *overfitRR* to make the entire procedure of
+robustness testing faster and more flexible. The original function was split in
+six new functions: *resampleTree* - altering tree topology, *overfitRR* - robustness
+of RRphylo, *overfitSS* - robustness of search.shift, *overfitST* - robustness of
+search.trend, *overfitSC*- robustness of search.conv, and *overfitPGLS* - robustness
+of PGLS_fossil. 
+The new function *compRates* allows comparing average absolute
+rates between clades. 
+The new function *rateHistory* calculates historical rates
+(the net rate for each lineage from the root to the tip) for each tip of the
+tree.
+We implemented *tree.merger* to build phylogenetic trees from scratch and updated 
+*search.shift* to return additional results under the "clade" condition.
+Overall, we implemented all the functions to make them faster (where possible) 
+and more flexible and easy to use. All the "computational" functions (meaning those 
+which usually require long time to run) now have a "Call" attribute.
+
+The functions *conv.map* and *rate.map* have been implemented and moved to a
+brand new package (https://github.com/pasraia/RRmorph), the older versions are deprecated.
+
+
+# RRphylo 2.8.0
+What's new in version 2.7.0
+
+New functions added
+
+Use plotRR to color the branches of your tree according to phenotypic values or evolutionary rates computed by RRphylo. Highlight shifting clades on such plots by using addShift (modification of plotShift).
+
+Auxilliary functions to generate a continuous color bar for your plots (colorbar) and move entire clades within phylogenetic trees (move.lineage) are now available.
+
+PGLS_fossil was modified to work with high-dimensional multivariate data and accommodate the approach proposed in Garland and Ives (The American Naturalist, 2000).
+
+Unpon request, the function RRphylo prints progresses in a "RRlog.txt" file into the working directory and works with parallel computation also with univariate data.
+
+The function tree.merger is now able to use entire genera or named clades as bind/reference.
+
+
+# RRphylo 2.7.0
+What's new in version 2.7.0
+
+Brand new plotting functions have been added to the package! 
+Use plotConv, plotRates, plotShift, and plotConv to generate customized plots of your results out of search.conv, RRphylo, search.shift, and search.trend applications.
+
+A new, namesCompare, function is specifically designed to check names, attributions and spelling. Useful to cross-reference tree and data or vectors of species names.
+
+A new, treeCompare, function contrasts the topological arrangement of two different trees, visualizing the differences zooming in an interactive plot showing different branch arrangements.
+
+The PGLS_fossil function now implements complex linear model regressions.
+
+The function overfitRR was modified to take multiPhylo objects as input data.
+
+# RRphylo 2.6.0
+What's new in version 2.6.0
+
+New function added!
+
+The auxilliary function getGenus returns the most recent common ancestor and the number of species belonging to each or some user-specified genera within the phylogenetic tree.
+
+The function swap.phylo is deprecated.
+
+# RRphylo 2.5.9
+What's new in version 2.5.9
+
+New function added!
+
+The auxilliary function rescaleRR rescales all branches and leaves of a phylogenetic tree according to branch-wise phenotypic evolutionary rates fitted by RRphylo.
+
+Both getSis and getMommy are now able to work with character objects.
+
 # RRphylo 2.5.8
 What's new in version 2.5.8
 

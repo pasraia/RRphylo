@@ -1,28 +1,70 @@
 ## Test environments
-* local OS X install, R 4.0.2
-* Windows NT Win10, R 4.0.3
+* Mac OS 15.3.1, R 4.4.1
+* Windows 10 Pro, R 4.4.1
 * win-builder (devel and release)
 
 ## R CMD check results
+
+** Mac OS 15.3.1, R 4.4.1
+
+
+* checking for future file timestamps ... NOTE
+unable to verify current time
+
+-This is an erratic note impossible to resolve locally.
+
+
+
+** Windows 10 Pro, R 4.4.1
+* checking for future file timestamps ... NOTE
+unable to verify current time
+
+-This is an erratic note impossible to resolve locally.
+
+
+
 ** win-builder (devel and release)
-0 errors | 0 warnings | 0 note
+** release
+* checking CRAN incoming feasibility ... [10s] NOTE
+Maintainer: 'Silvia Castiglione <silvia.castiglione@unina.it>'
 
-** Windows NT Win10, R 4.0.3
-0 errors | 0 warnings | 0 note
+New submission
 
-** local OS X install, R 4.0.2
-0 errors | 0 warnings | 2 notes
+Possibly misspelled words in DESCRIPTION:
+  Mondanaro (27:83, 27:180)
+  al (27:96, 27:193)
+  et (27:93, 27:190)
 
+Suggests or Enhances not in mainstream repositories:
+  rnaturalearthhires
+Availability using Additional_repositories specification:
+  rnaturalearthhires   yes   http://packages.ropensci.org
+
+Uses the superseded package: 'doSNOW'
+
+* checking package dependencies ... NOTE
+Package suggested but not available for checking: 'rnaturalearthhires'
+
+-These notes are both about the package 'rnaturalearthhires' which is available from an additional repository as indicated in the DESCRIPTION of the package.
+
+
+** devel
 * checking CRAN incoming feasibility ... NOTE
-  Size of tarball: 5072747
+Maintainer: 'Silvia Castiglione <silvia.castiglione@unina.it>'
 
-* checking installed package size ... NOTE
-  installed size is  8.0Mb
-  sub-directories of 1Mb or more:
-  doc   6.5Mb
+New submission
 
-This is just memory allocation to vignette files.
+Possibly misspelled words in DESCRIPTION:
+  Mondanaro (27:83, 27:180)
+  al (27:96, 27:193)
+  et (27:93, 27:190)
 
+Suggests or Enhances not in mainstream repositories:
+  rnaturalearthhires
+Availability using Additional_repositories specification:
+  rnaturalearthhires   yes   http://packages.ropensci.org
+  
+-This note is about the package 'rnaturalearthhires' which is available from  an additional repository as indicated in the DESCRIPTION of the package.
 
 ## Reverse dependencies
 

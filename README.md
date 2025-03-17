@@ -1,13 +1,24 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# RRphylo
+# RRphylo <img src="inst/figures/RRphylo_logo.png" align="right" width="160" height="160"/>
 
-The goal of RRphylo is to compute phenotypic evolutionary rates,
-estimate ancestral states, locate rate shifts on the tree, and compare
-vectors of phenotypes and evolutionary rates among species. RRphylo is
-not based on any evolutionary model, and is best suited to work with
-phylogenies of fossil species.
+<!-- badges: start -->
+<!-- [![R-CMD-check](https://github.com/pedrocoutinhosilva/hexFinder/workflows/R-CMD-check/badge.svg)](https://CRAN.R-project.org/package=hexFinder) -->
+
+[![cranlogs](https://www.r-pkg.org/badges/version/RRphylo)](https://CRAN.R-project.org/package=RRphylo)
+[![total](https://cranlogs.r-pkg.org/badges/grand-total/RRphylo)](https://CRAN.R-project.org/package=RRphylo)
+<!--[![cranlogs](https://cranlogs.r-pkg.org/badges/RRphylo)](https://CRAN.R-project.org/package=RRphylo)-->
+
+<!-- badges: end -->
+
+------------------------------------------------------------------------
+
+The RRphylo package collects tools to compute branch-wise evolutionary
+rates, estimate ancestral states, locate rate shifts, assess temporal
+trends in phenotypes and rates, evaluate morphological convergence,
+along with some useful functions to easily visualize analyses results,
+assess statistical robustness, and build/manipulate phylogenetic trees.
 
 ## Installation from CRAN
 
