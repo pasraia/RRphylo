@@ -60,9 +60,6 @@ jobs:
         with:
           token: ${{ secrets.RHUB_TOKEN }}
           job-config: ${{ matrix.config.job-config }}
-      - name: Add stdbool.h include to Rinternals.h
-          run: echo '#include <stdbool.h>' | sudo tee -a /opt/R/devel-nold/lib/R/include/Rinternals.h
-
       - uses: r-hub/actions/run-check@v1
         with:
           token: ${{ secrets.RHUB_TOKEN }}
