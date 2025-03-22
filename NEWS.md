@@ -2,25 +2,21 @@
 What's new in version 3.0.0
 
 New functions added!
-We did some heavy changes to *overfitRR* to make the entire procedure of
-robustness testing faster and more flexible. The original function was split in
-six new functions: *resampleTree* - altering tree topology, *overfitRR* - robustness
-of RRphylo, *overfitSS* - robustness of search.shift, *overfitST* - robustness of
-search.trend, *overfitSC*- robustness of search.conv, and *overfitPGLS* - robustness
-of PGLS_fossil. 
-The new function *compRates* allows comparing average absolute
-rates between clades. 
-The new function *rateHistory* calculates historical rates
-(the net rate for each lineage from the root to the tip) for each tip of the
-tree.
+We did some heavy changes to *overfitRR* to make testing the robustness of results faster and more flexible. 
+The original *overfitRR* was split in six new functions: 
+*resampleTree* - altering tree topology, *overfitRR* - replicates RRphylo under 
+different tree topologies, *overfitSS* - tests search.shift,*overfitST* - tests 
+search.trend, *overfitSC*- tests search.conv, and *overfitPGLS* - tests PGLS_fossil. 
+The new function *compRates* allows comparing rate magnitude between clades. 
+The new function *rateHistory* calculates historical rates (the net rate for each 
+lineage from the root to the tip) for each tip of the tree.
 We implemented *tree.merger* to build phylogenetic trees from scratch and updated 
 *search.shift* to return additional results under the "clade" condition.
-Overall, we implemented all the functions to make them faster (where possible) 
-and more flexible and easy to use. All the "computational" functions (meaning those 
-which usually require long time to run) now have a "Call" attribute.
-
+Overall, we implemented all the functions to make them faster, more flexible and 
+easier to use. All the functions which usually require long time to run now have a "Call" attribute.
+ 
 The functions *conv.map* and *rate.map* have been implemented and moved to a
-brand new package (https://github.com/pasraia/RRmorph), the older versions are deprecated.
+brand new package (https://github.com/pasraia/RRmorph), and are since deprecated.
 
 
 # RRphylo 2.8.0

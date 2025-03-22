@@ -570,10 +570,10 @@ In the latter case (i.e. <code>status.type = &quot;sparse&quot;</code>) a furth
 <code>plotShift</code>.</p>
 <p><code>plotClades</code> highlights the shifting clades onto the
 phylogenetic tree by drawing colored circles on their Most Recent Common
-Ancestors (MRCA). The radii of such circles are directly proportional to
-the absolute value of absolute rate difference (see <a href="search.shift.html">search.shift</a> for further details), so that
+Ancestors (MRCA). The radii of the circles are proportional to the
+absolute difference of the rate magnitude (see <a href="search.shift.html">search.shift</a> for further details), so that
 a circle for a clade whose mean absolute rates “shifts” more from the
-mean absolute rates of the tree is larger than a circle for a clade with
+mean absolute rate of the tree is larger than a circle for a clade with
 a smaller difference. Plots for the tree and the circles can be
 customized by the user by specifying the arguments
 <code>tree.args</code> and <code>symbols.args</code>, respectively. For
@@ -658,8 +658,8 @@ generate histograms of the euclidean distances between phenotypic
 vectors of all possible pairs of tips/nodes within the phylogeny, and
 draw a vertical line representing the real distance between tips/nodes
 within convergent clade pair (it is the mean distance in the case of
-tips). Histogram and line characteristics can be customized by the user
-by specifying the arguments <code>hist.args</code> and
+tips). Histograms and lines features can be customized by the user by
+specifying the arguments <code>hist.args</code> and
 <code>line.args</code>. The function <code>plotPChull</code> generates a
 PC1/PC2 plot (obtained by performing a PCA of the species phenotypes)
 with convergent clades represented by colored convex hulls, and the mean

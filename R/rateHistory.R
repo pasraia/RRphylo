@@ -32,9 +32,12 @@ rateHistory<-function(RR){
   RR$tree->tree
   RR$multiple.rate->rates
 
-  allrate<-lapply(1:nrow(L), function(i)
-    sapply(1:ncol(rates),function(k)
-      rates[match(c(rownames(L)[i],getMommy(tree, rownames(L)[i])),rownames(rates)),k,drop=FALSE]))
+  allrate<-lapply(1:nrow(L), function(i){
+    ar<-sapply(1:ncol(rates),function(k)
+      rates[match(c(rownames(L)[i],getMommy(tree, rownames(L)[i])),rownames(rates)),k,drop=FALSE])
+    rownames(ar)<-c(rownames(L)[i],getMommy(tree, rownames(L)[i]))
+    ar
+  })
   hrate<-do.call(rbind,lapply(allrate,colSums,na.rm=TRUE))
   norm2vec<-do.call(rbind,lapply(allrate,function(j) apply(j,2,unitV,na.rm=TRUE)))
   rownames(hrate)<-rownames(norm2vec)<-rownames(L)

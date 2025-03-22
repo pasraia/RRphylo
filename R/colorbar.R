@@ -133,12 +133,12 @@ colorbar<-function(colors,x,y=NULL,direction="vertical",
 
     if(grepl("bottom",x)) ystart<-lims[3]+yscale/80+bottom.adj else
       if(grepl("top",x)) ystart<-lims[4]-yscale/80-top.adj else{
-      ystart<-lims[3]+yscale/2-Htot/2
-    }
-    if(grepl("left",x)) xstart<-lims[1]+xscale/80+left.adj else
-      if(grepl("right",x)) xstart<-lims[2]-xscale/80-right.adj else{
-      xstart<-lims[1]+xscale/2-Wtot/2
-    }
+        ystart<-lims[3]+yscale/2-Htot/2
+      }
+      if(grepl("left",x)) xstart<-lims[1]+xscale/80+left.adj else
+        if(grepl("right",x)) xstart<-lims[2]-xscale/80-right.adj else{
+          xstart<-lims[1]+xscale/2-Wtot/2
+        }
 
   }else{
     xstart<-x
@@ -204,7 +204,7 @@ colorbar<-function(colors,x,y=NULL,direction="vertical",
     if(direction=="vertical"&!is.null(labs.pos)&&labs.pos=="left")
       xtitle<-xstart-Wtot/2 else xtitle<-xstart+Wtot/2
       if(is.null(title.pos)||title.pos=="top")
-        ytitle<-yend+yscale/20 else
+        ytitle<- ifelse(grepl("top",x),mean(c(lims[4],yend)),yend + yscale/20) else
           ytitle<-ystart-yscale/20
         title.args<-c(list(x=xtitle,y=ytitle,labels=title),title.args)
   }

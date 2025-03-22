@@ -433,8 +433,10 @@ tm<-function(backbone=NULL,data,source.tree=NULL,
   close(pb)
   message("Binding done!")
 
-  if(is.null(backbone)) tree$edge.length<-rep(1,length(tree$edge.length))
-  if(!is.null(tip.ages)) tree<-rescaleRR(tree,height=tip.ages[which.max(tip.ages)]+tip.ages[which.max(tip.ages)]/10)
+  if(is.null(backbone)){
+    tree$edge.length<-rep(1,length(tree$edge.length))
+    if(!is.null(tip.ages)) tree<-rescaleRR(tree,height=tip.ages[which.max(tip.ages)]+tip.ages[which.max(tip.ages)]/10)
+  }
 
   trycal<-try({
     ### tips calibration ages ###
@@ -466,7 +468,7 @@ tm<-function(backbone=NULL,data,source.tree=NULL,
 
     ### age original root ###
     if(!is.null(backbone)&!getMRCA(tree,names(ages))%in%names(node.ages))
-      setNames(c(node.ages,Hset),c(names(node.ages),getMRCA(tree,names(ages))))
+      node.ages<-setNames(c(node.ages,Hset),c(names(node.ages),getMRCA(tree,names(ages))))
     # {
     #   node.ages<-c(node.ages,Hset)
     #   names(node.ages)[length(node.ages)]<-getMRCA(tree,names(ages))

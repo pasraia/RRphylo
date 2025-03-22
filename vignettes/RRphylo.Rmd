@@ -39,7 +39,7 @@ options(rmarkdown.html_vignette.check_title = FALSE)
 5. [Guided examples](#examples)
 
 ## RRphylo Basics {#basics}
-RRphylo is a full-fledged phylogenetic comparative method, based on RidgeRace regression (Kratsch and McHardy, 2014). It provides the rate of phenotypic change per branch and the vector of phenotypic estimates at nodes, with either continuous or discrete, univariate or multivariate data (Castiglione et al. 2018, 2020a). As compared to classic, model-based approaches, RRphylo makes no a priori assumption about the tempo and mode of phenotypic evolution. However, rates are presumed to change more between than within clades (see below) and the rate of change is calculated as proportional to time (branch lengths). 
+RRphylo is a full-fledged phylogenetic comparative method, based on RidgeRace regression (Kratsch and McHardy, 2014). It provides the rate of phenotypic change per branch and the vector of phenotypic estimates at nodes, with either continuous or ordinal, univariate or multivariate data (Castiglione et al. 2018, 2020a). As compared to classic, model-based approaches, RRphylo makes no a priori assumption about the tempo and mode of phenotypic evolution. However, rates are presumed to change more between than within clades (see below) and the rate of change is calculated as proportional to time (branch lengths). 
 
 ### RRphylo phylogenetic ridge regression {#RidgeRace}
 The RRphylo method is based on RidgeRace regression from Kratsch and McHardy (2014). Under both methods, the phenotypic change between a node and a daughter tip along a phyletic line is described by the sum of individual contributions at each consecutive branch according to the equation: $$Δy = β_{1}*l_{1} + β_{2}*l_{2} + ... β_{n}*l_{n}$$ where $n$ equals the number of branches intervening between the node and the tip, $β_{1...n}$ are the vectors of regression coefficients (the evolutionary rates) at each branch, and $l_{1...n}$ are the branch lengths. Extending this calculation simultaneously for the entire phylogeny, the  $\hat{β}$ vector is calculated as:
@@ -126,7 +126,7 @@ plot(acey,ace,pch=21,bg="gray80",cex=1.5,mgp=c(1.8,0.5,0),
 
 ```
 
-In Kratsch and McHardy (2014), `λ` is estimated through L2 (quadratic) penalization. Within RRphylo (Castiglione et al. 2018), `λ` is fitted by an inner function `optL`, which is written as to minimize the rate variation within clades, thereby acting conservatively in terms of the chance to find rate shifts and introducing phylogenetic autocorrelation in evolutionary rates (Sakamoto & Venditti 2018, Eastmann et al. 2011). 
+In Kratsch and McHardy (2014), `λ` is estimated through L2 (quadratic) penalization. Within RRphylo (Castiglione et al. 2018), `λ` is fitted by an inner function `optL`, which is written as to minimize the rate variation within clades, thereby acting conservatively in terms of the chance to find rate shifts and introducing phylogenetic autocorrelation in the evolutionary rates (Sakamoto & Venditti 2018, Eastmann et al. 2011). 
 
 ```{r, fig.show="hold",fig.width=8, fig.height=4,fig.align='center',out.width='100%',dpi=220}
 cc<-2/parallel::detectCores()

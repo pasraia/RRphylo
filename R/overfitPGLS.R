@@ -95,12 +95,14 @@ overfitPGLS<-function(modform,oveRR=NULL,phylo.list=NULL,data=NULL,...)
       phylo.list[[k]]->treecut
       ddpcr::quiet(datacut<-treedataMatch(treecut,data)[[1]])
       ddpcr::quiet(do.call(PGLS_fossil,c(list(modform=modform,data=datacut,tree=treecut),pgls.args))->PGLScut[[k]],all=TRUE)
+      attributes(PGLScut[[k]])$Call<-NULL
     }
 
     if(!is.null(oveRR)){
       oveRR$RR.list[[k]]->RRcut
       ddpcr::quiet(datacut<-treedataMatch(RRcut$tree,data)[[1]])
       ddpcr::quiet(do.call(PGLS_fossil,c(list(modform=modform,data=datacut,RR=RRcut),pgls.args))->PGLScutRR[[k]],all=TRUE)
+      attributes(PGLScutRR[[k]])$Call<-NULL
     }
   }
   close(pb)
