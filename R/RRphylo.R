@@ -339,8 +339,10 @@ RRphylo<-function (tree, y,
   if(verbose) cat(paste("Initial settings DONE\n"))
 
   core.chunk<-expression({
-    if(verbose) sink("RRlog.txt", append=TRUE)
-    if(verbose) cat(paste("Variable",i,"- optimization started\n"))
+    if(verbose){
+      sink("RRlog.txt", append=TRUE)
+      cat(paste("Variable",i,"- optimization started\n"))
+    }
     # rootV <- rv[i]
     # y <- yr[, i]
     if(!is.null(x1)){ #### multiple Ridge Regression ####
@@ -364,6 +366,7 @@ RRphylo<-function (tree, y,
       RRest<-RRcore(lambda,yr[,i],rv[i],L,L1,Lprod,tr)
     }
     if(verbose) cat(paste("Variable",i,"- rates and aces estimation DONE\n"))
+    sink()
     c(RRest,list(h))
   })
   cldef<-({

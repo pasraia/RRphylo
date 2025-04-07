@@ -477,7 +477,10 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
         if(any(sc.sel[,4]/sc.sel[,5]>1.1)) print("convergent trajectories") else
           print("parallel and convergent trajectories")
       }
-    }else print("no candidate node pairs selected, no convergence found")
+    }else{
+      sc.sel<-sc
+      print("no candidate node pairs selected, no convergence found")
+    }
 
     ### phenotypic vectors descending from node pairs resulting from search.conv ###
     phen2<-list()
