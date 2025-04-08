@@ -471,8 +471,8 @@ title("original",cex.main=1.2)
 points(plotinfo$xx[129],plotinfo$yy[129],pch=16,col="red",cex=1.2)
 
 ## ----eval=FALSE---------------------------------------------------------------
-#  cutPhylo(tree,age=5,keep.lineage = TRUE)
-#  cutPhylo(tree,age=5,keep.lineage = FALSE)
+# cutPhylo(tree,age=5,keep.lineage = TRUE)
+# cutPhylo(tree,age=5,keep.lineage = FALSE)
 
 ## ----echo=FALSE,fig.dim=c(6,3), message=FALSE, warning=FALSE, dpi=200, out.width='98%'----
 par(mfrow=c(1,2),mar=c(1,0.1,1.2,0.1),mgp=c(3,0.1,0.05))
@@ -534,8 +534,8 @@ age<-5
 }
 
 ## ----eval=FALSE---------------------------------------------------------------
-#  cutPhylo(tree,node=129,keep.lineage = TRUE)
-#  cutPhylo(tree,node=129,keep.lineage = FALSE)
+# cutPhylo(tree,node=129,keep.lineage = TRUE)
+# cutPhylo(tree,node=129,keep.lineage = FALSE)
 
 ## ----echo=FALSE,fig.dim=c(6,3), message=FALSE, warning=FALSE, dpi=200, out.width='98%'----
 node<-129
