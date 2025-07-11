@@ -42,7 +42,7 @@ source("functions4vignettes.R")
     f. [Guided examples](#examples)
 2. [scaleTree tool](#scaleTree)
 3. [move.lineage tool](#move.lineage)
-4. [cutPhylo tool](#scaleTree)
+4. [cutPhylo tool](#cutPhylo)
 5. [fix.poly tool](#fix.poly)
 
 ## tree.merger tool {#tree.merger}

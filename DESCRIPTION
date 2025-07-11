@@ -1,7 +1,7 @@
 Package: RRphylo
 Type: Package
 Title: Phylogenetic Ridge Regression Methods for Comparative Studies
-Date: 2025-03-20
+Date: 2025-07-11
 Version: 3.0.1
 Authors@R: c(person(given = "Pasquale",
                     family = "Raia",
