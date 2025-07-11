@@ -1,6 +1,10 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
-^RRphylo\.Rproj$
-^\.github$
 ^README\.Rmd$
 ^cran-comments\.md$
+^NEWS\.md$
+
+^doc$
+^Meta$
+^\.github$
+^revdep$
