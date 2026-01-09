@@ -67,7 +67,7 @@
 #'   ignored, and robustness testing is performed on the alternative topologies
 #'   as they are.
 #' @export
-#' @seealso \href{../doc/overfitRR.html}{\code{overfitRR} vignette} ;
+#' @seealso \href{../doc/overfit.html}{\code{overfitRR} vignette} ;
 #' @importFrom utils setTxtProgressBar txtProgressBar
 #' @references Castiglione, S., Tesone, G., Piccolo, M., Melchionna, M.,
 #'   Mondanaro, A., Serio, C., Di Febbraro, M., & Raia, P. (2018). A new method
@@ -174,6 +174,8 @@ overfitRR<-function(RR,y,
     setTxtProgressBar(pb,k)
 
     phylo.list[[k]]->treecut
+    if(is.null(treecut$node.label)) treecut$node.label<-Ntip(treecut)+1:Nnode(treecut)
+
     y[match(treecut$tip.label,rownames(y)),,drop=FALSE]->ycut
     y.ace[which(rownames(y.ace)%in%treecut$node.label),,drop=FALSE]->y.acecut
 

@@ -126,7 +126,7 @@ Castiglione, S., Serio, C., Mondanaro, A., Di Febbraro, M.,
   e0210101. https://doi.org/10.1371/journal.pone.0210101
 }
 \seealso{
-\href{../doc/overfitRR.html}{\code{overfitST} vignette} ;
+\href{../doc/overfit.html}{\code{overfitST} vignette} ;
   \href{../doc/search.trend.html}{\code{search.trend} vignette} ;
   \href{../doc/Alternative-trees.html}{\code{Alternative-trees} vignette}
 }

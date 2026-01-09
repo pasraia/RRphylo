@@ -170,7 +170,7 @@ Castiglione, S., Serio, C., Mondanaro, A., Di Febbraro, M.,
   e0210101. https://doi.org/10.1371/journal.pone.0210101
 }
 \seealso{
-\href{../doc/overfitRR.html}{\code{overfitRR} vignette} ;
+\href{../doc/overfit.html}{\code{overfitRR} vignette} ;
 }
 \author{
 Silvia Castiglione, Carmela Serio, Giorgia Girardi, Pasquale Raia

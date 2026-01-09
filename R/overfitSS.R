@@ -30,7 +30,7 @@
 #' @return The output always has an attribute "Call" which returns an unevaluated call to the function.
 #' @author Silvia Castiglione, Carmela Serio, Giorgia Girardi, Pasquale Raia
 #' @export
-#' @seealso \href{../doc/overfitRR.html}{\code{overfitSS} vignette} ;
+#' @seealso \href{../doc/overfit.html}{\code{overfitSS} vignette} ;
 #'   \href{../doc/search.shift.html}{\code{search.shift} vignette} ;
 #'   \href{../doc/Alternative-trees.html}{\code{Alternative-trees} vignette}
 #' @importFrom utils setTxtProgressBar txtProgressBar

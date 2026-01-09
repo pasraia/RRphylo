@@ -82,7 +82,7 @@ Castiglione, S., Tesone, G., Piccolo, M., Melchionna, M.,
   974-983.doi:10.1111/2041-210X.12954
 }
 \seealso{
-\href{../doc/overfitRR.html}{\code{overfitSS} vignette} ;
+\href{../doc/overfit.html}{\code{overfitSS} vignette} ;
   \href{../doc/search.shift.html}{\code{search.shift} vignette} ;
   \href{../doc/Alternative-trees.html}{\code{Alternative-trees} vignette}
 }

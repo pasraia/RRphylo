@@ -19,7 +19,7 @@
 #'   The output always has an attribute "Call" which returns an unevaluated call to the function.
 #' @author Silvia Castiglione, Carmela Serio, Giorgia Girardi, Pasquale Raia
 #' @export
-#' @seealso \href{../doc/overfitRR.html}{\code{overfitPGLS} vignette} ;
+#' @seealso \href{../doc/overfit.html}{\code{overfitPGLS} vignette} ;
 #'   \href{../doc/Alternative-trees.html}{\code{Alternative-trees} vignette}
 #' @importFrom utils setTxtProgressBar txtProgressBar
 #' @references Castiglione, S., Tesone, G., Piccolo, M., Melchionna, M.,

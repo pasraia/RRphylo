@@ -1,16 +1,16 @@
 ## Test environments
-* Mac OS 15.3.1, R 4.4.1
-* Windows 10 Pro, R 4.5.1
+* Mac OS Tahoe 26.1, R 4.5.2
+* Windows 11 Pro, R 4.5.2
 * win-builder (devel and release)
 
 ## R CMD check results
 
-** Mac OS 15.3.1, R 4.5.0
-0 errors | 0 warnings | 1 note | 1 info
+** Mac OS Tahoe 26.1, R 4.5.2
+0 errors | 0 warnings | 2 note | 1 info
 
 * checking CRAN incoming feasibility ... [3s/10s] NOTE
 Maintainer: ‘Silvia Castiglione <silvia.castiglione@unina.it>’
-Size of tarball: 6548969 bytes
+Size of tarball: 6549768 bytes
 
 * checking installed package size ... INFO
   installed size is  9.0Mb
@@ -27,8 +27,9 @@ unable to verify current time
 
 
 
-** Windows 10 Pro, R 4.5.1
+** Windows 11 Pro, R 4.5.2
 0 errors | 0 warnings | 1 note
+
 
 * checking for future file timestamps ... NOTE
 unable to verify current time
@@ -38,14 +39,11 @@ unable to verify current time
 
 
 ** win-builder (devel and release)
-** release
+** release and devel
 0 errors | 0 warnings | 0 note
 STATUS OK
 
 
-** devel
-0 errors | 0 warnings | 0 note
-STATUS OK
 
 ## Reverse dependencies
 

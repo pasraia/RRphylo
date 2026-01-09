@@ -1,8 +1,8 @@
 Package: RRphylo
 Type: Package
 Title: Phylogenetic Ridge Regression Methods for Comparative Studies
-Date: 2025-07-11
-Version: 3.0.1
+Date: 2026-01-09
+Version: 3.0.2
 Authors@R: c(person(given = "Pasquale",
                     family = "Raia",
                     role = "aut"),
@@ -72,4 +72,4 @@ Suggests:
     webshot2,
     testthat (>= 3.0.0)
 VignetteBuilder: knitr
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
